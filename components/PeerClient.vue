@@ -73,7 +73,7 @@ export default Vue.extend({
 
         this.peer = new Peer(key, {
             host: location.hostname,
-            path: '/myapp',
+            path: '/peer',
             port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic
             secure: process.env.NODE_ENV === 'production',
             debug: 3,

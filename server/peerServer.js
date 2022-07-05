@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'production') {
 const peerServer = ExpressPeerServer(server, {
     proxied: true,
     debug: process.env.NODE_ENV !== 'production',
-    path: '/myapp',
+    path: '/peer',
     ssl: process.env.NODE_ENV === 'production' ? credentials : {},
 });
 

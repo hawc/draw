@@ -2,7 +2,7 @@
 
 Remote control your own planet.
 
-https://remote-sky.hawc.de
+https://draw.hawc.de
 
 ### What is this?
 
@@ -53,10 +53,10 @@ On production we use port 443 also for the websocket connection. The nginx proxy
 Here's an examplatory nginx config for proxying https & wss traffic through nginx. SSL certificates are maintained by Certbot.
 ```
 server {
-    root /var/www/remote-sky;
+    root /var/www/draw;
 
     index index.html index.htm index.nginx-debian.html;
-    server_name remote-sky.hawc.de www.remote-sky.hawc.de; # managed by Certbot
+    server_name draw.hawc.de www.draw.hawc.de; # managed by Certbot
 
 
     location ^~ /assets/ {
@@ -65,7 +65,7 @@ server {
         add_header Cache-Control public;
     }
 
-    location /myapp/ {
+    location /peer/ {
         proxy_http_version 1.1;
         proxy_cache_bypass $http_upgrade;
 
@@ -94,25 +94,25 @@ server {
 
     listen [::]:443 ssl ipv6only=on; # managed by Certbot
     listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/remote-sky.hawc.de/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/remote-sky.hawc.de/privkey.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/draw.hawc.de/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/draw.hawc.de/privkey.pem; # managed by Certbot
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 }
 
 server {
-    if ($host = www.remote-sky.hawc.de) {
+    if ($host = www.draw.hawc.de) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
 
-    if ($host = remote-sky.hawc.de) {
+    if ($host = draw.hawc.de) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
     listen 80 ;
     listen [::]:80 ;
-    server_name remote-sky.hawc.de www.remote-sky.hawc.de;
+    server_name draw.hawc.de www.draw.hawc.de;
     return 404; # managed by Certbot
 }
 ```
