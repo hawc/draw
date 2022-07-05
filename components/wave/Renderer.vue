@@ -1,6 +1,7 @@
 <template>
     <div>
-        <main ref="main"></main>
+        <div ref="main"></div>
+        <div class="overlay"></div>
     </div>
 </template>
 
@@ -35,7 +36,7 @@ export default Vue.extend({
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-            scene.background = new THREE.Color(0x131200);
+            scene.background = new THREE.Color(0x00000);
             const renderer = new THREE.WebGLRenderer();
             renderer.setSize(window.innerWidth, window.innerHeight);
             this.$refs.main.appendChild(renderer.domElement);
@@ -86,3 +87,23 @@ export default Vue.extend({
     },
 });
 </script>
+
+<style>
+body {
+    overflow: hidden !important;
+}
+main {
+    filter: brightness(105%) grayscale(100%) contrast(5000%);
+}
+.overlay {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    top: 50%;
+    left: 50%;
+    transform: scale(2) translate(-50%, -50%);
+    pointer-events: none;
+    background-image: url(https://grainy-gradients.vercel.app/noise.svg);
+    filter: contrast(110%) brightness(100%);
+}
+</style>

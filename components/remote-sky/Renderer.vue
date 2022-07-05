@@ -345,3 +345,9 @@ export default Vue.extend({
     },
 });
 </script>
+
+<style>
+body {
+    overflow: hidden !important;
+}
+</style>
