@@ -15,7 +15,7 @@ const defaults = {
         min: 1,
         max: 170,
         step: 1,
-        default: 1,
+        default: 20,
     },
     ringsCount: {
         min: 0,
@@ -27,13 +27,13 @@ const defaults = {
         min: 1,
         max: 20,
         step: 0.1,
-        default: 1,
+        default: 3,
     },
     ringsDistance: {
         min: 0,
         max: 1,
         step: 0.01,
-        default: 1,
+        default: 0.2,
     },
     ringsTilt: {
         min: 0,
@@ -57,7 +57,7 @@ const defaults = {
         min: 0,
         max: colors.length - 1,
         step: 1,
-        default: 0,
+        default: 14,
     },
     colorPadding: {
         min: 0,

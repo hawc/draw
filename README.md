@@ -1,6 +1,6 @@
-# midi-draw
+# draw.hawc.de
 
-Remote control your own planet.
+Hi! This is a (work-in-progress) playground for WebGL rendering with user input.
 
 https://draw.hawc.de
 
@@ -8,12 +8,12 @@ https://draw.hawc.de
 
 This application is a proof of concept for using different web technologies for remotely manipulating WebGL rendered website content. 
 
-You can control a 3D globe via a MIDI device attached to your computer. Or you can control it i.e. with your smartphone, just scan the displayed QR code.
+E.g. you can control a 3D globe via a MIDI device attached to your computer. Or you can control it with your smartphone, just scan the displayed QR code.
 
-Basically remote-sky consists of three main parts:
-- a p5.js canvas for rendering a 3D globe
-- a MIDI API for setting globe properties via external MIDI devices
-- a client side peerjs instance + a peerjs server for setting globe properties via a websocket connection from remote web connections
+Basically draw.hawc.de visualizations consist of three main parts:
+- a p5.js/Three.js canvas for rendering content with WebGL
+- a client side peerjs instance + a peerjs server for setting properties via a websocket connection
+- a MIDI API for setting properties via external MIDI devices
 
 ### What can I expect?
 
@@ -21,9 +21,9 @@ This project is WIP. So this is generally far from bug-free.
 
 The rendering application currently only works on non-mobile Chrome browsers. Mostly because of bad WebGL performance and the incomplete implementation of CSS rendering properties by the other browser vendors.
 
-MIDI controls are implemented very static right now. This means you can pobably only use a Intech Grid PO16, it's only tested with a single device.
+MIDI controls are implemented very static right now. This means you can pobably only use a "Intech Grid PO16", it's only tested with a single device.
 
-You'll stumble upon code for creating GIF files and email sending when you look through the repo. This is part of a currently disabled feature. It'll come soon.
+You'll stumble upon code for creating GIF files and email sending when you look through the repo. This stuff is not ready yet and I should move it to a dedicated feature branch. :)
 
 ## Build Setup
 
