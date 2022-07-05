@@ -61,14 +61,14 @@ export default Vue.extend({
     },
     watch: {
         'settings.colorName'(value) {
-            console.log('----- 1 ------');
-            console.log(JSON.stringify(value));
-            this.getColorMap(value);
+            if (value !== null) {
+                this.getColorMap(value);
+            }
         },
-        'settings.colorPadding'() {
-            console.log('----- 2 ------');
-            console.log(JSON.stringify(this.settings.colorName));
-            this.getColorMap(this.settings.colorName);
+        'settings.colorPadding'(value) {
+            if (value !== null) {
+                this.getColorMap(this.settings.colorName);
+            }
         },
     },
     methods: {
