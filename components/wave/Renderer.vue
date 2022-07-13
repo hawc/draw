@@ -32,9 +32,9 @@ export default Vue.extend({
             }
         },
         initThree() {
-            const CAMERA_DISTANCE = 5;
+            const CAMERA_DISTANCE = 8;
             const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
 
             scene.background = new THREE.Color(0x00000);
             const renderer = new THREE.WebGLRenderer();
@@ -46,7 +46,7 @@ export default Vue.extend({
             const cube = new THREE.Mesh(geometry, material);
 
             camera.position.z = CAMERA_DISTANCE;
-            camera.position.x = -(this.getVisibleScreenSize(camera, CAMERA_DISTANCE).x / 4);
+            camera.position.x = -(this.getVisibleScreenSize(camera, CAMERA_DISTANCE).x / 2);
 
             const animate = () => {
                 requestAnimationFrame(animate);
@@ -65,7 +65,7 @@ export default Vue.extend({
                     const newCube = cube.clone();
                     newCube.scale.x = this.settings.lineWidth;
                     newCube.scale.y = this.settings.lineHeight;
-                    newCube.position.set(lastCube.position.x + (this.settings.lineWidth + this.settings.lineDistance), 0.5 - this.settings.lineYOffset, 0);
+                    newCube.position.set(lastCube.position.x + (this.settings.lineWidth + this.settings.lineDistance), 0, 0);
                     scene.add(newCube);
                     camera.position.x = camera.position.x + (this.settings.lineWidth + this.settings.lineDistance);
                     lastCube = newCube;

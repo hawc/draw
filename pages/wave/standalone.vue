@@ -1,8 +1,13 @@
 <template>
     <div>
-        <Receiver>
+        <Receiver standalone>
             <Renderer></Renderer>
         </Receiver>
+        <Sender
+            hidden
+            standalone
+            :controllers="defaults"
+        ></Sender>
     </div>
 </template>
 
@@ -10,14 +15,20 @@
     import Vue from 'vue';
     import { mapMutations } from 'vuex';
     import Receiver from '@/components/Receiver.vue';
-    import Renderer from '@/components/remote-sky/Renderer.vue';
-    import { defaults } from '~/assets/remote-sky/defaults';
+    import Renderer from '@/components/wave/Renderer.vue';
+    import { defaults } from '~/assets/wave/defaults';
+    import Sender from '@/components/Sender.vue';
 
     export default Vue.extend({
         name: 'IndexPage',
         components: {
             Receiver,
-            Renderer,
+            Renderer, Sender,
+        },
+        data() {
+            return {
+                defaults,
+            };
         },
         methods: {
             ...mapMutations([
@@ -29,9 +40,3 @@
         },
     });
 </script>
-
-<style>
-canvas {
-    image-rendering: pixelated;
-}
-</style>

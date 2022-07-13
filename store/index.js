@@ -1,8 +1,51 @@
 // This is the input ID offset of my "Intech Studio: Grid" MIDI controller. Probably different for other devices.
-const KNOB_OFFSET = 32;
+const KNOB_OFFSET_INTECH_GRID_PO16 = 32;
+const KNOB_OFFSET = 0;
+
+const DEVICES = {
+    '0': {
+        name: 'null',
+        offset: {
+            channel: 0,
+            pitch: 0,
+            volume: 0,
+        },
+        useChannel: false,
+        fadeOut: false,
+    },
+    '-1830361464': {
+        name: 'Maschine Mikro MK3',
+        offset: {
+            channel: 160,
+            pitch: 12,
+            volume: 0,
+        },
+        useChannel: false,
+        fadeOut: false,
+    },
+    '1315524914': {
+        name: 'Maschine 2 Virtual Output',
+        offset: {
+            channel: 144,
+            pitch: 48,
+            volume: 0,
+        },
+        useChannel: true,
+        fadeOut: true,
+    },
+}
 
 let DEFAULTS = {};
 let DEFAULTS_KEYS = {};
+
+// this should be dependent on a usage mode or something, 
+// because the fading only makes sense when rendering MIDI loops (i.e. with "Maschine")
+const FADE_OUT_SETTINGS = false;
+// MIDI data is basically an array of three values ([1,1,1]) - channel, pitch and velocity. Depending of
+// the configuration of the device, either "channel" or "pitch" are used for identifying which button
+// has been pressed. While using "channel" makes most sense for mixing audio, "pitch" could be used when
+// working with basic MIDI devices without mixing software in between.
+const USE_CHANNELS = false;
 
 function getRandomNumber(data) {
     const min = Math.ceil(data.min);
@@ -37,10 +80,24 @@ export const state = () => ({
     stopMultiplicator: 1,
 });
 
+let newestTimestamp = {};
+
+function fadeOption(context, commitData, key, degree, start = true, newTimestamp = + new Date()) {
+    if (start) {
+        newestTimestamp[key] = newTimestamp;
+    }
+    fireEvent(context, commitData, key, degree);
+    setTimeout(() => {
+        if (newestTimestamp[key] === newTimestamp && degree > 0) {
+            fadeOption(context, commitData, key, degree - 1, false, newTimestamp);
+        }
+    }, 10)
+}
+
 export const mutations = {
     SET_OPTION(state, payload) {
         const property = Object.keys(payload)[0];
-        if (state.settings[property] !== payload[property]) {
+        if (state.settings[property] !== payload[property] && payload[property] !== null) {
             state.settings[property] = payload[property];
         }
     },
@@ -76,6 +133,7 @@ export const actions = {
         };
 
         const midiReady = (midi) => {
+            // console.log("init");
             midi.addEventListener('statechange', (event) => initDevices(event.target));
             initDevices(midi);
         };
@@ -84,30 +142,53 @@ export const actions = {
         const initDevices = (midi) => {
             const inputs = midi.inputs.values();
             for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+                console.log(input);
                 midiDevices.push(input.value);
             }
 
             startListening();
         };
 
-        const midiMessageReceived = ({ data }) => {
-            const knob = data['1'];
-            const degree = data['2'];
+        const midiMessageReceived = ({ data }, { midiKnobPosition, offset, fadeOut }) => {
+            // console.log(deviceData.name);
+            // const knob = data[midiKnobPosition] > 143 ? data[midiKnobPosition] - 144 : data[midiKnobPosition] - 128;
+            const knob = data[midiKnobPosition] - offset;
+            const value = data['2'];
             const commitData = {};
-            const key = DEFAULTS_KEYS[knob - KNOB_OFFSET];
-            if (key) {
-                commitData[key] = limitNumber(degree, DEFAULTS[key]);
-                context.commit('SET_OPTION', commitData);
-                localStorage.midiDrawSettings = JSON.stringify(payload);
+            const key = DEFAULTS_KEYS[knob];
+            // console.log(key, midiKnobPosition, knob, value);
+            if (key !== undefined) {
+                if (fadeOut) {
+                    // checking if value is > 0, so we don't reset setting to 0 after button is released
+                    if (value > 0) {
+                        fadeOption(context, commitData, key, value);
+                    }
+                } else {
+                    fireEvent(context, commitData, key, value);
+                }
             }
         };
 
         const startListening = () => {
             for (const input of midiDevices) {
-                input.addEventListener('midimessage', midiMessageReceived);
+                let deviceId = input.id;
+                const deviceData = DEVICES[deviceId.toString()] ?? DEVICES['0'];
+                const eventData = {
+                    midiKnobPosition: deviceData.useChannel ? 0 : 1,
+                    offset: deviceData.offset[deviceData.useChannel ? 'channel' : 'pitch'],
+                    fadeOut: deviceData.fadeOut,
+                };
+                input.addEventListener('midimessage', (event) => midiMessageReceived(event, eventData));
             }
         };
 
         connect();
     },
 };
+
+function fireEvent(context, commitData, key, degree) {
+    // console.log(key, degree);
+    commitData[key] = limitNumber(degree, DEFAULTS[key]);
+    context.commit('SET_OPTION', commitData);
+    // localStorage.midiDrawSettings = JSON.stringify(payload);
+}

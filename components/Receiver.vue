@@ -6,13 +6,20 @@
         <div class="container">
             <p class="statusMessage">
                 {{ peerID ? peerID : 'Not connected.' }}
-                <a v-if="peerID"
-                   :href="`${ $route.fullPath }/sender?k=${ peerID }`"
-                   target="_new">
+                <a
+                    v-if="peerID"
+                    :href="`${ $route.fullPath }/sender?k=${ peerID }`"
+                    target="_new"
+                >
                     🕹
                 </a>
             </p>
-            <PeerClient @message="setMessage" :settings="settings" :options-setter="SET_OPTIONS" />
+            <PeerClient
+                v-if="!standalone"
+                @message="setMessage"
+                :settings="settings"
+                :options-setter="SET_OPTIONS"
+            />
         </div>
     </div>
 </template>
@@ -30,6 +37,12 @@ export default Vue.extend({
         return {
             peerID: '',
         };
+    },
+    props: {
+        standalone: {
+            type: Boolean,
+            default: false,
+        }
     },
     computed: {
         ...mapState(['settings']),

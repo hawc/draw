@@ -1,7 +1,7 @@
 <template>
     <div>
         <Receiver>
-            <Renderer />
+            <Renderer></Renderer>
         </Receiver>
     </div>
 </template>

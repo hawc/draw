@@ -11,7 +11,7 @@
                 {{ statusMessage }}
             </p>
         </div>
-        <PeerController ref="controller" @message="setMessage" :settings="settings" :options-setter="SET_OPTIONS" />
+        <PeerController v-if="!standalone" ref="controller" @message="setMessage" :settings="settings" :options-setter="SET_OPTIONS" />
     </div>
 </template>
 
@@ -28,6 +28,10 @@ export default Vue.extend({
         controllers: {
             type: Object,
             required: true,
+        },
+        standalone: {
+            type: Boolean,
+            default: false,
         }
     },
     data() {
@@ -41,7 +45,9 @@ export default Vue.extend({
             deep: true,
             handler(settings) {
                 this.SET_OPTIONS(settings);
-                this.$refs.controller.sendMessage({ settings });
+                if (!this.standalone) {
+                    this.$refs.controller.sendMessage({ settings });
+                }
             },
         },
         settings: {
@@ -65,6 +71,7 @@ export default Vue.extend({
     },
     mounted() {
         this.$nextTick(() => {
+            console.log("addMidiController");
             this.addMidiController();
         });
     },

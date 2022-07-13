@@ -1,8 +1,13 @@
 <template>
     <div>
-        <Receiver>
+        <Receiver standalone>
             <Renderer></Renderer>
         </Receiver>
+        <Sender
+            hidden
+            standalone
+            :controllers="defaults"
+        ></Sender>
     </div>
 </template>
 
@@ -18,6 +23,11 @@
         components: {
             Receiver,
             Renderer,
+        },
+        data() {
+            return {
+                defaults,
+            };
         },
         methods: {
             ...mapMutations([
