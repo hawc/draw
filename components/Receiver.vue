@@ -1,6 +1,6 @@
 <template>
     <div>
-        <main>
+        <main :class="mainClass">
             <slot name="default" />
         </main>
         <div class="container">
@@ -42,6 +42,10 @@ export default Vue.extend({
         standalone: {
             type: Boolean,
             default: false,
+        },
+        mainClass: {
+            type: String,
+            default: '',
         }
     },
     computed: {

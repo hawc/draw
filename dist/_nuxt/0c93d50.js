@@ -91,7 +91,7 @@ var bundler = __webpack_require__(258);
         });
 
         _this.peer.on('close', function () {
-          console.log('closed');
+          console.log('Connection closed');
         });
       });
     },

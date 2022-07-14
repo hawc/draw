@@ -1,39 +1,4 @@
-// This is the input ID offset of my "Intech Studio: Grid" MIDI controller. Probably different for other devices.
-const KNOB_OFFSET_INTECH_GRID_PO16 = 32;
-const KNOB_OFFSET = 0;
-
-const DEVICES = {
-    '0': {
-        name: 'null',
-        offset: {
-            channel: 0,
-            pitch: 0,
-            volume: 0,
-        },
-        useChannel: false,
-        fadeOut: false,
-    },
-    '-1830361464': {
-        name: 'Maschine Mikro MK3',
-        offset: {
-            channel: 160,
-            pitch: 12,
-            volume: 0,
-        },
-        useChannel: false,
-        fadeOut: false,
-    },
-    '1315524914': {
-        name: 'Maschine 2 Virtual Output',
-        offset: {
-            channel: 144,
-            pitch: 48,
-            volume: 0,
-        },
-        useChannel: true,
-        fadeOut: true,
-    },
-}
+import { DEVICES } from "~/assets/devices";
 
 let DEFAULTS = {};
 let DEFAULTS_KEYS = {};
@@ -150,13 +115,11 @@ export const actions = {
         };
 
         const midiMessageReceived = ({ data }, { midiKnobPosition, offset, fadeOut }) => {
-            // console.log(deviceData.name);
             // const knob = data[midiKnobPosition] > 143 ? data[midiKnobPosition] - 144 : data[midiKnobPosition] - 128;
             const knob = data[midiKnobPosition] - offset;
             const value = data['2'];
             const commitData = {};
             const key = DEFAULTS_KEYS[knob];
-            // console.log(key, midiKnobPosition, knob, value);
             if (key !== undefined) {
                 if (fadeOut) {
                     // checking if value is > 0, so we don't reset setting to 0 after button is released

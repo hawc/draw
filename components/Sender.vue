@@ -71,7 +71,6 @@ export default Vue.extend({
     },
     mounted() {
         this.$nextTick(() => {
-            console.log("addMidiController");
             this.addMidiController();
         });
     },

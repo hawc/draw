@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Receiver main-class="wave">
+        <Receiver>
             <Renderer></Renderer>
         </Receiver>
     </div>
@@ -10,8 +10,8 @@
     import Vue from 'vue';
     import { mapMutations } from 'vuex';
     import Receiver from '@/components/Receiver.vue';
-    import Renderer from '@/components/wave/Renderer.vue';
-    import { defaults } from '~/assets/wave/defaults';
+    import Renderer from '@/components/object/Renderer.vue';
+    import { defaults } from '~/assets/object/defaults';
 
     export default Vue.extend({
         name: 'IndexPage',

@@ -1,7 +1,7 @@
 <template>
     <div>
         <div ref="main"></div>
-        <div class="overlay"></div>
+        <div class="overlay overlay--wave"></div>
     </div>
 </template>
 
@@ -53,7 +53,7 @@ export default Vue.extend({
                 if (this.stopMultiplicator !== 0) {
                     updateContent();
                 }
-                renderer.render( scene, camera );
+                renderer.render(scene, camera);
             }
 
             let keyframe = 0;
@@ -92,7 +92,7 @@ export default Vue.extend({
 body {
     overflow: hidden !important;
 }
-main {
+main.wave {
     filter: brightness(105%) grayscale(100%) contrast(5000%);
 }
 .overlay {
@@ -103,6 +103,8 @@ main {
     left: 50%;
     transform: scale(2) translate(-50%, -50%);
     pointer-events: none;
+}
+.overlay--wave {
     background-image: url(https://grainy-gradients.vercel.app/noise.svg);
     filter: contrast(110%) brightness(100%);
 }

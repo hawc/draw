@@ -1,6 +1,6 @@
 <template>
     <div>
-        <Receiver standalone>
+        <Receiver main-class="wave" standalone>
             <Renderer></Renderer>
         </Receiver>
         <Sender
