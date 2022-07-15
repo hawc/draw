@@ -1,7 +1,8 @@
 <template>
     <div>
         <canvas
-            style="border: 2px solid white; z-index: 500; position: absolute; bottom: 0; left: 0; top: auto !important; width: 150px !important; height: 150px !important; transform: none !important;"
+            :hidden="!isDev"
+            class="audioCanvas"
             ref="visualizer"
         ></canvas>
     </div>
@@ -14,6 +15,7 @@
     export default Vue.extend({
         data() {
             return {
+                isDev: process.env.NODE_ENV === 'development',
                 analyser: null,
                 canvas: null,
                 canvasCtx: null,
@@ -40,7 +42,7 @@
 
                     this.analyser.getByteFrequencyData(dataArrayAlt);
 
-                    if (process.env.NODE_ENV === 'development') {
+                    if (this.isDev) {
                         this.canvasCtx.fillStyle = 'rgb(0, 0, 0)';
                         this.canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
                     }
@@ -52,7 +54,7 @@
                     for (let i = 0; i < bufferLengthAlt; i++) {
                         barHeight = dataArrayAlt[i];
 
-                        if (process.env.NODE_ENV === 'development') {
+                        if (this.isDev) {
                             this.canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ', 50, 50)';
                             this.canvasCtx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2);
                         }
@@ -116,3 +118,17 @@
         }
     });
 </script>
+
+<style scoped>
+.audioCanvas {
+    border: 2px solid white;
+    z-index: 500;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    top: auto !important;
+    width: 150px !important;
+    height: 150px !important;
+    transform: none !important;
+}
+</style>
