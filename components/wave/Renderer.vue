@@ -61,15 +61,14 @@ export default Vue.extend({
 
             const updateContent = () => {
                 keyframe++;
-                if ((keyframe % (11 - Math.floor(10 * this.settings.speed))) === 0) {
-                    const newCube = cube.clone();
-                    newCube.scale.x = this.settings.lineWidth;
-                    newCube.scale.y = this.settings.lineHeight;
-                    newCube.position.set(lastCube.position.x + (this.settings.lineWidth + this.settings.lineDistance), 0, 0);
-                    scene.add(newCube);
-                    camera.position.x = camera.position.x + (this.settings.lineWidth + this.settings.lineDistance);
-                    lastCube = newCube;
-                }
+                // if ((keyframe % (11 - Math.floor(10 * this.settings.speed))) === 0) {
+                const newCube = cube.clone();
+                newCube.scale.x = this.settings.lineWidth;
+                newCube.scale.y = this.settings.lineHeight;
+                newCube.position.set(lastCube.position.x + (this.settings.lineWidth + this.settings.lineDistance), 0, 0);
+                scene.add(newCube);
+                camera.position.x = camera.position.x + (this.settings.lineWidth + this.settings.lineDistance);
+                lastCube = newCube;
             }
             animate();
         },

@@ -29,12 +29,12 @@ const defaults = {
         step: 0.1,
         default: 1,
     },
-    speed: {
-        min: 0.1,
-        max: 1,
-        step: 0.01,
-        default: 1,
-    },
+    // speed: {
+    //     min: 0.1,
+    //     max: 1,
+    //     step: 0.01,
+    //     default: 1,
+    // },
 };
 
 export {

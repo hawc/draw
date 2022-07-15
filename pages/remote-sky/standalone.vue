@@ -3,6 +3,7 @@
         <Receiver standalone>
             <Renderer></Renderer>
         </Receiver>
+        <MicrophoneInput v-if="populated"></MicrophoneInput>
         <Sender
             hidden
             standalone
@@ -13,7 +14,7 @@
 
 <script lang="ts">
     import Vue from 'vue';
-    import { mapMutations } from 'vuex';
+    import { mapMutations, mapState } from 'vuex';
     import Receiver from '@/components/Receiver.vue';
     import Renderer from '@/components/remote-sky/Renderer.vue';
     import { defaults } from '~/assets/remote-sky/defaults';
@@ -28,6 +29,9 @@
             return {
                 defaults,
             };
+        },
+        computed: {
+            ...mapState(['populated']),
         },
         methods: {
             ...mapMutations([

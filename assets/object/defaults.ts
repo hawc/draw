@@ -12,10 +12,10 @@ const defaults = {
         default: 0,
     },
     speed: {
-        min: 0.1,
+        min: 0.5,
         max: 3,
         step: 0.01,
-        default: 1,
+        default: 0.5,
     },
     size: {
         min: 1,

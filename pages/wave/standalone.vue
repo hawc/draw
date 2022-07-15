@@ -1,8 +1,12 @@
 <template>
     <div>
-        <Receiver main-class="wave" standalone>
+        <Receiver
+            main-class="wave"
+            standalone
+        >
             <Renderer></Renderer>
         </Receiver>
+        <MicrophoneInput v-if="populated"></MicrophoneInput>
         <Sender
             hidden
             standalone
@@ -13,7 +17,7 @@
 
 <script lang="ts">
     import Vue from 'vue';
-    import { mapMutations } from 'vuex';
+    import { mapMutations, mapState } from 'vuex';
     import Receiver from '@/components/Receiver.vue';
     import Renderer from '@/components/wave/Renderer.vue';
     import { defaults } from '~/assets/wave/defaults';
@@ -29,6 +33,9 @@
             return {
                 defaults,
             };
+        },
+        computed: {
+            ...mapState(['populated']),
         },
         methods: {
             ...mapMutations([

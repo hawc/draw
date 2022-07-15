@@ -151,7 +151,6 @@ export const actions = {
     },
     FIRE_EVENT(context, payload) {
         let key = Object.keys(context.state.settings)[payload.key];
-        // console.log(Object.keys(context.settings));
         if (key) {
             fireEvent(context, payload.commitData, key, payload.value);
         }
