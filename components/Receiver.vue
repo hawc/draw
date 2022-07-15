@@ -4,7 +4,8 @@
             <slot name="default" />
         </main>
         <div class="container">
-            <p class="statusMessage">
+            <p :hidden="standalone"
+                class="statusMessage">
                 {{ peerID ? peerID : 'Not connected.' }}
                 <a
                     v-if="peerID"
