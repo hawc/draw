@@ -43,6 +43,7 @@ function getDefaultSettings(data) {
 export const state = () => ({
     settings: null,
     stopMultiplicator: 1,
+    populated: false,
 });
 
 let newestTimestamp = {};
@@ -75,6 +76,7 @@ export const mutations = {
         state.settings = getDefaultSettings(payload);
         DEFAULTS = payload;
         DEFAULTS_KEYS = Object.keys(payload);
+        state.populated = true;
     },
 };
 
@@ -147,11 +149,22 @@ export const actions = {
 
         connect();
     },
+    FIRE_EVENT(context, payload) {
+        let key = Object.keys(context.state.settings)[payload.key];
+        // console.log(Object.keys(context.settings));
+        if (key) {
+            fireEvent(context, payload.commitData, key, payload.value);
+        }
+    },
 };
 
 function fireEvent(context, commitData, key, degree) {
-    // console.log(key, degree);
-    commitData[key] = limitNumber(degree, DEFAULTS[key]);
-    context.commit('SET_OPTION', commitData);
-    // localStorage.midiDrawSettings = JSON.stringify(payload);
+    if (key && DEFAULTS[key]) {
+        let num = limitNumber(degree, DEFAULTS[key]);
+        if (num && num !== NaN) {
+            commitData[key] = num;
+            context.commit('SET_OPTION', commitData);
+            // localStorage.midiDrawSettings = JSON.stringify(payload);
+        }
+    }
 }

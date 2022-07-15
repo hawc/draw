@@ -12,8 +12,8 @@ const defaults = {
         default: 0,
     },
     speed: {
-        min: 0.5,
-        max: 2,
+        min: 0.1,
+        max: 3,
         step: 0.01,
         default: 1,
     },
