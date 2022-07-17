@@ -1,6 +1,9 @@
 <template>
-    <div>
-        <canvas ref="canvasDump" id="canvasDump" />
+    <div class="renderer">
+        <canvas
+            ref="canvasDump"
+            id="canvasDump"
+        />
         <main></main>
     </div>
 </template>
@@ -345,9 +348,3 @@ export default Vue.extend({
     },
 });
 </script>
-
-<style>
-body {
-    overflow: hidden !important;
-}
-</style>

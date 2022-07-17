@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="renderer">
         <div ref="main"></div>
     </div>
 </template>
@@ -164,9 +164,3 @@ export default Vue.extend({
     },
 });
 </script>
-
-<style>
-body {
-    overflow: hidden !important;
-}
-</style>

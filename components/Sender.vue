@@ -1,9 +1,20 @@
 <template>
-    <div>
+    <div class="controlsWrapper">
         <div class="controls">
-            <div v-for="(controller, controllerKey) in controllers" :key="controllerKey" class="row">
+            <div
+                v-for="(controller, controllerKey) in controllers"
+                :key="controllerKey"
+                class="row"
+            >
                 <label :for="controllerKey">{{ controllerKey }}</label>
-                <input v-model.number="controlSettings[controllerKey]" :id="controllerKey" type="range" :min="controller.min" :max="controller.max" :step="controller.step">
+                <input
+                    v-model.number="controlSettings[controllerKey]"
+                    :id="controllerKey"
+                    type="range"
+                    :min="controller.min"
+                    :max="controller.max"
+                    :step="controller.step"
+                >
             </div>
         </div>
         <div class="container container--controls">
@@ -11,7 +22,13 @@
                 {{ statusMessage }}
             </p>
         </div>
-        <PeerController v-if="!standalone" ref="controller" @message="setMessage" :settings="settings" :options-setter="SET_OPTIONS" />
+        <PeerController
+            v-if="!standalone"
+            ref="controller"
+            @message="setMessage"
+            :settings="settings"
+            :options-setter="SET_OPTIONS"
+        />
     </div>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="renderer">
         <div ref="main"></div>
         <div class="overlay overlay--wave"></div>
     </div>
@@ -88,9 +88,6 @@ export default Vue.extend({
 </script>
 
 <style>
-body {
-    overflow: hidden !important;
-}
 main.wave {
     filter: brightness(105%) grayscale(100%) contrast(5000%);
 }

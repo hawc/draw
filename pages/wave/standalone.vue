@@ -2,8 +2,7 @@
     <div>
         <Receiver
             main-class="wave"
-            standalone
-        >
+            standalone>
             <Renderer></Renderer>
         </Receiver>
         <MicrophoneInput v-if="populated"></MicrophoneInput>
