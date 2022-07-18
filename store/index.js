@@ -93,10 +93,12 @@ export const actions = {
     // TODO: Connection should be handled inside Sender component.
     addMidiController(context) {
         const connect = () => {
-            navigator.requestMIDIAccess()
-                .then(
-                    (midi) => midiReady(midi),
-                    (err) => console.log('Something went wrong', err));
+            if (navigator.hasOwnProperty('requestMIDIAccess')) {
+                navigator.requestMIDIAccess()
+                    .then(
+                        (midi) => midiReady(midi),
+                        (err) => console.log('Something went wrong', err));
+            }
         };
 
         const midiReady = (midi) => {

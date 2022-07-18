@@ -10,8 +10,8 @@
     import Vue from 'vue';
     import { mapMutations } from 'vuex';
     import Receiver from '@/components/Receiver.vue';
-    import Renderer from '@/components/object/Renderer.vue';
-    import { defaults } from '~/assets/object/defaults';
+    import Renderer from '@/components/cube/Renderer.vue';
+    import { defaults } from '~/assets/cube/defaults';
 
     export default Vue.extend({
         name: 'IndexPage',

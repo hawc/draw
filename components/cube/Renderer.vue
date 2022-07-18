@@ -1,6 +1,8 @@
 <template>
     <div class="renderer">
-        <div ref="main"></div>
+        <div
+            ref="main"
+        ></div>
     </div>
 </template>
 
@@ -11,12 +13,11 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import { Wireframe } from 'three/examples/jsm/lines/Wireframe.js';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-// import { GRAIN_SHADER } from 'assets/object/shaders/grainShader';
+
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 export default Vue.extend({
     computed: {
@@ -24,6 +25,11 @@ export default Vue.extend({
             'settings',
             'stopMultiplicator',
         ]),
+    },
+    data() {
+        return {
+            window,
+        }
     },
     methods: {
         ...mapMutations([
@@ -47,72 +53,116 @@ export default Vue.extend({
                 bloomRadius: this.settings.bloomRadius,
             };
 
-            const CAMERA_DISTANCE = 8;
+            const CAMERA_DISTANCE = 50;
             const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+            const camera = new THREE.PerspectiveCamera(10, window.innerWidth / window.innerHeight, 0.1, 2000);
+
+            camera.useQuaternion = true;
+            var am_light = new THREE.AmbientLight(0x555555); // soft white light
+            scene.add(am_light);
 
             scene.background = new THREE.Color(0x000000);
-            const renderer = new THREE.WebGLRenderer({ antialias: false });
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             // renderer.toneMapping = THREE.ReinhardToneMapping;
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             this.$refs.main.appendChild(renderer.domElement);
-            
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+/*
+            const light = new THREE.SpotLight();
+            light.intensity = 10;
+            light.target = scene;
+            light.castShadow = true;
+            light.position.set(100, 15, -10);
+            // light.position.set(0,0,2);
+            // light.rotation.set(0.25,40,20);
+            // light.shadow.mapSize.width = 512;
+            // light.shadow.mapSize.height = 512;
+            // light.shadow.camera.near = 0.25;
+            // light.shadow.camera.far = 100;
+            light.shadow.camera.fov = 1;
+            // light.shadow.camera.position.set(200,200,0);
+            // light.shadow.camera.rotation.set(-0.1,1,0);
+            scene.add(light);
+*/
 
-            bloomPass.exposure = params.exposure;
-            bloomPass.threshold =params.bloomThreshold;
-            bloomPass.strength = params.bloomStrength;
-            bloomPass.radius = params.bloomRadius;
-            const composer = new EffectComposer(renderer);
-            composer.addPass(new RenderPass(scene, camera));
-            composer.addPass(bloomPass);
-
-            const RGBShift = new ShaderPass(RGBShiftShader);
-            RGBShift.uniforms['amount'].value = 0;
-            composer.addPass(RGBShift);
-
-            const geometry = new THREE.ConeGeometry(3.5, 5, 4, 1, true);
-            geometry.parameters.openEnded = true;
-            const edges = new THREE.EdgesGeometry(geometry);
-            const geo = new LineSegmentsGeometry().fromEdgesGeometry(edges);
-            const matLine = new LineMaterial({
-                color: 0xff2222,
-                linewidth: this.settings.lineWidth,
-                dashed: false,
+            const bulbGeometry = new THREE.SphereBufferGeometry(0.02, 16, 8);
+            const bulbLight = new THREE.DirectionalLight(0xffffff, 5, 100, 2);
+            const bulbMat = new THREE.MeshStandardMaterial({
+                emissive: 0xffffee,
+                emissiveIntensity: 1,
+                color: 0x000000
             });
-            matLine.resolution.set(window.innerWidth, window.innerHeight);
-            const line = new Wireframe(geo, matLine);
-            line.computeLineDistances();
-            line.scale.set(1, 1, 1);
-            scene.add(line);
-            line.position.set(0, 0, -10);
-            line.scale.set(this.settings.size, this.settings.size, this.settings.size);
+            bulbLight.add(new THREE.Mesh(bulbGeometry, bulbMat));
+            bulbLight.position.set(10, 5, -2);
+            bulbLight.castShadow = true;
+            scene.add(bulbLight); 
+            
+            const bulbLight2 = new THREE.DirectionalLight(0xffffff, 5, 100, 2);
+            bulbLight2.add(new THREE.Mesh(bulbGeometry, bulbMat));
+            bulbLight2.position.set(-15, 5, -5);
+            bulbLight2.castShadow = true;
+            scene.add(bulbLight2);
+            // const helper = new THREE.CameraHelper(light.shadow.camera);
+            // scene.add(helper);
 
-            const line2 = line.clone();
-            line2.scale.set(0.3, 0.3, 0.3);
-            line2.position.set(0, 4.5, -10);
-            line2.visible = false;
-            scene.add(line2);
+            // new OrbitControls(camera, renderer.domElement)
+            
+            const composer = new EffectComposer(renderer);
+            const renderPass = new RenderPass(scene, camera);
+            composer.addPass(renderPass);
 
-            const line3 = line.clone();
-            line3.scale.set(0.3, 0.3, 0.3);
-            line3.position.set(0, -4.5, -10);
-            line2.visible = false;
-            scene.add(line3);
+            const bokehPass = new BokehPass(scene, camera, {
+                focus: 2,
+                aperture: 0.00006,
+                maxblur: 0.03,
+                width: window.innerWidth,
+                height: window.innerHeight
+            });
+            bokehPass.renderToScreen = true;
+            composer.addPass(bokehPass);
 
-            camera.position.set(0, 0, CAMERA_DISTANCE);
+            // const RGBShift = new ShaderPass(RGBShiftShader);
+            // RGBShift.uniforms['amount'].value = 0;
+            // composer.addPass(RGBShift);
 
-            // Too many filters - not enough performance :(
 
-            // let counter = 1.0;
-            // const grainPass = new ShaderPass(GRAIN_SHADER);
-            // grainPass.renderToScreen = true;
-            // composer.addPass(grainPass);
+            const geometry = new THREE.BoxBufferGeometry(4, 4, 4);
+            const material = new THREE.MeshPhongMaterial({ color: 0x222222 });
+            const cube = new THREE.Mesh(geometry, material);
+            const cube2 = new THREE.Mesh(geometry, material);
+            const cube3 = new THREE.Mesh(geometry, material);
+            cube.position.set(5, 0, -15);
+            cube2.position.set(10, 0, -50);
+            cube3.position.set(2, 0, -3);
+            cube.rotation.set(0, -5, 0);
+            cube3.rotation.set(0, 0.1, 0);
+            cube.castShadow = true;
+            cube.receiveShadow = true;
+            cube2.castShadow = true;
+            cube2.receiveShadow = true;
+            cube3.castShadow = true;
+            cube3.receiveShadow = true;
+            scene.add(cube);
+            scene.add(cube2);
+            scene.add(cube3);
+            bulbLight.target = cube3;
+            bulbLight2.target = cube3;
+
+            var geo = new THREE.PlaneBufferGeometry(2000, 2000, 8, 8);
+            var mat = new THREE.MeshPhongMaterial({ color: 0x333333, side: THREE.DoubleSide });
+            var plane = new THREE.Mesh(geo, mat);
+            plane.receiveShadow = true;
+            plane.position.set(0,-2.03,0);
+            plane.rotation.x = -(Math.PI / 2);
+            plane.rotation.z = -(Math.PI / 2);
+            scene.add(plane);
+
+            camera.position.set(0, 7, CAMERA_DISTANCE); // lift camera...
+            camera.rotation.set(-0.12, 0, 0); // ... and look down
 
             const animate = () => {
-                // counter += 0.01;
-                // grainPass.uniforms["amount"].value = counter;
                 requestAnimationFrame(animate);
                 if (this.stopMultiplicator !== 0) {
                     updateContent();
@@ -123,30 +173,14 @@ export default Vue.extend({
             let rotation = 0;
 
             const updateContent = () => {
-                matLine.linewidth = this.settings.lineWidth;
-                params = {
-                    exposure: this.settings.exposure,
-                    bloomStrength: this.settings.bloomStrength,
-                    bloomRadius: this.settings.bloomRadius,
-                };
-                bloomPass.strength = params.bloomStrength;
-                bloomPass.radius = params.bloomRadius;
-                rotation = rotation + (6 * this.settings.speed / 180);
-                line.rotation.set(0, rotation, 0);
-                line2.rotation.set(0, rotation, 0);
-                line3.rotation.set(0, rotation, 0);
-                // line.scale.y = this.settings.lineHeight;
-                line.scale.set(this.settings.size, this.settings.size, this.settings.size);
-                // line2.scale.set(0.5 * this.settings.size, 0.5 * this.settings.size, 0.5 * this.settings.size);
-                // camera.position.set(0, 0, CAMERA_DISTANCE - this.settings.size);
-                camera.position.set(0, 0, CAMERA_DISTANCE);
-                line2.visible = this.settings.showSecondary > 0.25;
-                line3.visible = this.settings.showSecondary > 0.25;
-                if (this.settings.showSecondary > 0.5) {
-                    RGBShift.uniforms['amount'].value = Math.random() / 50;
-                } else {
-                    RGBShift.uniforms['amount'].value = 0;
-                }
+                // rotation = rotation + (6 * this.settings.speed / 180);
+                // cube.rotation.set(0, rotation, 0);
+                // camera.position.set(0, 0, CAMERA_DISTANCE);
+                // if (this.settings.showSecondary > 0.5) {
+                //     RGBShift.uniforms['amount'].value = Math.random() / 50;
+                // } else {
+                //     RGBShift.uniforms['amount'].value = 0;
+                // }
             }
             animate();
         },

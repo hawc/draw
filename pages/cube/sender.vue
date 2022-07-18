@@ -7,7 +7,7 @@
 <script>
 import Vue from 'vue';
 import { mapMutations } from 'vuex';
-import { defaults } from 'assets/object/defaults';
+import { defaults } from 'assets/cube/defaults';
 import Sender from '@/components/Sender.vue';
 
 export default Vue.extend({
