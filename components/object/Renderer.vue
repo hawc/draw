@@ -53,7 +53,8 @@ export default Vue.extend({
 
             scene.background = new THREE.Color(0x000000);
             const renderer = new THREE.WebGLRenderer({ antialias: false });
-            renderer.setPixelRatio(window.devicePixelRatio);
+            // pixelation is fine for crt display
+            // renderer.setPixelRatio(window.devicePixelRatio);
             // renderer.toneMapping = THREE.ReinhardToneMapping;
             renderer.setSize(window.innerWidth, window.innerHeight);
             this.$refs.main.appendChild(renderer.domElement);
