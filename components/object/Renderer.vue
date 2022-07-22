@@ -72,7 +72,7 @@ export default Vue.extend({
             RGBShift.uniforms['amount'].value = 0;
             composer.addPass(RGBShift);
 
-            const geometry = new THREE.ConeGeometry(3.5, 5, 4, 1, true);
+            const geometry = new THREE.ConeGeometry(5.5, 8, 4, 1, true);
             geometry.parameters.openEnded = true;
             const edges = new THREE.EdgesGeometry(geometry);
             const geo = new LineSegmentsGeometry().fromEdgesGeometry(edges);
@@ -91,13 +91,13 @@ export default Vue.extend({
 
             const line2 = line.clone();
             line2.scale.set(0.3, 0.3, 0.3);
-            line2.position.set(0, 4.5, -10);
+            line2.position.set(0, 6, -10);
             line2.visible = false;
             scene.add(line2);
 
             const line3 = line.clone();
             line3.scale.set(0.3, 0.3, 0.3);
-            line3.position.set(0, -4.5, -10);
+            line3.position.set(0, -6, -10);
             line2.visible = false;
             scene.add(line3);
 
@@ -164,3 +164,9 @@ export default Vue.extend({
     },
 });
 </script>
+
+<style>
+    body {
+        background: black;
+    }
+</style>

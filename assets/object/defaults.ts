@@ -1,7 +1,7 @@
 const defaults = {
     bloomStrength: {
         min: 0,
-        max: 5,
+        max: 3,
         step: 0.01,
         default: 1.5,
     },
@@ -19,7 +19,7 @@ const defaults = {
     },
     size: {
         min: 1,
-        max: 2,
+        max: 1.5,
         step: 0.01,
         default: 1,
     },
@@ -42,10 +42,10 @@ const defaults = {
         default: 1,
     },
     lineWidth: {
-        min: 1,
-        max: 10,
+        min: 6,
+        max: 15,
         step: 0.01,
-        default: 10,
+        default: 12,
     },
     exposure: {
         min: 0.1,
