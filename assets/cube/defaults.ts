@@ -1,4 +1,6 @@
-const defaults = {
+import { ControllerSettings } from "~/interfaces/Controller";
+
+const defaults: ControllerSettings = {
     bloomStrength: {
         min: 0,
         max: 5,

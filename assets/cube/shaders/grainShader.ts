@@ -1,4 +1,6 @@
-const GRAIN_SHADER = {
+import { Shader } from "~/interfaces/Renderer";
+
+const GRAIN_SHADER: Shader = {
     uniforms: {
         "tDiffuse": { value: null },
         "amount": { value: 1.0 }

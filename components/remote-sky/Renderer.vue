@@ -1,6 +1,7 @@
 <template>
     <div class="renderer">
         <canvas
+            class="skyCanvas"
             ref="canvasDump"
             id="canvasDump"
         />
@@ -167,7 +168,8 @@ export default Vue.extend({
                         p.image(img, -400, -400, 800, 800);
                     });
                     p.frameRate(30);
-                    p.createCanvas(800, 800, p.WEBGL);
+                    const backCanvas = p.createCanvas(800, 800, p.WEBGL);
+                    backCanvas.class('skyCanvas');
                     backgroundGraphic = p.createGraphics(800, 800, p.WEBGL);
                     bgShader = p.createShader(vert, frag);
                     p.shader(bgShader);
@@ -198,7 +200,8 @@ export default Vue.extend({
                     loadedRingsTexture = p.loadImage(require('@/assets/textures/2d2.png'));
                     loadedRingsTexture2 = p.loadImage(require('@/assets/textures/2d-donut.png'));
                     p.frameRate(30);
-                    p.createCanvas(800, 800, p.WEBGL);
+                    const frontCanvas = p.createCanvas(800, 800, p.WEBGL);
+                    frontCanvas.class('skyCanvas');
                     p.setAttributes('preserveDrawingBuffer', true);
                     p.setAttributes('alpha', true);
                     planetGraphic = p.createGraphics(800, 800, p.WEBGL);

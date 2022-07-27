@@ -68,11 +68,13 @@ body:has(.renderer) {
 }
 canvas {
     position: absolute;
-    /* width: MAX(100vw, 100vh) !important;
-    height: MAX(100vw, 100vh) !important; */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+.skyCanvas {
+    width: MAX(100vw, 100vh) !important;
+    height: MAX(100vw, 100vh) !important;
 }
 .root {
     position: absolute;

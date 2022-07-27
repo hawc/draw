@@ -1,8 +1,9 @@
 import colorscale from 'colormap/colorScale';
+import { ControllerSettings } from '~/interfaces/Controller';
 const colors = Object.keys(colorscale);
 const shades = 40;
 
-const textures = [
+const textures: string[] = [
     'mercury',
     'venus',
     'earth',
@@ -10,7 +11,7 @@ const textures = [
     'mars',
 ];
 
-const defaults = {
+const defaults: ControllerSettings = {
     globeDiameter: {
         min: 1,
         max: 170,
