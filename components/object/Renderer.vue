@@ -165,9 +165,3 @@ export default Vue.extend({
     },
 });
 </script>
-
-<style>
-    body {
-        background: black;
-    }
-</style>

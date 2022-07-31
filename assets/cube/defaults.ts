@@ -5,7 +5,7 @@ const defaults: ControllerSettings = {
         min: 0,
         max: 5,
         step: 0.01,
-        default: 1.5,
+        default: 1,
     },
     bloomRadius: {
         min: 0,

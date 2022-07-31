@@ -1,7 +1,7 @@
 <template>
     <div class="renderer">
         <div ref="main"></div>
-        <div class="overlay overlay--wave"></div>
+        <div class="overlay overlay--grain"></div>
     </div>
 </template>
 
@@ -86,22 +86,3 @@ export default Vue.extend({
     },
 });
 </script>
-
-<style>
-main.wave {
-    filter: brightness(105%) grayscale(100%) contrast(5000%);
-}
-.overlay {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    top: 50%;
-    left: 50%;
-    transform: scale(2) translate(-50%, -50%);
-    pointer-events: none;
-}
-.overlay--wave {
-    background-image: url(https://grainy-gradients.vercel.app/noise.svg);
-    filter: contrast(110%) brightness(100%);
-}
-</style>

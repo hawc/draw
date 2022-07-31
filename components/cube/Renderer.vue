@@ -6,13 +6,13 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { mapMutations, mapState } from 'vuex';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { HalftonePass } from 'three/examples/jsm/postprocessing/HalftonePass.js';
+import { HalftonePass } from '~/assets/cube/shaders/HalftonePass.js';
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -49,18 +49,24 @@ const OBJECTS = {
         },
     ],
 };
+
 const HALFTONE_PARAMS = {
     shape: 1,
     radius: 12,
-    rotateR: Math.PI / 12,
-    rotateB: Math.PI / 12 * 2,
-    rotateG: Math.PI / 12 * 3,
-    scatter: 1,
+    scatter: 0,
     blending: 1,
-    blendingMode: 1,
+    blendingMode: 0,
     greyscale: false,
+    hideR: false,
+    hideG: true,
+    hideB: true,
     disable: false
 };
+
+type ScreenSize = {
+    x: number,
+    y: number,
+}
 
 export default Vue.extend({
     computed: {
@@ -72,13 +78,14 @@ export default Vue.extend({
     data() {
         return {
             window,
+            cubes: [],
         }
     },
     methods: {
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        getVisibleScreenSize(camera, cameraDistance) {
+        getVisibleScreenSize(camera: THREE.PerspectiveCamera, cameraDistance: number): ScreenSize {
             const vFOV = THREE.MathUtils.degToRad(camera.fov);
             const height = 2 * Math.tan(vFOV / 2) * cameraDistance;
             const width = height * camera.aspect;
@@ -88,13 +95,16 @@ export default Vue.extend({
                 y: height,
             }
         },
-        async initThree() {
+        async initThree(): Promise<void> {
             const cameraDistance = 42 * SIZE;
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(12, window.innerWidth / window.innerHeight, 0.1, 2000 * SIZE);
 
             scene.background = new THREE.Color(0x000000);
             const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
+            renderer.debug.checkShaderErrors = true;
+            renderer.autoClear = true;
+            renderer.autoClearDepth = true;
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.setPixelRatio(window.devicePixelRatio);
@@ -107,16 +117,17 @@ export default Vue.extend({
             const bulbMaterial = new THREE.MeshStandardMaterial({
                 emissive: 0xffffee,
                 emissiveIntensity: 1,
-                color: 0x000000
+                color: 0x000000,
             });
             OBJECTS.lights.forEach(light => {
                 scene.add(this.getLight(bulbGeometry, bulbMaterial, light.position, light.intensity, light.distance));
             });
 
             const cubeGeometry = new THREE.BoxBufferGeometry(4 * SIZE, 4 * SIZE, 4 * SIZE);
-            const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0x222222 });
+            const cubeMaterial = new THREE.MeshPhongMaterial({ transparent: true, color: 0x222222 });
             OBJECTS.cubes.forEach((cubeSettings, i) => {
                 const cube = this.getCube(cubeGeometry, cubeMaterial, cubeSettings.position, cubeSettings.rotation);
+                this.cubes[i] = cube;
                 scene.add(cube);
             });
 
@@ -143,16 +154,20 @@ export default Vue.extend({
             camera.position.set(0.1 * SIZE, 7.8 * SIZE, cameraDistance); // lift camera...
             camera.rotation.set(-0.16, 0, 0); // ...and look down
 
+            let keyframe = 0;
             const animate = () => {
+                keyframe++;
                 requestAnimationFrame(animate);
-
+                this.switchCubeOpacity(keyframe);
+                // this.switchCubes(keyframe);
+                // this.switchChannels(keyframe, halftonePass);
                 composer.render();
             }
 
             new OrbitControls(camera, renderer.domElement);
             animate();
         },
-        getLight(geometry, material, position, intensity, distance) {
+        getLight(geometry, material, position, intensity, distance): THREE.PointLight {
             const bulbLight = new THREE.PointLight(0xffffff, intensity, distance, 2);
             bulbLight.add(new THREE.Mesh(geometry, material));
             bulbLight.position.set(position.x, position.y, position.z);
@@ -164,7 +179,7 @@ export default Vue.extend({
             
             return bulbLight;
         },
-        getCube(geometry, material, position, rotation) {
+        getCube(geometry, material, position, rotation): THREE.Mesh {
             const cube = new THREE.Mesh(geometry, material);
             cube.position.set(position.x * SIZE, position.y * SIZE, position.z * SIZE);
             if (rotation) {
@@ -175,7 +190,7 @@ export default Vue.extend({
 
             return cube;
         },
-        getPlane() {
+        getPlane(): THREE.Mesh {
             const planeGeometry = new THREE.PlaneBufferGeometry(2000 * SIZE, 2000 * SIZE, 8, 8);
             const planeMaterial = new THREE.MeshPhongMaterial({
                 color: 0x333333
@@ -187,7 +202,44 @@ export default Vue.extend({
             plane.rotation.z = -(Math.PI / 2);
 
             return plane;
-        }
+        },
+        switchChannels(keyframe: number, halftonePass: HalftonePass): void {
+            if (keyframe % 90 === 0) {
+                halftonePass.uniforms.hideR.value = false;
+                halftonePass.uniforms.hideG.value = true;
+                halftonePass.uniforms.hideB.value = true;
+            }
+            if (keyframe % 90 === 30) {
+                halftonePass.uniforms.hideR.value = true;
+                halftonePass.uniforms.hideG.value = false;
+                halftonePass.uniforms.hideB.value = true;
+            }
+            if (keyframe % 90 === 60) {
+                halftonePass.uniforms.hideR.value = true;
+                halftonePass.uniforms.hideG.value = true;
+                halftonePass.uniforms.hideB.value = false;
+            }
+        },
+        switchCubeOpacity(keyframe: number): void {
+            this.cubes[0].material.opacity = (keyframe % 100) / 100;
+        },
+        switchCubes(keyframe: number): void {
+            if (keyframe % 90 === 0) {
+                this.cubes[1].visible = true;
+                this.cubes[2].visible = false;
+                this.cubes[3].visible = false;
+            }
+            if (keyframe % 90 === 30) {
+                this.cubes[1].visible = false;
+                this.cubes[2].visible = true;
+                this.cubes[3].visible = false;
+            }
+            if (keyframe % 90 === 60) {
+                this.cubes[1].visible = false;
+                this.cubes[2].visible = false;
+                this.cubes[3].visible = true;
+            }
+        },
     },
     async mounted() {
         if (process.client) {
@@ -205,3 +257,9 @@ export default Vue.extend({
     },
 });
 </script>
+
+<style scoped>
+    .renderer {
+        filter: brightness(1000%) grayscale(100%) contrast(5000%);
+    }
+</style>
