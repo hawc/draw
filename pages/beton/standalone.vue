@@ -1,8 +1,6 @@
 <template>
     <div>
-        <Receiver
-            main-class="wave"
-            standalone>
+        <Receiver standalone>
             <Renderer></Renderer>
         </Receiver>
         <MicrophoneInput v-if="populated"></MicrophoneInput>
@@ -18,13 +16,15 @@
     import Vue from 'vue';
     import { mapMutations, mapState } from 'vuex';
     import Receiver from '@/components/Receiver.vue';
-    import Renderer from '@/components/wave/Renderer.vue';
+    import Renderer from '@/components/beton/Renderer.vue';
+    import MicrophoneInput from '@/components/MicrophoneInput.vue';
+    import { defaults } from '~/assets/beton/defaults';
     import Sender from '@/components/Sender.vue';
-    import { defaults } from '~/assets/wave/defaults';
 
     export default Vue.extend({
         name: 'IndexPage',
         components: {
+            MicrophoneInput,
             Receiver,
             Renderer, 
             Sender,
