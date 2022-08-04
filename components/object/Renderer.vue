@@ -4,7 +4,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { mapMutations, mapState } from 'vuex';
 import * as THREE from 'three';
@@ -18,6 +18,10 @@ import { Wireframe } from 'three/examples/jsm/lines/Wireframe.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 // import { GRAIN_SHADER } from 'assets/object/shaders/grainShader';
 
+interface BloomParameters {
+    [key: string]: string|number|null,
+}
+
 export default Vue.extend({
     computed: {
         ...mapState([
@@ -29,18 +33,8 @@ export default Vue.extend({
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        getVisibleScreenSize(camera, cameraDistance) {
-            const vFOV = THREE.MathUtils.degToRad(camera.fov);
-            const height = 2 * Math.tan(vFOV / 2) * cameraDistance;
-            const width = height * camera.aspect;
-
-            return {
-                x: width,
-                y: height,
-            }
-        },
-        initThree() {
-            let params = {
+        initThree(): void {
+            let params: BloomParameters = {
                 exposure: this.settings.exposure,
                 bloomThreshold: 0,
                 bloomStrength: this.settings.bloomStrength,

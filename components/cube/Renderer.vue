@@ -63,11 +63,6 @@ const HALFTONE_PARAMS = {
     disable: false
 };
 
-type ScreenSize = {
-    x: number,
-    y: number,
-}
-
 export default Vue.extend({
     computed: {
         ...mapState([
@@ -85,16 +80,6 @@ export default Vue.extend({
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        getVisibleScreenSize(camera: THREE.PerspectiveCamera, cameraDistance: number): ScreenSize {
-            const vFOV = THREE.MathUtils.degToRad(camera.fov);
-            const height = 2 * Math.tan(vFOV / 2) * cameraDistance;
-            const width = height * camera.aspect;
-
-            return {
-                x: width,
-                y: height,
-            }
-        },
         async initThree(): Promise<void> {
             const cameraDistance = 42 * SIZE;
             const scene = new THREE.Scene();
@@ -114,7 +99,7 @@ export default Vue.extend({
             scene.background = new THREE.Color(0x000000);
 
             const bulbGeometry = new THREE.SphereBufferGeometry(0.02 * SIZE, 16, 8);
-            const bulbMaterial = new THREE.MeshStandardMaterial({
+            const bulbMaterial = new THREE.MeshBasicMaterial({
                 emissive: 0xffffee,
                 emissiveIntensity: 1,
                 color: 0x000000,
@@ -167,7 +152,7 @@ export default Vue.extend({
             new OrbitControls(camera, renderer.domElement);
             animate();
         },
-        getLight(geometry, material, position, intensity, distance): THREE.PointLight {
+        getLight(geometry: THREE.SphereBufferGeometry, material: THREE.MeshBasicMaterial, position: THREE.Vector3, intensity: number, distance: number): THREE.PointLight {
             const bulbLight = new THREE.PointLight(0xffffff, intensity, distance, 2);
             bulbLight.add(new THREE.Mesh(geometry, material));
             bulbLight.position.set(position.x, position.y, position.z);
@@ -179,7 +164,7 @@ export default Vue.extend({
             
             return bulbLight;
         },
-        getCube(geometry, material, position, rotation): THREE.Mesh {
+        getCube(geometry: THREE.BoxBufferGeometry, material: THREE.MeshPhongMaterial, position: THREE.Vector3, rotation: THREE.Vector3): THREE.Mesh {
             const cube = new THREE.Mesh(geometry, material);
             cube.position.set(position.x * SIZE, position.y * SIZE, position.z * SIZE);
             if (rotation) {
@@ -193,7 +178,7 @@ export default Vue.extend({
         getPlane(): THREE.Mesh {
             const planeGeometry = new THREE.PlaneBufferGeometry(2000 * SIZE, 2000 * SIZE, 8, 8);
             const planeMaterial = new THREE.MeshPhongMaterial({
-                color: 0x333333
+                color: 0x333333,
             });
             const plane = new THREE.Mesh(planeGeometry, planeMaterial);
             plane.receiveShadow = true;

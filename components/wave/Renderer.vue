@@ -5,10 +5,15 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { mapMutations, mapState } from 'vuex';
 import * as THREE from 'three';
+
+interface ScreenSize {
+    x: number;
+    y: number;
+}
 
 export default Vue.extend({
     computed: {
@@ -21,7 +26,7 @@ export default Vue.extend({
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        getVisibleScreenSize(camera, cameraDistance) {
+        getVisibleScreenSize(camera: THREE.PerspectiveCamera, cameraDistance: THREE.cameraDistance): ScreenSize {
             const vFOV = THREE.MathUtils.degToRad(camera.fov);
             const height = 2 * Math.tan(vFOV / 2) * cameraDistance;
             const width = height * camera.aspect;
@@ -31,7 +36,7 @@ export default Vue.extend({
                 y: height,
             }
         },
-        initThree() {
+        initThree(): void {
             const CAMERA_DISTANCE = 8;
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
@@ -56,12 +61,9 @@ export default Vue.extend({
                 renderer.render(scene, camera);
             }
 
-            let keyframe = 0;
             let lastCube = cube.clone();
 
             const updateContent = () => {
-                keyframe++;
-                // if ((keyframe % (11 - Math.floor(10 * this.settings.speed))) === 0) {
                 const newCube = cube.clone();
                 newCube.scale.x = this.settings.lineWidth;
                 newCube.scale.y = this.settings.lineHeight;

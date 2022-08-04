@@ -4,7 +4,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import QRCode from 'qrcode';
 import Peer from 'peerjs';
@@ -18,7 +18,7 @@ export default Vue.extend({
         optionsSetter: {
             type: Function,
             required: true,
-        }
+        },
     },
     data() {
         return {
@@ -30,12 +30,12 @@ export default Vue.extend({
         };
     },
     watch: {
-        peerID(message) {
+        peerID(message): void {
             this.$emit('message', message);
         },
     },
     methods: {
-        initPeer() {
+        initPeer(): void {
             this.generateQrCode(`https://${ location.hostname }${ this.$route.fullPath }/sender?k=${ this.key }`);
 
             this.peer.on('open', () => {
@@ -58,12 +58,12 @@ export default Vue.extend({
                 });
             });
         },
-        sendMessage(data = {}) {
+        sendMessage(data = {}): void {
             if (this.connection) {
                 this.connection.send(data);
             }
         },
-        generateQrCode(text) {
+        generateQrCode(text: string): void {
             QRCode.toDataURL(text).then(image => this.qrcodeImage = image);
         },
     },

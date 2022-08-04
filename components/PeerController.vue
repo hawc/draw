@@ -2,7 +2,7 @@
     <div></div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import Peer from 'peerjs';
 
@@ -40,22 +40,22 @@ export default Vue.extend({
         },
     },
     methods: {
-        showCallContent() {
+        showCallContent(): void {
             this.$emit('message', 'Please connect.');
         },
-        sendMessage(data = {}) {
+        sendMessage(data = {}): void {
             if (this.connection) {
                 this.connection.send(data);
             }
         },
-        resetStoreSettings() {
+        resetStoreSettings(): void {
             // We need to clear the store to refresh the DOM
             // TODO: Only pre-populate store on renderer side
             const resetSettings = JSON.parse(JSON.stringify(this.settings));
             Object.keys(resetSettings).forEach(key => resetSettings[key] = null);
             this.optionsSetter(resetSettings);
         },
-        connectPeers() {
+        connectPeers(): void {
             const url = new URL(window.location.href);
             const code = url.searchParams.get('k') ?? prompt('Please enter key code.');
             if (code) {
@@ -79,18 +79,18 @@ export default Vue.extend({
                 });
             }
         },
-        call() {
+        call(): void {
             this.connectPeers();
         },
-        recall() {
+        recall(): void {
             this.connection = this.peer.reconnect();
             this.$emit('message', `You're connected.`);
         },
-        hangUp() {
+        hangUp(): void {
             this.connection.close();
             this.showCallContent();
         },
-        initPeer() {
+        initPeer(): void {
             this.peer.on('open', () => {
                 this.$emit('message', 'Please connect.');
                 this.call();

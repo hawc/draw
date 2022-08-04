@@ -9,7 +9,7 @@
 </template>
 
 <script>
-    import Vue, { nextTick } from "vue";
+    import Vue from 'vue';
     import { mapActions } from 'vuex';
 
     export default Vue.extend({
@@ -30,7 +30,6 @@
                 let WIDTH = this.canvas.width;
                 let HEIGHT = this.canvas.height;
 
-                // analyser.fftSize = 256;
                 this.analyser.fftSize = 32;
                 const bufferLengthAlt = this.analyser.frequencyBinCount;
                 const dataArrayAlt = new Uint8Array(bufferLengthAlt);
@@ -76,25 +75,16 @@
 
             },
             initAudioInput() {
-                // set up forked web audio context, for multiple browsers
-                // window. is needed otherwise Safari explodes
-
                 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 var source;
-
-                //set up the different audio nodes we will use for the app
 
                 this.analyser = audioCtx.createAnalyser();
                 this.analyser.minDecibels = -90;
                 this.analyser.maxDecibels = -10;
                 this.analyser.smoothingTimeConstant = 0.85;
 
-                // set up canvas context for visualizer
-
                 this.canvas = this.$refs.visualizer;
-                this.canvasCtx = this.canvas.getContext("2d");
-
-                //main block for doing the audio recording
+                this.canvasCtx = this.canvas.getContext('2d');
 
                 if (navigator.mediaDevices.getUserMedia) {
                     navigator.mediaDevices.getUserMedia({ audio: true })

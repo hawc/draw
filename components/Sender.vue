@@ -4,17 +4,15 @@
             <div
                 v-for="(controller, controllerKey) in controllers"
                 :key="controllerKey"
-                class="row"
-            >
-                <label :for="controllerKey">{{ controllerKey }}</label>
+                class="row">
+                <label :for="controllerKey.toString()">{{ controllerKey }}</label>
                 <input
                     v-model.number="controlSettings[controllerKey]"
-                    :id="controllerKey"
+                    :id="controllerKey.toString()"
                     type="range"
                     :min="controller.min"
                     :max="controller.max"
-                    :step="controller.step"
-                >
+                    :step="controller.step" />
             </div>
         </div>
         <div class="container container--controls">
@@ -27,12 +25,11 @@
             ref="controller"
             @message="setMessage"
             :settings="settings"
-            :options-setter="SET_OPTIONS"
-        />
+            :options-setter="SET_OPTIONS" />
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapState } from 'vuex';
 import PeerController from './PeerController.vue';
@@ -60,7 +57,7 @@ export default Vue.extend({
     watch: {
         controlSettings: {
             deep: true,
-            handler(settings) {
+            handler(settings): void {
                 this.SET_OPTIONS(settings);
                 if (!this.standalone) {
                     this.$refs.controller.sendMessage({ settings });
@@ -69,7 +66,7 @@ export default Vue.extend({
         },
         settings: {
             deep: true,
-            handler(settings) {
+            handler(settings): void {
                 this.controlSettings = JSON.parse(JSON.stringify(settings));
             }
         },
@@ -82,7 +79,7 @@ export default Vue.extend({
             'SET_OPTIONS',
             'addMidiController',
         ]),
-        setMessage(message) {
+        setMessage(message: string): void {
             this.statusMessage = message;
         },
     },

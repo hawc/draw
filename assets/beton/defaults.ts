@@ -19,11 +19,17 @@ const defaults: ControllerSettings = {
         step: 1,
         default: 1,
     },
-    columnType: {
+    elementWidth: {
         min: 0,
-        max: 12,
+        max: 1,
         step: 1,
-        default: 1,
+        default: 0,
+    },
+    elementType: {
+        min: 0,
+        max: 1,
+        step: 1,
+        default: 0,
     },
 };
 

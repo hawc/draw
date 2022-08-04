@@ -1,7 +1,7 @@
 <template>
     <div>
         <main :class="mainClass">
-            <slot name="default" />
+            <slot name="default"></slot>
         </main>
         <div class="container">
             <p :hidden="standalone"
@@ -25,7 +25,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapState } from 'vuex';
 import PeerClient from './PeerClient.vue';
@@ -56,7 +56,7 @@ export default Vue.extend({
         ...mapActions([
             'SET_OPTIONS',
         ]),
-        setMessage(message) {
+        setMessage(message: string): void {
             this.peerID = message;
         },
     },
