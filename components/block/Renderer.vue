@@ -51,16 +51,6 @@ export default Vue.extend({
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        getVisibleScreenSize(camera: THREE.PerspectiveCamera, cameraDistance: number): ScreenSize {
-            const vFOV = THREE.MathUtils.degToRad(camera.fov);
-            const height = 2 * Math.tan(vFOV / 2) * cameraDistance;
-            const width = height * camera.aspect;
-
-            return {
-                x: width,
-                y: height,
-            }
-        },
         async initThree(): Promise<void> {
             const scene = new THREE.Scene();
 

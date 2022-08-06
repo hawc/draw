@@ -17,7 +17,7 @@ const defaults: ControllerSettings = {
         min: 0,
         max: 12,
         step: 1,
-        default: 1,
+        default: 0,
     },
     elementWidth: {
         min: 0,

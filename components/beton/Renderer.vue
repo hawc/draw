@@ -35,7 +35,43 @@ export default Vue.extend({
         return {
             window,
             cubes: [],
+            renderMatrix: [],
+            objectMatrix: [],
         }
+    },
+    watch: {
+        settings: {
+            deep: true,
+            handler(settings) {
+                const totalColumnsMax = defaults.totalColumns.max;
+                const totalRowsMax = defaults.totalRows.max;
+                // fill matrix with info about content
+                for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
+                    const columns = [];
+                    for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
+                        if (rowIndex <= settings.totalRows && columnIndex <= settings.totalColumns) {
+                            columns[columnIndex] = (columnIndex === settings.currentColumn ? settings.elementType : (this.renderMatrix[rowIndex][columnIndex] ?? 0));
+                        } else {
+                            columns[columnIndex] = null;
+                        }
+                    }
+                    this.renderMatrix[rowIndex] = columns;
+                }
+            },
+        },
+        'settings.currentColumn'(currentColumn: number): void {
+            this.objectMatrix.forEach((row, rowIndex) => {
+                row.forEach((column, columnIndex) => {
+                    if (row[columnIndex] !== null) {
+                        if (columnIndex === currentColumn) {
+                            row[columnIndex].children[0].material.color.setHex(0xff0000);
+                        } else {
+                            row[columnIndex].children[0].material.color.setHex(0xffffff);
+                        }
+                    }
+                })
+            });
+        },
     },
     methods: {
         ...mapMutations([
@@ -239,6 +275,9 @@ export default Vue.extend({
             const fog = new THREE.FogExp2('#000000', 0.005);
             scene.fog = fog;
 
+            const light = new THREE.AmbientLight(0x404040);
+            scene.add(light);
+
             const spotlight1 = spotlight('rgb(255, 200, 255)', 1);
             scene.add(spotlight1);
             spotlight1.name = 'spotlight1';
@@ -262,8 +301,6 @@ export default Vue.extend({
 
             let keyframe = 0;
 
-            let renderMatrix = [];
-
             const totalColumnsMax = defaults.totalColumns.max;
             const totalRowsMax = defaults.totalRows.max;
 
@@ -273,10 +310,12 @@ export default Vue.extend({
                 for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
                     columns[columnIndex] = null;
                 }
-                renderMatrix[rowIndex] = columns;
+                this.renderMatrix[rowIndex] = columns;
             }
 
-            const objectMatrix = JSON.parse(JSON.stringify(renderMatrix));
+            this.objectMatrix = JSON.parse(JSON.stringify(this.renderMatrix));
+
+            const basicMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
 
             const animate = (renderer, scene, camera): void => {
                 renderer.render(scene, camera);
@@ -293,44 +332,34 @@ export default Vue.extend({
 
 
                     if (loaded === 14) {
-                        // fill matrix with info about content
-                        for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                            const columns = [];
-                            for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
-                                if (rowIndex <= this.settings.totalRows && columnIndex <= this.settings.totalColumns) {
-                                    columns[columnIndex] = (columnIndex === this.settings.currentColumn ? this.settings.elementType : 0);
-                                } else {
-                                    columns[columnIndex] = null;
-                                }
-                            }
-                            renderMatrix[rowIndex] = columns;
-                        }
-
                         // remove legacy objects from object matrix and fill with new ones
-                        renderMatrix.forEach((row, rowIndex) => {
+                        this.renderMatrix.forEach((row, rowIndex) => {
                             row.forEach((column, columnIndex) => {
-                                const currentCell = objectMatrix[rowIndex][columnIndex];
-                                if (renderMatrix[rowIndex][columnIndex] !== null) { // if cell qualifies for a object
-                                    if (currentCell) { // if there's already an object in this cell
-                                        scene.remove(currentCell);
-                                        objectMatrix[rowIndex][columnIndex] = null;
+                                const currentCell = this.objectMatrix[rowIndex][columnIndex];
+                                if (this.renderMatrix[rowIndex][columnIndex] !== null) { // if cell qualifies for a object
+                                    if (!(currentCell && currentCell.renderId === this.renderMatrix[rowIndex][columnIndex])) { // if cell content is not same as before
+                                        if (currentCell) { // if there's already an object in this cell
+                                            scene.remove(currentCell);
+                                            this.objectMatrix[rowIndex][columnIndex] = null;
+                                        }
+                                        // const objectSource = this.settings.currentColumn === rowIndex ? this.settings.elementType : 0;
+                                        this.objectMatrix[rowIndex][columnIndex] = objects['room'][0][this.renderMatrix[rowIndex][columnIndex]].object.clone();
+                                        this.objectMatrix[rowIndex][columnIndex].children[0].material = basicMaterial.clone();
+                                        this.objectMatrix[rowIndex][columnIndex].name = this.objectMatrix[rowIndex][columnIndex].uuid;
+                                        this.objectMatrix[rowIndex][columnIndex].renderId = this.renderMatrix[rowIndex][columnIndex];
+                                        if (columnIndex === this.settings.currentColumn) {
+                                            this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xff0000);
+                                        } else {
+                                            this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xffffff);
+                                        }
+                                        scene.add(this.objectMatrix[rowIndex][columnIndex]);
+                                        let posX = rowIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.x;
+                                        let posY = columnIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.y;
+                                        this.objectMatrix[rowIndex][columnIndex].position.set(posX, posY, 0);
                                     }
-                                    objectMatrix[rowIndex][columnIndex] = objects['room'][0][0].object.clone();
-                                    objectMatrix[rowIndex][columnIndex].name = objectMatrix[rowIndex][columnIndex].uuid;
-                                    scene.add(objectMatrix[rowIndex][columnIndex]);
-                                    // let measure = new THREE.Vector3();
-                                    // let box = colladaModel.getSize(measure);
-                                    // console.log(measure, box);
-                                    // let measure = new THREE.Vector3();
-                                    let posX = rowIndex * objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.x;
-                                    let posY = columnIndex * objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.y;
-                                    // if (typeof newObjectMatrix[rowIndex][columnIndex - 1] === 'object') {
-                                    //     posX = newObjectMatrix[rowIndex][columnIndex - 1].children[0].getSize(measure)[0];
-                                    // }
-                                    objectMatrix[rowIndex][columnIndex].position.set(posX, posY, 0);
                                 } else if (currentCell) { // if cell doesn't quality for an object but already has an object
                                     scene.remove(currentCell);
-                                    objectMatrix[rowIndex][columnIndex] = null;
+                                    this.objectMatrix[rowIndex][columnIndex] = null;
                                 }
                             });
                         });
