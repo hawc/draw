@@ -24,6 +24,97 @@ interface BetonObjects {
     [key: string]: BetonObject[][];
 }
 
+interface Settings {
+    [key: string]: number;
+}
+
+
+// outer array is dimension, inner is the different designs for that dimension
+const objects: BetonObjects = {
+    basement: [
+        [
+            {
+                file: 'basement360-01.obj',
+                object: null,
+            },
+            {
+                file: 'basement360-01.obj', // duplicate
+                object: null,
+            },
+        ],
+        [
+            {
+                file: 'basement480-01.obj',
+                object: null,
+            },
+            {
+                file: 'basement480-01.obj', // duplicate
+                object: null,
+            },
+        ],
+        [
+
+        ],
+    ],
+    room: [
+        [
+            {
+                file: 'room360-01.obj',
+                object: null,
+            },
+            {
+                file: 'room360-02.obj',
+                object: null,
+            },
+        ],
+        [
+            {
+                file: 'room480-01.obj',
+                object: null,
+            },
+            {
+                file: 'room480-01.obj', // duplicate
+                object: null,
+            },
+        ],
+        [
+            {
+                file: 'room600-01.obj',
+                object: null,
+            },
+            {
+                file: 'room600-02.obj',
+                object: null,
+            },
+        ],
+    ],
+    roof: [
+        [
+            {
+                file: 'roof360-01.obj',
+                object: null,
+            },
+            {
+                file: 'roof360-01.obj', // duplicate
+                object: null,
+            },
+        ],
+        [
+            {
+                file: 'roof360-01.obj', // duplicate
+                object: null,
+            },
+            {
+                file: 'roof360-01.obj', // duplicate
+                object: null,
+            },
+        ],
+        [
+
+        ],
+    ],
+};
+
 export default Vue.extend({
     computed: {
         ...mapState([
@@ -34,15 +125,18 @@ export default Vue.extend({
     data() {
         return {
             window,
+            plane1Material: null,
             cubes: [],
             renderMatrix: [],
             objectMatrix: [],
+            objectGroup: new THREE.Group(),
+            camera: null,
         }
     },
     watch: {
         settings: {
             deep: true,
-            handler(settings) {
+            handler(settings: Settings): void {
                 const totalColumnsMax = defaults.totalColumns.max;
                 const totalRowsMax = defaults.totalRows.max;
                 // fill matrix with info about content
@@ -50,24 +144,31 @@ export default Vue.extend({
                     const columns = [];
                     for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
                         if (rowIndex <= settings.totalRows && columnIndex <= settings.totalColumns) {
-                            columns[columnIndex] = (columnIndex === settings.currentColumn ? settings.elementType : (this.renderMatrix[rowIndex][columnIndex] ?? 0));
+                            columns[columnIndex] = (rowIndex === settings.currentColumn ? settings.elementType : (this.renderMatrix[rowIndex][columnIndex] ?? 0));
                         } else {
                             columns[columnIndex] = null;
                         }
                     }
                     this.renderMatrix[rowIndex] = columns;
                 }
+                this.updateObjects(objects, this.plane1Material);
+                var box = new THREE.Box3().setFromObject(this.objectGroup);
+                let size = box.getSize(new THREE.Vector3());
+                if (size.x > 0 && size.y > 0 && size.x > 0) {
+                    const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(size.y) / 2, Math.round(size.z) / 2);
+                    this.camera.position.x = Math.round(size.x) / 2;
+                    this.camera.position.y = Math.round(size.y);
+                    this.camera.lookAt(newSize);
+                }
             },
         },
         'settings.currentColumn'(currentColumn: number): void {
             this.objectMatrix.forEach((row, rowIndex) => {
                 row.forEach((column, columnIndex) => {
-                    if (row[columnIndex] !== null) {
-                        if (columnIndex === currentColumn) {
-                            row[columnIndex].children[0].material.color.setHex(0xff0000);
-                        } else {
-                            row[columnIndex].children[0].material.color.setHex(0xffffff);
-                        }
+                    if (rowIndex === currentColumn) {
+                        row[columnIndex]?.children[0].material.color.setHex(0xff0000);
+                    } else {
+                        row[columnIndex]?.children[0].material.color.setHex(0xffffff);
                     }
                 })
             });
@@ -78,9 +179,9 @@ export default Vue.extend({
             'SET_STOP_MULTIPLICATOR',
         ]),
         async initThree(): Promise<void> {
-            const scene = new THREE.Scene();
+            this.scene = new THREE.Scene();
 
-            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+            this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 
             const plane = (w, h) => {
                 const geo = new THREE.PlaneGeometry(w, h);
@@ -107,103 +208,16 @@ export default Vue.extend({
 
             const textureLoader = new THREE.TextureLoader();
 
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.25;
-            renderer.shadowMap.enabled = true;
+            this.renderer = new THREE.WebGLRenderer({ antialias: true });
+            this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            this.renderer.toneMappingExposure = 1.25;
+            this.renderer.shadowMap.enabled = true;
 
-            this.$refs.main.appendChild(renderer.domElement);
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            this.$refs.main.appendChild(this.renderer.domElement);
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-
-            // outer array is dimension, inner is the different designs for that dimension
-            const objects: BetonObjects = {
-                basement: [
-                    [
-                        {
-                            file: 'basement360-01.obj',
-                            object: null,
-                        },
-                        {
-                            file: 'basement360-01.obj', // duplicate
-                            object: null,
-                        },
-                    ],
-                    [
-                        {
-                            file: 'basement480-01.obj',
-                            object: null,
-                        },
-                        {
-                            file: 'basement480-01.obj', // duplicate
-                            object: null,
-                        },
-                    ],
-                    [
-
-                    ],
-                ],
-                room: [
-                    [
-                        {
-                            file: 'room360-01.obj',
-                            object: null,
-                        },
-                        {
-                            file: 'room360-02.obj',
-                            object: null,
-                        },
-                    ],
-                    [
-                        {
-                            file: 'room480-01.obj',
-                            object: null,
-                        },
-                        {
-                            file: 'room480-01.obj', // duplicate
-                            object: null,
-                        },
-                    ],
-                    [
-                        {
-                            file: 'room600-01.obj',
-                            object: null,
-                        },
-                        {
-                            file: 'room600-02.obj',
-                            object: null,
-                        },
-                    ],
-                ],
-                roof: [
-                    [
-                        {
-                            file: 'roof360-01.obj',
-                            object: null,
-                        },
-                        {
-                            file: 'roof360-01.obj', // duplicate
-                            object: null,
-                        },
-                    ],
-                    [
-                        {
-                            file: 'roof360-01.obj', // duplicate
-                            object: null,
-                        },
-                        {
-                            file: 'roof360-01.obj', // duplicate
-                            object: null,
-                        },
-                    ],
-                    [
-
-                    ],
-                ],
-            };
 
             const objLoader = new OBJLoader();
-            let loaded = 0;
 
             Object.keys(objects).forEach(objectKey => {
                 const objectGroup = objects[objectKey];
@@ -219,7 +233,6 @@ export default Vue.extend({
                                     }
                                 });
                                 objectGroup[objectSizeIndex][objectIndex].object = object;
-                                loaded++;
                             },
                             function (xhr) {
                                 // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
@@ -247,57 +260,57 @@ export default Vue.extend({
 
             // Add a plane
             const plane1 = plane(1000, 1000);
-            scene.add(plane1);
+            this.scene.add(plane1);
             // PI / 2 = 90 degrees
             plane1.rotation.x = Math.PI / 2;
 
-            const plane1Material = plane1.material;
-            plane1Material.bumpScale = 0.25;
-            plane1Material.roughness = 0.65;
-            plane1Material.metalness = 0;
+            this.plane1Material = plane1.material;
+            this.plane1Material.bumpScale = 0.25;
+            this.plane1Material.roughness = 0.65;
+            this.plane1Material.metalness = 0;
 
             // Add a texture to the plane
             const loadedConcreteTexture = textureLoader.load(concreteTextureUrl());
-            plane1Material.map = loadedConcreteTexture;
-            plane1Material.bumpMap = loadedConcreteTexture;
-            plane1Material.roughnessMap = loadedConcreteTexture;
+            this.plane1Material.map = loadedConcreteTexture;
+            this.plane1Material.bumpMap = loadedConcreteTexture;
+            this.plane1Material.roughnessMap = loadedConcreteTexture;
 
             const concreteTextureRepetition = 32;
             ['map', 'bumpMap', 'roughnessMap'].forEach(mapName => {
-                plane1Material[mapName].wrapS = THREE.RepeatWrapping;
-                plane1Material[mapName].wrapT = THREE.RepeatWrapping;
-                plane1Material[mapName].repeat.set(
+                this.plane1Material[mapName].wrapS = THREE.RepeatWrapping;
+                this.plane1Material[mapName].wrapT = THREE.RepeatWrapping;
+                this.plane1Material[mapName].repeat.set(
                     concreteTextureRepetition,
                     concreteTextureRepetition
                 );
             })
 
             const fog = new THREE.FogExp2('#000000', 0.005);
-            scene.fog = fog;
+            this.scene.fog = fog;
 
             const light = new THREE.AmbientLight(0x404040);
-            scene.add(light);
+            this.scene.add(light);
 
             const spotlight1 = spotlight('rgb(255, 200, 255)', 1);
-            scene.add(spotlight1);
+            this.scene.add(spotlight1);
             spotlight1.name = 'spotlight1';
             spotlight1.position.x = 6;
             spotlight1.position.y = 8;
             spotlight1.position.z = -20;
 
             const spotlight2 = spotlight('rgb(255, 200, 255)', 1);
-            scene.add(spotlight2);
+            this.scene.add(spotlight2);
             spotlight2.name = 'spotlight2';
             spotlight2.position.x = -16;
             spotlight2.position.y = 6;
             spotlight2.position.z = 5;
 
-            camera.position.x = 0;
-            camera.position.y = 16;
-            camera.position.z = 24;
-            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            this.camera.position.x = 0;
+            this.camera.position.y = 16;
+            this.camera.position.z = 48;
+            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-            renderer.render(scene, camera);
+            this.renderer.render(this.scene, this.camera);
 
             let keyframe = 0;
 
@@ -315,7 +328,7 @@ export default Vue.extend({
 
             this.objectMatrix = JSON.parse(JSON.stringify(this.renderMatrix));
 
-            const basicMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+            this.scene.add(this.objectGroup);
 
             const animate = (renderer, scene, camera): void => {
                 renderer.render(scene, camera);
@@ -330,48 +343,48 @@ export default Vue.extend({
                     spotlight2.intensity += (Math.random() - 0.5) * 0.015;
                     spotlight2.intensity = Math.abs(spotlight2.intensity);
 
-
-                    if (loaded === 14) {
-                        // remove legacy objects from object matrix and fill with new ones
-                        this.renderMatrix.forEach((row, rowIndex) => {
-                            row.forEach((column, columnIndex) => {
-                                const currentCell = this.objectMatrix[rowIndex][columnIndex];
-                                if (this.renderMatrix[rowIndex][columnIndex] !== null) { // if cell qualifies for a object
-                                    if (!(currentCell && currentCell.renderId === this.renderMatrix[rowIndex][columnIndex])) { // if cell content is not same as before
-                                        if (currentCell) { // if there's already an object in this cell
-                                            scene.remove(currentCell);
-                                            this.objectMatrix[rowIndex][columnIndex] = null;
-                                        }
-                                        // const objectSource = this.settings.currentColumn === rowIndex ? this.settings.elementType : 0;
-                                        this.objectMatrix[rowIndex][columnIndex] = objects['room'][0][this.renderMatrix[rowIndex][columnIndex]].object.clone();
-                                        this.objectMatrix[rowIndex][columnIndex].children[0].material = basicMaterial.clone();
-                                        this.objectMatrix[rowIndex][columnIndex].name = this.objectMatrix[rowIndex][columnIndex].uuid;
-                                        this.objectMatrix[rowIndex][columnIndex].renderId = this.renderMatrix[rowIndex][columnIndex];
-                                        if (columnIndex === this.settings.currentColumn) {
-                                            this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xff0000);
-                                        } else {
-                                            this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xffffff);
-                                        }
-                                        scene.add(this.objectMatrix[rowIndex][columnIndex]);
-                                        let posX = rowIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.x;
-                                        let posY = columnIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.y;
-                                        this.objectMatrix[rowIndex][columnIndex].position.set(posX, posY, 0);
-                                    }
-                                } else if (currentCell) { // if cell doesn't quality for an object but already has an object
-                                    scene.remove(currentCell);
-                                    this.objectMatrix[rowIndex][columnIndex] = null;
-                                }
-                            });
-                        });
-                    }
                 }
 
                 requestAnimationFrame(() => animate(renderer, scene, camera));
             }
 
-            new OrbitControls(camera, renderer.domElement);
-            animate(renderer, scene, camera);
+            new OrbitControls(this.camera, this.renderer.domElement);
+            animate(this.renderer, this.scene, this.camera);
         },
+        updateObjects(objects, plane1Material) {
+            // remove legacy objects from object matrix and fill with new ones
+            this.renderMatrix.forEach((row, rowIndex) => {
+                row.forEach((column, columnIndex) => {
+                    const currentCell = this.objectMatrix[rowIndex][columnIndex];
+                    if (this.renderMatrix[rowIndex][columnIndex] !== null) { // if cell qualifies for a object
+                        if (!(currentCell && currentCell.renderId === this.renderMatrix[rowIndex][columnIndex])) { // if cell content is not same as before
+                            if (currentCell) { // if there's already an object in this cell
+                                this.objectGroup.remove(currentCell);
+                                this.objectMatrix[rowIndex][columnIndex] = null;
+                            }
+                            // const objectSource = this.settings.currentColumn === rowIndex ? this.settings.elementType : 0;
+                            this.objectMatrix[rowIndex][columnIndex] = objects['room'][0][this.renderMatrix[rowIndex][columnIndex]].object.clone();
+                            this.objectMatrix[rowIndex][columnIndex].children[0].material = plane1Material.clone();
+                            this.objectMatrix[rowIndex][columnIndex].renderId = this.renderMatrix[rowIndex][columnIndex];
+                            if (rowIndex === this.settings.currentColumn) {
+                                this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xff0000);
+                            } else {
+                                this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xffffff);
+                            }
+                            this.objectGroup.add(this.objectMatrix[rowIndex][columnIndex]);
+                            let posX = rowIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.x;
+                            let posY = columnIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.y;
+                            this.objectMatrix[rowIndex][columnIndex].position.set(posX, posY, 0);
+                        }
+                    } else if (currentCell) { // if cell doesn't quality for an object but already has an object
+                        this.objectGroup.remove(currentCell);
+                        this.objectMatrix[rowIndex][columnIndex] = null;
+                    }
+                });
+            });
+
+            this.renderer.render(this.scene, this.camera);
+        }
     },
     async mounted() {
         if (process.client) {

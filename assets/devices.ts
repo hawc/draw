@@ -31,7 +31,7 @@ const DEVICES: DeviceList = {
         useChannel: true,
         fadeOut: true,
     },
-    '999': { // not tested
+    '822093897': {
         name: 'Intech Studio: Grid PO16',
         offset: {
             channel: 0,

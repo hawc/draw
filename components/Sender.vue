@@ -84,9 +84,11 @@ export default Vue.extend({
         },
     },
     mounted() {
-        this.$nextTick(() => {
-            this.addMidiController();
-        });
+        if (process.client) {
+            this.$nextTick(() => {
+                this.addMidiController();
+            });
+        }
     },
 });
 </script>

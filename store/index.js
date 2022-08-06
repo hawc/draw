@@ -93,7 +93,7 @@ export const actions = {
     // TODO: Connection should be handled inside Sender component.
     addMidiController(context) {
         const connect = () => {
-            if (navigator.hasOwnProperty('requestMIDIAccess')) {
+            if ('requestMIDIAccess' in navigator) {
                 navigator.requestMIDIAccess()
                     .then(
                         (midi) => midiReady(midi),
@@ -102,13 +102,14 @@ export const actions = {
         };
 
         const midiReady = (midi) => {
-            // console.log("init");
+            console.log("init", midi);
             midi.addEventListener('statechange', (event) => initDevices(event.target));
             initDevices(midi);
         };
         const midiDevices = [];
 
         const initDevices = (midi) => {
+            console.log(midi.inputs);
             const inputs = midi.inputs.values();
             for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
                 console.log(input);
@@ -162,7 +163,7 @@ export const actions = {
 function fireEvent(context, commitData, key, degree) {
     if (key && DEFAULTS[key]) {
         let num = limitNumber(degree, DEFAULTS[key]);
-        if (num && num !== NaN) {
+        if (num !== null && num !== NaN) {
             commitData[key] = num;
             context.commit('SET_OPTION', commitData);
             // localStorage.midiDrawSettings = JSON.stringify(payload);
