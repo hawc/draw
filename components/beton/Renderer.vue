@@ -142,7 +142,7 @@ export default Vue.extend({
         'settings.elementType'(elementType: number): void {
             this.renderMatrix.forEach((row, rowIndex) => {
                 row.forEach((_column, columnIndex) => {
-                    if (rowIndex === this.settings.currentColumn) {
+                    if (rowIndex === this.settings.currentColumn && row[columnIndex] !== null) {
                         row[columnIndex] = elementType;
                     }
                 })
@@ -165,17 +165,23 @@ export default Vue.extend({
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
+        getElementTypeForPreviousRow(rowIndex: number, columnIndex: number): number {
+            if (columnIndex > 0 && this.renderMatrix[rowIndex][columnIndex - 1]) {
+                return this.renderMatrix[rowIndex][columnIndex - 1];
+            }
+
+            return 0;
+        },
         setObjects() {
             const totalColumnsMax = defaults.totalColumns.max;
             const totalRowsMax = defaults.totalRows.max;
+            console.table(this.renderMatrix);
             // fill matrix with info about content
             for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
                 const columns = [];
                 for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
                     if (rowIndex <= this.settings.totalRows && columnIndex <= this.settings.totalColumns) {
-                        columns[columnIndex] = this.renderMatrix[rowIndex][columnIndex] ?? 0;
-                        // logic moved to elementType handler:
-                        // columns[columnIndex] = (rowIndex === this.settings.currentColumn ? this.settings.elementType : (this.renderMatrix[rowIndex][columnIndex] ?? 0));
+                        columns[columnIndex] = this.renderMatrix[rowIndex][columnIndex] ?? this.getElementTypeForPreviousRow(rowIndex, columnIndex);
                     } else {
                         columns[columnIndex] = null;
                     }
