@@ -174,7 +174,7 @@ export default Vue.extend({
 
             return 0;
         },
-        setObjects() {
+        setObjects(): void {
             const totalColumnsMax = defaults.totalColumns.max;
             const totalRowsMax = defaults.totalRows.max;
             // fill matrix with info about content
@@ -199,7 +199,7 @@ export default Vue.extend({
                 }
             }
             this.setBasement();
-            
+
             var box = new THREE.Box3().setFromObject(this.objectGroup);
             let size = box.getSize(new THREE.Vector3());
             if (size.x > 0 && size.y > 0 && size.x > 0) {
@@ -364,14 +364,14 @@ export default Vue.extend({
             new OrbitControls(this.camera, this.renderer.domElement);
             animate(this.renderer, this.scene, this.camera);
         },
-        setBasement() {
+        setBasement(): void {
             this.basementRow.forEach((_elementType, elementIndex) => {
-                const currentCell = this.basementRow[elementIndex];
-                if (this.basementRow[elementIndex] === null && this.basementObjects[elementIndex]) { // when same pos in render matrix is null and already something rendered in basement row
+                // if cell should be null and has object, remove object
+                if (this.basementRow[elementIndex] === null && this.basementObjects[elementIndex]) {
                     this.basementGroup.remove(this.basementObjects[elementIndex]);
                     this.basementObjects[elementIndex] = null;
                 }
-                console.log(this.basementRow[elementIndex])
+                // if cell has no object and should have, add object
                 if (this.basementObjects[elementIndex] === null && this.basementRow[elementIndex] !== null) {
                     this.basementObjects[elementIndex] = objects.basement[0][0].object.clone();
                     this.basementGroup.add(this.basementObjects[elementIndex]);
@@ -381,9 +381,8 @@ export default Vue.extend({
                     this.objectGroup.position.y = this.basementObjects[elementIndex].children[0].geometry.boundingBox.max.y;
                 }
             });
-            // this.objectGroup.position.y = 12;
         },
-        setRoof() {
+        setRoof(): void {
 
         },
         updateObjects(objects: BetonObject, plane1Material: THREE.MeshStandardMaterial): void {
