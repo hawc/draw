@@ -128,7 +128,9 @@ export default Vue.extend({
             cubes: [],
             renderMatrix: [],
             objectMatrix: [],
+            basementRow: [],
             objectGroup: new THREE.Group(),
+            basementGroup: new THREE.Group(),
             camera: null,
         }
     },
@@ -188,6 +190,16 @@ export default Vue.extend({
                 this.renderMatrix[rowIndex] = columns;
             }
             this.updateObjects(objects, this.plane1Material);
+            
+            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
+                if(rowIndex <= this.settings.totalRows) {
+                    this.basementRow[rowIndex] = 0;
+                } else {
+                    this.basementRow[rowIndex] = null;
+                }
+            }
+            this.setBasement();
+            
             var box = new THREE.Box3().setFromObject(this.objectGroup);
             let size = box.getSize(new THREE.Vector3());
             if (size.x > 0 && size.y > 0 && size.x > 0) {
@@ -279,7 +291,7 @@ export default Vue.extend({
                 this.plane1Material[mapName].wrapT = THREE.RepeatWrapping;
                 this.plane1Material[mapName].repeat.set(
                     concreteTextureRepetition,
-                    concreteTextureRepetition
+                    concreteTextureRepetition,
                 );
             })
 
@@ -322,13 +334,16 @@ export default Vue.extend({
                     columns[columnIndex] = null;
                 }
                 this.renderMatrix[rowIndex] = columns;
+                this.basementRow[rowIndex] = null;
             }
 
             this.objectMatrix = JSON.parse(JSON.stringify(this.renderMatrix));
+            this.basementObjects = JSON.parse(JSON.stringify(this.basementRow));
 
             this.scene.add(this.objectGroup);
+            this.scene.add(this.basementGroup);
 
-            const animate = (renderer, scene, camera): void => {
+            const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
                 renderer.render(scene, camera);
                 keyframe++;
 
@@ -349,10 +364,32 @@ export default Vue.extend({
             new OrbitControls(this.camera, this.renderer.domElement);
             animate(this.renderer, this.scene, this.camera);
         },
+        setBasement() {
+            this.basementRow.forEach((_elementType, elementIndex) => {
+                const currentCell = this.basementRow[elementIndex];
+                if (this.basementRow[elementIndex] === null && this.basementObjects[elementIndex]) { // when same pos in render matrix is null and already something rendered in basement row
+                    this.basementGroup.remove(this.basementObjects[elementIndex]);
+                    this.basementObjects[elementIndex] = null;
+                }
+                console.log(this.basementRow[elementIndex])
+                if (this.basementObjects[elementIndex] === null && this.basementRow[elementIndex] !== null) {
+                    this.basementObjects[elementIndex] = objects.basement[0][0].object.clone();
+                    this.basementGroup.add(this.basementObjects[elementIndex]);
+                    let posX = elementIndex * this.basementObjects[elementIndex].children[0].geometry.boundingBox.max.x;
+                    this.basementObjects[elementIndex].position.set(posX, 0, 0);
+
+                    this.objectGroup.position.y = this.basementObjects[elementIndex].children[0].geometry.boundingBox.max.y;
+                }
+            });
+            // this.objectGroup.position.y = 12;
+        },
+        setRoof() {
+
+        },
         updateObjects(objects: BetonObject, plane1Material: THREE.MeshStandardMaterial): void {
             // remove legacy objects from object matrix and fill with new ones
             this.renderMatrix.forEach((row, rowIndex) => {
-                row.forEach((column, columnIndex) => {
+                row.forEach((_column, columnIndex) => {
                     const currentCell = this.objectMatrix[rowIndex][columnIndex];
                     if (this.renderMatrix[rowIndex][columnIndex] !== null) { // if cell qualifies for a object
                         if (!(currentCell && currentCell.renderId === this.renderMatrix[rowIndex][columnIndex])) { // if cell content is not same as before
@@ -362,7 +399,7 @@ export default Vue.extend({
                             }
                             // const objectSource = this.settings.currentColumn === rowIndex ? this.settings.elementType : 0;
                             this.objectMatrix[rowIndex][columnIndex] = objects['room'][0][this.renderMatrix[rowIndex][columnIndex]].object.clone();
-                            this.objectMatrix[rowIndex][columnIndex].children[0].material = plane1Material.clone();
+                            this.objectMatrix[rowIndex][columnIndex].children[0].material = plane1Material.clone(); // doesn't work with custom obj
                             this.objectMatrix[rowIndex][columnIndex].renderId = this.renderMatrix[rowIndex][columnIndex];
                             if (rowIndex === this.settings.currentColumn) {
                                 this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xff0000);
