@@ -1,8 +1,6 @@
 <template>
     <div class="renderer">
-        <div
-            ref="main"
-        ></div>
+        <div ref="main"></div>
     </div>
 </template>
 
@@ -14,6 +12,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { defaults } from 'assets/beton/defaults';
 import { concreteTexture } from '~/static/textures/textures';
+import { throwStatement } from '@babel/types';
 
 interface BetonObject {
     file: string,
@@ -134,37 +133,25 @@ export default Vue.extend({
         }
     },
     watch: {
-        settings: {
-            deep: true,
-            handler(settings: Settings): void {
-                const totalColumnsMax = defaults.totalColumns.max;
-                const totalRowsMax = defaults.totalRows.max;
-                // fill matrix with info about content
-                for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                    const columns = [];
-                    for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
-                        if (rowIndex <= settings.totalRows && columnIndex <= settings.totalColumns) {
-                            columns[columnIndex] = (rowIndex === settings.currentColumn ? settings.elementType : (this.renderMatrix[rowIndex][columnIndex] ?? 0));
-                        } else {
-                            columns[columnIndex] = null;
-                        }
+        'settings.totalColumns'(): void {
+                this.setObjects();
+        },
+        'settings.totalRows'(): void {
+                this.setObjects();
+        },
+        'settings.elementType'(elementType: number): void {
+            this.renderMatrix.forEach((row, rowIndex) => {
+                row.forEach((_column, columnIndex) => {
+                    if (rowIndex === this.settings.currentColumn) {
+                        row[columnIndex] = elementType;
                     }
-                    this.renderMatrix[rowIndex] = columns;
-                }
-                this.updateObjects(objects, this.plane1Material);
-                var box = new THREE.Box3().setFromObject(this.objectGroup);
-                let size = box.getSize(new THREE.Vector3());
-                if (size.x > 0 && size.y > 0 && size.x > 0) {
-                    const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(size.y) / 2, Math.round(size.z) / 2);
-                    this.camera.position.x = Math.round(size.x) / 2;
-                    this.camera.position.y = Math.round(size.y);
-                    this.camera.lookAt(newSize);
-                }
-            },
+                })
+            });
+            this.setObjects();
         },
         'settings.currentColumn'(currentColumn: number): void {
-            this.objectMatrix.forEach((row, rowIndex) => {
-                row.forEach((column, columnIndex) => {
+            this.objectMatrix.forEach((row, rowIndex: number): void => {
+                row.forEach((_column, columnIndex: number): void => {
                     if (rowIndex === currentColumn) {
                         row[columnIndex]?.children[0].material.color.setHex(0xff0000);
                     } else {
@@ -178,6 +165,33 @@ export default Vue.extend({
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
+        setObjects() {
+            const totalColumnsMax = defaults.totalColumns.max;
+            const totalRowsMax = defaults.totalRows.max;
+            // fill matrix with info about content
+            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
+                const columns = [];
+                for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
+                    if (rowIndex <= this.settings.totalRows && columnIndex <= this.settings.totalColumns) {
+                        columns[columnIndex] = this.renderMatrix[rowIndex][columnIndex] ?? 0;
+                        // logic moved to elementType handler:
+                        // columns[columnIndex] = (rowIndex === this.settings.currentColumn ? this.settings.elementType : (this.renderMatrix[rowIndex][columnIndex] ?? 0));
+                    } else {
+                        columns[columnIndex] = null;
+                    }
+                }
+                this.renderMatrix[rowIndex] = columns;
+            }
+            this.updateObjects(objects, this.plane1Material);
+            var box = new THREE.Box3().setFromObject(this.objectGroup);
+            let size = box.getSize(new THREE.Vector3());
+            if (size.x > 0 && size.y > 0 && size.x > 0) {
+                const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(size.y) / 2, Math.round(size.z) / 2);
+                this.camera.position.x = Math.round(size.x) / 2;
+                this.camera.position.y = Math.round(size.y);
+                this.camera.lookAt(newSize);
+            }
+        },
         async initThree(): Promise<void> {
             this.scene = new THREE.Scene();
 
@@ -351,7 +365,7 @@ export default Vue.extend({
             new OrbitControls(this.camera, this.renderer.domElement);
             animate(this.renderer, this.scene, this.camera);
         },
-        updateObjects(objects, plane1Material) {
+        updateObjects(objects: BetonObject, plane1Material: THREE.MeshStandardMaterial): void {
             // remove legacy objects from object matrix and fill with new ones
             this.renderMatrix.forEach((row, rowIndex) => {
                 row.forEach((column, columnIndex) => {
@@ -384,11 +398,11 @@ export default Vue.extend({
             });
         }
     },
-    async mounted() {
+    async mounted(): Promise<void> {
         if (process.client) {
             await this.initThree();
 
-            document.addEventListener('keyup', event => {
+            document.addEventListener('keyup', (event: KeyboardEvent): void => {
                 if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
                     this.SET_STOP_MULTIPLICATOR(0);
                 } else {
@@ -396,7 +410,6 @@ export default Vue.extend({
                 }
             });
         }
-
     },
 });
 </script>
