@@ -175,7 +175,6 @@ export default Vue.extend({
         setObjects() {
             const totalColumnsMax = defaults.totalColumns.max;
             const totalRowsMax = defaults.totalRows.max;
-            console.table(this.renderMatrix);
             // fill matrix with info about content
             for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
                 const columns = [];
@@ -202,27 +201,6 @@ export default Vue.extend({
             this.scene = new THREE.Scene();
 
             this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-
-            const plane = (w, h) => {
-                const geo = new THREE.PlaneGeometry(w, h);
-                const material = new THREE.MeshStandardMaterial({
-                    color: 0xffffff,
-                    side: THREE.DoubleSide,
-                });
-                const mesh = new THREE.Mesh(geo, material);
-                mesh.receiveShadow = true;
-
-                return mesh;
-            }
-
-            const spotlight = (color, intensity): THREE.PointLight => {
-                const light = new THREE.PointLight(color, intensity);
-                light.castShadow = true;
-                light.shadow.mapSize.x = 4096;
-                light.shadow.mapSize.y = 4096;
-
-                return light;
-            }
 
             const concreteTextureUrl = () => concreteTexture;
 
@@ -279,7 +257,7 @@ export default Vue.extend({
             */
 
             // Add a plane
-            const plane1 = plane(1000, 1000);
+            const plane1 = this.getPlane(1000, 1000);
             this.scene.add(plane1);
             // PI / 2 = 90 degrees
             plane1.rotation.x = Math.PI / 2;
@@ -311,14 +289,14 @@ export default Vue.extend({
             const light = new THREE.AmbientLight(0x404040);
             this.scene.add(light);
 
-            const spotlight1 = spotlight('rgb(255, 200, 255)', 1);
+            const spotlight1 = this.getSpotlight('rgb(255, 200, 255)', 1);
             this.scene.add(spotlight1);
             spotlight1.name = 'spotlight1';
             spotlight1.position.x = 6;
             spotlight1.position.y = 8;
             spotlight1.position.z = -20;
 
-            const spotlight2 = spotlight('rgb(255, 200, 255)', 1);
+            const spotlight2 = this.getSpotlight('rgb(255, 200, 255)', 1);
             this.scene.add(spotlight2);
             spotlight2.name = 'spotlight2';
             spotlight2.position.x = -16;
@@ -402,7 +380,26 @@ export default Vue.extend({
                     }
                 });
             });
-        }
+        },
+        getPlane(width: number, height: number): THREE.Mesh {
+            const geo = new THREE.PlaneGeometry(width, height);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                side: THREE.DoubleSide,
+            });
+            const mesh = new THREE.Mesh(geo, material);
+            mesh.receiveShadow = true;
+
+            return mesh;
+        },
+        getSpotlight(color: string, intensity: number): THREE.PointLight {
+            const light = new THREE.PointLight(color, intensity);
+            light.castShadow = true;
+            light.shadow.mapSize.x = 4096;
+            light.shadow.mapSize.y = 4096;
+
+            return light;
+        },
     },
     async mounted(): Promise<void> {
         if (process.client) {
