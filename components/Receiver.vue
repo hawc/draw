@@ -6,12 +6,12 @@
         <div class="container">
             <p :hidden="standalone"
                 class="statusMessage">
-                {{ peerID ? peerID : 'Not connected.' }}
+                <span :hidden="!isProduction">{{ peerID ? peerID : 'Not connected.' }}</span>
                 <a
                     v-if="peerID"
+                    class="joystick"
                     :href="`${ $route.fullPath }/sender?k=${ peerID }`"
-                    target="_new"
-                >
+                    target="_new">
                     🕹
                 </a>
             </p>
@@ -51,6 +51,9 @@ export default Vue.extend({
     },
     computed: {
         ...mapState(['settings']),
+        isProduction() {
+            return process.env.NODE_ENV === 'production';
+        },
     },
     methods: {
         ...mapActions([

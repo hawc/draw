@@ -48,11 +48,11 @@ a:focus {
 .statusMessage {
     width: 100%;
     text-align: center;
-    opacity: 0;
-    transition: opacity 0.3s;
+    /* opacity: 0; */
+    /* transition: opacity 0.3s; */
 }
 body:hover .statusMessage {
-    opacity: 1;
+    /* opacity: 1; */
 }
 
 /* CONTROLS */
@@ -138,6 +138,7 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
 }
+body > canvas,
 .skyCanvas {
     width: MAX(100vw, 100vh) !important;
     height: MAX(100vw, 100vh) !important;
@@ -169,6 +170,10 @@ canvas {
     background-image: url(https://grainy-gradients.vercel.app/noise.svg);
         background-size: 800px;
     filter: contrast(110%) brightness(100%);
+}
+.joystick {
+    font-size: 150%;
+    text-decoration: none;
 }
 @media only screen and (max-width: 980px) {
     .root {

@@ -104,7 +104,7 @@ export default Vue.extend({
                 emissiveIntensity: 1,
                 color: 0x000000,
             });
-            OBJECTS.lights.forEach(light => {
+            OBJECTS.lights.forEach((light: THREE.PointLight): void => {
                 scene.add(this.getLight(bulbGeometry, bulbMaterial, light.position, light.intensity, light.distance));
             });
 

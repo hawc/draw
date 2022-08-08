@@ -71,12 +71,12 @@ export default Vue.extend({
              * @param {number} radius The sphere's radius in Units.
              * @return The Three.js sphere
              */
-            const getCube = (radius, material) => {
+            const getCube = (radius: number, material: THREE.MeshPhysicalMaterial): THREE.Mesh => {
                 const cubeGeometry = new THREE.BoxBufferGeometry(radius * 2, radius * 2, radius * 2);
                 const cubeMaterial = new THREE.MeshPhysicalMaterial(material);
                 // const geo = new THREE.BoxGeometry(radius * 5, radius * 5, radius * 5);
                 // const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-                const mesh = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                const mesh = new THREE.Mesh(cubeGeometry, cubeMaterial as any);
                 mesh.castShadow = true;
 
                 return mesh;

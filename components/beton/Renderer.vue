@@ -126,6 +126,8 @@ export default Vue.extend({
             objectGroup: new THREE.Group(),
             basementGroup: new THREE.Group(),
             camera: null,
+            objectsToLoad: 0,
+            objectsReady: 0,
         }
     },
     watch: {
@@ -136,8 +138,8 @@ export default Vue.extend({
                 this.setObjects();
         },
         'settings.elementType'(elementType: number): void {
-            this.renderMatrix.forEach((row, rowIndex) => {
-                row.forEach((_column, columnIndex) => {
+            this.renderMatrix.forEach((row: number[], rowIndex: number): void => {
+                row.forEach((_column: number, columnIndex: number): void => {
                     if (rowIndex === this.settings.currentColumn && row[columnIndex] !== null) {
                         row[columnIndex] = elementType;
                     }
@@ -156,53 +158,16 @@ export default Vue.extend({
                 })
             });
         },
+        objectsReady(objectsReady: number): void {
+            if (objectsReady > 0 && objectsReady === this.objectsToLoad) {
+                this.setObjects();
+            }
+        },
     },
     methods: {
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        getElementTypeForPreviousRow(rowIndex: number, columnIndex: number): number {
-            if (columnIndex > 0 && this.renderMatrix[rowIndex][columnIndex - 1]) {
-                return this.renderMatrix[rowIndex][columnIndex - 1];
-            }
-
-            return 0;
-        },
-        setObjects(): void {
-            const totalColumnsMax = defaults.totalColumns.max;
-            const totalRowsMax = defaults.totalRows.max;
-            // fill matrix with info about content
-            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                const columns = [];
-                for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
-                    if (rowIndex <= this.settings.totalRows && columnIndex <= this.settings.totalColumns) {
-                        columns[columnIndex] = this.renderMatrix[rowIndex][columnIndex] ?? this.getElementTypeForPreviousRow(rowIndex, columnIndex);
-                    } else {
-                        columns[columnIndex] = null;
-                    }
-                }
-                this.renderMatrix[rowIndex] = columns;
-            }
-            this.updateObjects(objects, this.betonMaterial);
-            
-            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                if(rowIndex <= this.settings.totalRows) {
-                    this.basementRow[rowIndex] = 0;
-                } else {
-                    this.basementRow[rowIndex] = null;
-                }
-            }
-            this.setBasement(this.betonMaterial);
-
-            var box = new THREE.Box3().setFromObject(this.objectGroup);
-            let size = box.getSize(new THREE.Vector3());
-            if (size.x > 0 && size.y > 0 && size.x > 0) {
-                const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(size.y) / 2, Math.round(size.z) / 2);
-                this.camera.position.x = Math.round(size.x) / 2;
-                this.camera.position.y = Math.round(size.y);
-                this.camera.lookAt(newSize);
-            }
-        },
         async initThree(): Promise<void> {
             this.scene = new THREE.Scene();
 
@@ -220,28 +185,29 @@ export default Vue.extend({
             this.$refs.main.appendChild(this.renderer.domElement);
             this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-
             const objLoader = new OBJLoader();
 
-            Object.keys(objects).forEach((objectKey: string) => {
+            await Object.keys(objects).forEach((objectKey: string): void => {
                 const objectGroup = objects[objectKey];
 
                 objectGroup.forEach((objectSize: BetonObject[], objectSizeIndex: number): void => {
                     objectSize.forEach((object: BetonObject, objectIndex: number): void => {
+                        this.objectsToLoad++;
                         objLoader.load(
                             `/obj/${ object.file }`,
-                            function (object: THREE.Object3D) {
+                            (object: THREE.Object3D): void => {
                                 object.traverse(function (child: THREE.Mesh) {
                                     if (child instanceof THREE.Mesh) {
                                         child.geometry.computeBoundingBox();
                                     }
                                 });
                                 objectGroup[objectSizeIndex][objectIndex].object = object;
+                                this.objectsReady++;
                             },
-                            function (xhr: ProgressEvent) {
+                            (xhr: ProgressEvent): void => {
                                 // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
                             },
-                            function (error: ErrorEvent) {
+                            (error: ErrorEvent): void => {
                                 console.log('An error occured:', error);
                             }
                         );
@@ -274,7 +240,7 @@ export default Vue.extend({
             this.betonMaterial.metalness = 0;
 
             // Add a texture to the plane
-            const loadedConcreteTexture = textureLoader.load(concreteTextureUrl());
+            const loadedConcreteTexture = await textureLoader.load(concreteTextureUrl());
             this.betonMaterial.map = loadedConcreteTexture;
             this.betonMaterial.bumpMap = loadedConcreteTexture;
             this.betonMaterial.roughnessMap = loadedConcreteTexture;
@@ -287,32 +253,9 @@ export default Vue.extend({
                     concreteTextureRepetition,
                     concreteTextureRepetition,
                 );
-            })
-
-            const fog = new THREE.FogExp2('#000000', 0.005);
-            this.scene.fog = fog;
-
-            const light = new THREE.AmbientLight(0x404040);
-            this.scene.add(light);
-
-            const spotlight1 = this.getSpotlight('rgb(255, 200, 255)', 1);
-            this.scene.add(spotlight1);
-            spotlight1.name = 'spotlight1';
-            spotlight1.position.x = 6;
-            spotlight1.position.y = 8;
-            spotlight1.position.z = -20;
-
-            const spotlight2 = this.getSpotlight('rgb(255, 200, 255)', 1);
-            this.scene.add(spotlight2);
-            spotlight2.name = 'spotlight2';
-            spotlight2.position.x = -16;
-            spotlight2.position.y = 6;
-            spotlight2.position.z = 5;
-
-            this.camera.position.x = 0;
-            this.camera.position.y = 16;
-            this.camera.position.z = 48;
-            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+            });
+            
+            this.setEnvironment();
 
             this.renderer.render(this.scene, this.camera);
 
@@ -346,6 +289,74 @@ export default Vue.extend({
 
             new OrbitControls(this.camera, this.renderer.domElement);
             animate(this.renderer, this.scene, this.camera);
+        },
+        setEnvironment(): void {
+            const fog = new THREE.FogExp2('#000000', 0.005);
+            this.scene.fog = fog;
+
+            const light = new THREE.AmbientLight(0x404040);
+            this.scene.add(light);
+
+            const spotlight1 = this.getSpotlight('rgb(255, 200, 255)', 1);
+            this.scene.add(spotlight1);
+            spotlight1.name = 'spotlight1';
+            spotlight1.position.x = 6;
+            spotlight1.position.y = 8;
+            spotlight1.position.z = -20;
+
+            const spotlight2 = this.getSpotlight('rgb(255, 200, 255)', 1);
+            this.scene.add(spotlight2);
+            spotlight2.name = 'spotlight2';
+            spotlight2.position.x = -16;
+            spotlight2.position.y = 6;
+            spotlight2.position.z = 5;
+
+            this.camera.position.x = 0;
+            this.camera.position.y = 16;
+            this.camera.position.z = 48;
+            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+        },
+        getElementTypeForPreviousRow(rowIndex: number, columnIndex: number): number {
+            if (columnIndex > 0 && this.renderMatrix[rowIndex][columnIndex - 1]) {
+                return this.renderMatrix[rowIndex][columnIndex - 1];
+            }
+
+            return 0;
+        },
+        setObjects(): void {
+            const totalColumnsMax = defaults.totalColumns.max;
+            const totalRowsMax = defaults.totalRows.max;
+            // fill matrix with info about content
+            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
+                const columns = [];
+                for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
+                    if (rowIndex <= this.settings.totalRows && columnIndex <= this.settings.totalColumns) {
+                        columns[columnIndex] = this.renderMatrix[rowIndex][columnIndex] ?? this.getElementTypeForPreviousRow(rowIndex, columnIndex);
+                    } else {
+                        columns[columnIndex] = null;
+                    }
+                }
+                this.renderMatrix[rowIndex] = columns;
+            }
+            this.updateObjects(objects, this.betonMaterial);
+            
+            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
+                if(rowIndex <= this.settings.totalRows) {
+                    this.basementRow[rowIndex] = 0;
+                } else {
+                    this.basementRow[rowIndex] = null;
+                }
+            }
+            this.setBasement(this.betonMaterial);
+
+            const box = new THREE.Box3().setFromObject(this.objectGroup);
+            const size = box.getSize(new THREE.Vector3());
+            if (size.x > 0 && size.y > 0 && size.x > 0) {
+                const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(size.y) / 2, Math.round(size.z) / 2);
+                this.camera.position.x = Math.round(size.x) / 2;
+                this.camera.position.y = Math.round(size.y);
+                this.camera.lookAt(newSize);
+            }
         },
         setSpotlightFlicker(keyframe: number, scene: THREE.Scene): void {
             if (keyframe % 10 === 0) {
@@ -383,8 +394,8 @@ export default Vue.extend({
         },
         updateObjects(objects: BetonObject, betonMaterial: THREE.MeshStandardMaterial): void {
             // remove legacy objects from object matrix and fill with new ones
-            this.renderMatrix.forEach((row, rowIndex) => {
-                row.forEach((_column, columnIndex) => {
+            this.renderMatrix.forEach((row, rowIndex: number): void => {
+                row.forEach((_column, columnIndex: number): void => {
                     const currentCell = this.objectMatrix[rowIndex][columnIndex];
                     const elementShouldBeRemoved = this.renderMatrix[rowIndex][columnIndex] === null && this.objectMatrix[rowIndex][columnIndex];
                     const elementShouldBeReplaced = this.renderMatrix[rowIndex][columnIndex] !== this.objectMatrix[rowIndex][columnIndex]?.renderId;
