@@ -14,10 +14,10 @@ const defaults: ControllerSettings = {
         default: 1,
     },
     currentColumn: {
-        min: 0,
+        min: -1,
         max: 12,
         step: 1,
-        default: 0,
+        default: -1,
     },
     elementWidth: {
         min: 0,
