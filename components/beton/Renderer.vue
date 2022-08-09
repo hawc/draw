@@ -16,6 +16,8 @@ import { concreteTexture } from '~/static/textures/textures';
 interface BetonObject {
     file: string,
     object: any,
+    id1?: number,
+    id2?: number,
 }
 
 interface BetonObjects {
@@ -128,8 +130,6 @@ export default Vue.extend({
             basementGroup: new THREE.Group(),
             roofGroup: new THREE.Group(),
             camera: null,
-            objectsToLoad: 0,
-            objectsReady: 0,
             sizes: {
                 objects: 0,
                 roof: 0,
@@ -139,10 +139,10 @@ export default Vue.extend({
     },
     watch: {
         'settings.totalColumns'(): void {
-                this.setObjects();
+                this.updateObjects();
         },
         'settings.totalRows'(): void {
-                this.setObjects();
+                this.updateObjects();
         },
         'settings.elementType'(elementType: number): void {
             this.renderMatrix.forEach((row: number[], rowIndex: number): void => {
@@ -152,7 +152,7 @@ export default Vue.extend({
                     }
                 })
             });
-            this.setObjects();
+            this.updateObjects();
         },
         'settings.currentColumn'(currentColumn: number): void {
             this.objectMatrix.forEach((row, rowIndex: number): void => {
@@ -165,10 +165,17 @@ export default Vue.extend({
                 })
             });
         },
-        objectsReady(objectsReady: number): void {
-            if (objectsReady > 0 && objectsReady === this.objectsToLoad) {
-                this.setObjects();
-            }
+        renderMatrix(): void {
+            const objectsBox = new THREE.Box3().setFromObject(this.objectGroup);
+            this.sizes.objects = objectsBox.getSize(new THREE.Vector3());
+        },
+        basementRow(): void {
+            const basementBox = new THREE.Box3().setFromObject(this.basementGroup);
+            this.sizes.basement = basementBox.getSize(new THREE.Vector3());
+        },
+        roofRow(): void {
+            const roofBox = new THREE.Box3().setFromObject(this.roofGroup);
+            this.sizes.roof = roofBox.getSize(new THREE.Vector3());
         },
     },
     methods: {
@@ -192,35 +199,7 @@ export default Vue.extend({
             this.$refs.main.appendChild(this.renderer.domElement);
             this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-            const objLoader = new OBJLoader();
-
-            await Object.keys(objects).forEach((objectKey: string): void => {
-                const objectGroup = objects[objectKey];
-
-                objectGroup.forEach((objectSize: BetonObject[], objectSizeIndex: number): void => {
-                    objectSize.forEach((object: BetonObject, objectIndex: number): void => {
-                        this.objectsToLoad++;
-                        objLoader.load(
-                            `/obj/${ object.file }`,
-                            (object: THREE.Object3D): void => {
-                                object.traverse(function (child: THREE.Mesh) {
-                                    if (child instanceof THREE.Mesh) {
-                                        child.geometry.computeBoundingBox();
-                                    }
-                                });
-                                objectGroup[objectSizeIndex][objectIndex].object = object;
-                                this.objectsReady++;
-                            },
-                            (xhr: ProgressEvent): void => {
-                                // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-                            },
-                            (error: ErrorEvent): void => {
-                                console.log('An error occured:', error);
-                            }
-                        );
-                    });
-                });
-            });
+            await this.loadObjectFiles();
 
             //  What should happen next?
             /*
@@ -290,6 +269,8 @@ export default Vue.extend({
             this.scene.add(this.basementGroup);
             this.scene.add(this.roofGroup);
 
+            this.updateObjects();
+
             const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
                 renderer.render(scene, camera);
                 keyframe++;
@@ -299,6 +280,32 @@ export default Vue.extend({
 
             new OrbitControls(this.camera, this.renderer.domElement);
             animate(this.renderer, this.scene, this.camera);
+        },
+        async loadObjectFiles(): Promise<void> {
+            const objLoader = new OBJLoader();
+
+            for (const objectKey of Object.keys(objects)) {
+                const objectGroup = objects[objectKey];
+                let objectSizeIndex = -1;
+                let objectIndex = -1;
+
+                for (const objectSize of objectGroup) {
+                    objectSizeIndex++;
+                    objectIndex = -1;
+                    for (const object of objectSize) {
+                        objectIndex++;
+                        object.id1 = objectSizeIndex;
+                        object.id2 = objectIndex;
+                        const loadedObject = await objLoader.loadAsync(`/obj/${ object.file }`);
+                        loadedObject.traverse((child: THREE.Mesh|any): void => {
+                            if (child instanceof THREE.Mesh) {
+                                child.geometry.computeBoundingBox();
+                            }
+                        });
+                        objectGroup[object.id1][object.id2].object = loadedObject;
+                    }
+                }
+            };
         },
         setEnvironment(): void {
             const fog = new THREE.FogExp2('#000000', 0.005);
@@ -333,10 +340,21 @@ export default Vue.extend({
 
             return 0;
         },
-        setObjects(): void {
+        updateObjects(): void {
+            this.prepareRenderMatrix();
+            this.updateRenderObjects(objects, this.betonMaterial);
+            this.setBasement(this.betonMaterial);
+            this.$nextTick(() => {
+                this.setRoof(this.betonMaterial);
+            })
+            this.$nextTick(() => {
+                this.setCameraPosition();
+            })
+        },
+        prepareRenderMatrix(): void {
             const totalColumnsMax = defaults.totalColumns.max;
             const totalRowsMax = defaults.totalRows.max;
-            // fill matrix with info about content
+            // main objects
             for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
                 const columns = [];
                 for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
@@ -346,37 +364,20 @@ export default Vue.extend({
                         columns[columnIndex] = null;
                     }
                 }
-                this.renderMatrix[rowIndex] = columns;
+                this.$set(this.renderMatrix, rowIndex, columns);
             }
-            this.updateObjects(objects, this.betonMaterial);
-            
+            // basement & roof
             for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
                 if(rowIndex <= this.settings.totalRows) {
-                    this.basementRow[rowIndex] = 0;
+                    this.$set(this.basementRow, rowIndex, 0);
+                    this.$set(this.roofRow, rowIndex, 0);
                 } else {
-                    this.basementRow[rowIndex] = null;
+                    this.$set(this.basementRow, rowIndex, null);
+                    this.$set(this.roofRow, rowIndex, null);
                 }
             }
-            this.setBasement(this.betonMaterial);
-
-            const objectsBox = new THREE.Box3().setFromObject(this.objectGroup);
-            const basementBox = new THREE.Box3().setFromObject(this.basementGroup);
-            const roofBox = new THREE.Box3().setFromObject(this.basementGroup);
-            this.sizes.objects = objectsBox.getSize(new THREE.Vector3());
-            this.sizes.basement = basementBox.getSize(new THREE.Vector3());
-            this.sizes.roof = roofBox.getSize(new THREE.Vector3());
-            
-            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                if(rowIndex <= this.settings.totalRows) {
-                    this.roofRow[rowIndex] = 0;
-                } else {
-                    this.roofRow[rowIndex] = null;
-                }
-            }
-            this.setRoof(this.betonMaterial);
-            this.setCameraPosition();
         },
-        setCameraPosition() {
+        setCameraPosition(): void {
             const size = this.sizes.objects;
             const height = this.sizes.objects.y + this.sizes.basement.y + this.sizes.roof.y;
             if (size.x > 0 && height > 0 && size.x > 0) {
@@ -437,7 +438,7 @@ export default Vue.extend({
                 }
             });
         },
-        updateObjects(objects: BetonObject, betonMaterial: THREE.MeshStandardMaterial): void {
+        updateRenderObjects(objects: BetonObject, betonMaterial: THREE.MeshStandardMaterial): void {
             // remove legacy objects from object matrix and fill with new ones
             this.renderMatrix.forEach((row, rowIndex: number): void => {
                 row.forEach((_column, columnIndex: number): void => {
