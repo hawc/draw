@@ -16,8 +16,6 @@ import { concreteTexture } from '~/static/textures/textures';
 interface BetonObject {
     file: string,
     object: any,
-    id1?: number,
-    id2?: number,
 }
 
 interface BetonObjects {
@@ -294,15 +292,13 @@ export default Vue.extend({
                     objectIndex = -1;
                     for (const object of objectSize) {
                         objectIndex++;
-                        object.id1 = objectSizeIndex;
-                        object.id2 = objectIndex;
                         const loadedObject = await objLoader.loadAsync(`/obj/${ object.file }`);
                         loadedObject.traverse((child: THREE.Mesh|any): void => {
                             if (child instanceof THREE.Mesh) {
                                 child.geometry.computeBoundingBox();
                             }
                         });
-                        objectGroup[object.id1][object.id2].object = loadedObject;
+                        objectGroup[objectSizeIndex][objectIndex].object = loadedObject;
                     }
                 }
             };
