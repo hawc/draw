@@ -12,103 +12,8 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { defaults } from 'assets/beton/defaults';
 import { concreteTexture } from '~/static/textures/textures';
-
-interface BetonObject {
-    file: string,
-    object: any,
-}
-
-interface BetonObjects {
-    [key: string]: BetonObject[][];
-}
-
-type ObjectType = 'basement'|'roof'|'room';
-
-// outer array is dimension, inner is the different designs for that dimension
-const objects: BetonObjects = {
-    basement: [
-        [
-            {
-                file: 'basement360-01.obj',
-                object: null,
-            },
-            {
-                file: 'basement360-01.obj', // duplicate
-                object: null,
-            },
-        ],
-        [
-            {
-                file: 'basement480-01.obj',
-                object: null,
-            },
-            {
-                file: 'basement480-01.obj', // duplicate
-                object: null,
-            },
-        ],
-        [
-
-        ],
-    ],
-    room: [
-        [
-            {
-                file: 'room360-01.obj',
-                object: null,
-            },
-            {
-                file: 'room360-02.obj',
-                object: null,
-            },
-        ],
-        [
-            {
-                file: 'room480-01.obj',
-                object: null,
-            },
-            {
-                file: 'room480-01.obj', // duplicate
-                object: null,
-            },
-        ],
-        [
-            {
-                file: 'room600-01.obj',
-                object: null,
-            },
-            {
-                file: 'room600-02.obj',
-                object: null,
-            },
-        ],
-    ],
-    roof: [
-        [
-            {
-                file: 'roof360-01.obj',
-                object: null,
-            },
-            {
-                file: 'roof360-01.obj', // duplicate
-                object: null,
-            },
-        ],
-        [
-            {
-                file: 'roof360-01.obj', // duplicate
-                object: null,
-            },
-            {
-                file: 'roof360-01.obj', // duplicate
-                object: null,
-            },
-        ],
-        [
-
-        ],
-    ],
-};
+import { objects } from 'static/beton/objects';
+import { ObjectType } from '~/interfaces/beton/objects';
 
 export default Vue.extend({
     computed: {
@@ -418,31 +323,33 @@ export default Vue.extend({
             // remove legacy objects from object matrix and fill with new ones
             this.renderMatrix.forEach((row, rowIndex: number): void => {
                 row.forEach((_column, columnIndex: number): void => {
-                    const currentCell = this.objectMatrix[rowIndex][columnIndex];
-                    const currentCellType = this.renderMatrix[rowIndex][columnIndex];
-                    const elementShouldBeRemoved = currentCellType === null && currentCell;
-                    const elementShouldBeReplaced = currentCellType !== currentCell?.renderId;
+                    let object = this.objectMatrix[rowIndex][columnIndex];
+                    const objectType = this.renderMatrix[rowIndex][columnIndex];
+                    const elementShouldBeRemoved = objectType === null && object;
+                    const elementShouldBeReplaced = objectType !== object?.renderId;
 
                     if (elementShouldBeRemoved || elementShouldBeReplaced) {
-                        this.objectGroup.remove(currentCell);
-                        this.objectMatrix[rowIndex][columnIndex] = null;
+                        this.objectGroup.remove(object);
+                        object = null;
                     }
 
-                    const elementNotYetRendered = currentCellType !== null && this.objectMatrix[rowIndex][columnIndex] === null;
+                    const elementNotYetRendered = objectType !== null && object === null;
                     if (elementNotYetRendered) {
-                        this.objectMatrix[rowIndex][columnIndex] = this.getObj('room', 0, currentCellType);
-                        this.setBetonMaterial(this.objectMatrix[rowIndex][columnIndex]);
-                        this.objectMatrix[rowIndex][columnIndex].renderId = currentCellType;
+                        object = this.getObj('room', 0, objectType);
+                        this.setBetonMaterial(object);
+                        object.renderId = objectType;
                         if (rowIndex === this.settings.currentColumn) {
-                            this.setMaterialColor(this.objectMatrix[rowIndex][columnIndex], 0xff0000);
+                            this.setMaterialColor(object, 0xff0000);
                         } else {
-                            this.setMaterialColor(this.objectMatrix[rowIndex][columnIndex], 0xffffff);
+                            this.setMaterialColor(object, 0xffffff);
                         }
-                        this.objectGroup.add(this.objectMatrix[rowIndex][columnIndex]);
-                        const posX = rowIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.x;
-                        const posY = columnIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.y;
-                        this.objectMatrix[rowIndex][columnIndex].position.set(posX, posY, 0);
+                        this.objectGroup.add(object);
+                        const posX = rowIndex * this.getObjectPosX(object);
+                        const posY = columnIndex * object.children[0].geometry.boundingBox.max.y;
+                        object.position.set(posX, posY, 0);
                     }
+
+                    this.objectMatrix[rowIndex][columnIndex] = object;
                 });
             });
         },
