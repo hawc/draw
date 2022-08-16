@@ -19,7 +19,6 @@ export default Vue.extend({
     computed: {
         ...mapState([
             'settings',
-            'stopMultiplicator',
         ]),
     },
     data() {
@@ -397,14 +396,6 @@ export default Vue.extend({
     async mounted(): Promise<void> {
         if (process.client) {
             await this.initThree();
-
-            document.addEventListener('keyup', (event: KeyboardEvent): void => {
-                if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
-                    this.SET_STOP_MULTIPLICATOR(0);
-                } else {
-                    this.SET_STOP_MULTIPLICATOR(1);
-                }
-            });
         }
     },
 });
