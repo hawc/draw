@@ -313,7 +313,7 @@ export default Vue.extend({
         },
         updateObjects(): void {
             this.prepareRenderMatrix();
-            this.updateRenderObjects(objects);
+            this.updateRenderObjects();
             this.setBasement();
             this.$nextTick(() => {
                 this.setRoof();
@@ -358,19 +358,19 @@ export default Vue.extend({
                 this.camera.lookAt(newSize);
             }
         },
-        checkAndRemoveObject(objectTypes: string, objectGroup: string, objectStore: string, elementIndex: number): void {
-            if (this[objectTypes][elementIndex] === null && this[objectStore][elementIndex]) {
-                this[objectGroup].remove(this[objectStore][elementIndex]);
-                this[objectStore][elementIndex] = null;
+        checkAndRemoveObject(objectTypes: any, objectGroup: any, objectStore: any, elementIndex: number): void {
+            if (objectTypes[elementIndex] === null && objectStore[elementIndex]) {
+                objectGroup.remove(objectStore[elementIndex]);
+                objectStore[elementIndex] = null;
             }
         },
         setBetonMaterial(targetObject: THREE.Object3D): void {
             targetObject.children[0].material = this.betonMaterial.clone();
         },
         setBasement(): void {
-            this.basementRow.forEach((_elementType: null|number, elementIndex: number) => {
+            this.basementRow.forEach((_elementType: null|number, elementIndex: number): void => {
                 // if cell should be null and has object, remove object
-                this.checkAndRemoveObject('basementRow', 'basementGroup', 'basementObjects', elementIndex);
+                this.checkAndRemoveObject(this.basementRow, this.basementGroup, this.basementObjects, elementIndex);
                 // if cell has no object and should have, add object
                 if (this.basementObjects[elementIndex] === null && this.basementRow[elementIndex] !== null) {
                     this.basementObjects[elementIndex] = this.getObj('basement', 0, 0);
@@ -386,7 +386,7 @@ export default Vue.extend({
         setRoof(): void {
             this.roofRow.forEach((_elementType: null|number, elementIndex: number): void => {
                 // if cell should be null and has object, remove object
-                this.checkAndRemoveObject('roofRow', 'roofGroup', 'roofObjects', elementIndex);
+                this.checkAndRemoveObject(this.roofRow, this.roofGroup, this.roofObjects, elementIndex);
                 // if cell has no object and should have, add object
                 if (this.roofObjects[elementIndex] === null && this.roofRow[elementIndex] !== null) {
                     this.roofObjects[elementIndex] = this.getObj('roof', 0, 0);
@@ -403,10 +403,10 @@ export default Vue.extend({
         getObj(type: ObjectType, sizeIndex: number, modelIndex: number): THREE.Object3D {
             return objects[type][sizeIndex][modelIndex].object.clone();
         },
-        setMaterialColor(targetObject: THREE.Object3D, color: THREE.color) {
+        setMaterialColor(targetObject: THREE.Object3D, color: THREE.color): void {
             targetObject.children[0].material.color.setHex(color);
         },
-        updateRenderObjects(objects: BetonObject, betonMaterial: THREE.MeshStandardMaterial): void {
+        updateRenderObjects(): void {
             // remove legacy objects from object matrix and fill with new ones
             this.renderMatrix.forEach((row, rowIndex: number): void => {
                 row.forEach((_column, columnIndex: number): void => {
