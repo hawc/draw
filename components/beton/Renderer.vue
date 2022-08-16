@@ -101,6 +101,10 @@ export default Vue.extend({
             this.renderer.setSize(window.innerWidth, window.innerHeight);
 
             await this.loadObjectFiles();
+            await this.initFloorPlane();
+            this.initEnvironment();
+
+            this.renderer.render(this.scene, this.camera);
 
             //  What should happen next?
             /*
@@ -114,41 +118,7 @@ export default Vue.extend({
 
                 Rendering the roof is a bit more tricky, as it is combined from multiple elements.
             */
-
-            // Add a plane
-            const plane = this.getPlane(1000, 1000);
-            this.scene.add(plane);
-            // PI / 2 = 90 degrees
-            plane.rotation.x = Math.PI / 2;
-
-            const textureLoader = new THREE.TextureLoader();
-            await this.initBetonMaterial(plane.material, textureLoader, concreteTexture);
-            this.setEnvironment();
-
-            this.renderer.render(this.scene, this.camera);
-
-            const totalColumnsMax = defaults.totalColumns.max;
-            const totalRowsMax = defaults.totalRows.max;
-
-            // create matrix with maximum dimensions
-            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                const columns = [];
-                for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
-                    columns[columnIndex] = null;
-                }
-                this.renderMatrix[rowIndex] = columns;
-                this.basementRow[rowIndex] = null;
-                this.roofRow[rowIndex] = null;
-            }
-
-            this.objectMatrix = JSON.parse(JSON.stringify(this.renderMatrix));
-            this.basementObjects = JSON.parse(JSON.stringify(this.basementRow));
-            this.roofObjects = JSON.parse(JSON.stringify(this.roofRow));
-
-            this.scene.add(this.objectGroup);
-            this.scene.add(this.basementGroup);
-            this.scene.add(this.roofGroup);
-
+            this.prepareObjectStore();
             this.updateObjects();
 
             const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
@@ -164,12 +134,12 @@ export default Vue.extend({
 
             for (const objectKey of Object.keys(objects)) {
                 const objectGroup = objects[objectKey];
-                let objectSizeIndex = -1;
-                let objectIndex = -1;
+                let objectSizeIndex = 0;
+                let objectIndex = 0;
 
                 for (const objectSize of objectGroup) {
                     objectSizeIndex++;
-                    objectIndex = -1;
+                    objectIndex = 0;
                     for (const object of objectSize) {
                         objectIndex++;
                         const loadedObject = await objLoader.loadAsync(`/obj/${ object.file }`);
@@ -178,12 +148,12 @@ export default Vue.extend({
                                 child.geometry.computeBoundingBox();
                             }
                         });
-                        objectGroup[objectSizeIndex][objectIndex].object = loadedObject;
+                        objectGroup[objectSizeIndex - 1][objectIndex - 1].object = loadedObject;
                     }
                 }
             };
         },
-        setEnvironment(): void {
+        initEnvironment(): void {
             const fog = new THREE.FogExp2('#000000', 0.005);
             this.scene.fog = fog;
 
@@ -215,6 +185,29 @@ export default Vue.extend({
             }
 
             return 0;
+        },
+        prepareObjectStore(): void {
+            const totalColumnsMax = defaults.totalColumns.max;
+            const totalRowsMax = defaults.totalRows.max;
+
+            // create matrix with maximum dimensions
+            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
+                const columns = [];
+                for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
+                    columns[columnIndex] = null;
+                }
+                this.renderMatrix[rowIndex] = columns;
+                this.basementRow[rowIndex] = null;
+                this.roofRow[rowIndex] = null;
+            }
+
+            this.objectMatrix = JSON.parse(JSON.stringify(this.renderMatrix));
+            this.basementObjects = JSON.parse(JSON.stringify(this.basementRow));
+            this.roofObjects = JSON.parse(JSON.stringify(this.roofRow));
+
+            this.scene.add(this.objectGroup);
+            this.scene.add(this.basementGroup);
+            this.scene.add(this.roofGroup);
         },
         updateObjects(): void {
             this.prepareRenderMatrix();
@@ -353,8 +346,14 @@ export default Vue.extend({
                 });
             });
         },
-        async initBetonMaterial(material: THREE.MeshStandardMaterial, textureLoader: THREE.TextureLoader, concreteTexture: string): Promise<void> {
-            this.betonMaterial = material;
+        async initFloorPlane(): Promise<void> {
+            const plane = this.getPlane(1000, 1000);
+            this.scene.add(plane);
+            // PI / 2 = 90 degrees
+            plane.rotation.x = Math.PI / 2;
+
+            const textureLoader = new THREE.TextureLoader();
+            this.betonMaterial = plane.material;
             this.betonMaterial.bumpScale = 0.25;
             this.betonMaterial.roughness = 0.65;
             this.betonMaterial.metalness = 0;
