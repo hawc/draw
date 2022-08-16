@@ -372,14 +372,17 @@ export default Vue.extend({
                 // if cell should be null and has object, remove object
                 this.checkAndRemoveObject(this.basementRow, this.basementGroup, this.basementObjects, elementIndex);
                 // if cell has no object and should have, add object
-                if (this.basementObjects[elementIndex] === null && this.basementRow[elementIndex] !== null) {
-                    this.basementObjects[elementIndex] = this.getObj('basement', 0, 0);
-                    this.setBetonMaterial(this.basementObjects[elementIndex]);
-                    this.basementGroup.add(this.basementObjects[elementIndex]);
-                    let posX = elementIndex * this.basementObjects[elementIndex].children[0].geometry.boundingBox.max.x;
-                    this.basementObjects[elementIndex].position.set(posX, 0, 0);
+                let object = this.basementObjects[elementIndex];
+                if (object === null && this.basementRow[elementIndex] !== null) {
+                    object = this.getObj('basement', 0, 0);
+                    this.setBetonMaterial(object);
+                    this.basementGroup.add(object);
+                    this.basementObjects[elementIndex] = object;
 
-                    this.objectGroup.position.y = this.basementObjects[elementIndex].children[0].geometry.boundingBox.max.y;
+                    let posX = elementIndex * this.getObjectPosX(object);
+                    object.position.set(posX, 0, 0);
+
+                    this.objectGroup.position.y = object.children[0].geometry.boundingBox.max.y;
                 }
             });
         },
@@ -388,17 +391,22 @@ export default Vue.extend({
                 // if cell should be null and has object, remove object
                 this.checkAndRemoveObject(this.roofRow, this.roofGroup, this.roofObjects, elementIndex);
                 // if cell has no object and should have, add object
-                if (this.roofObjects[elementIndex] === null && this.roofRow[elementIndex] !== null) {
-                    this.roofObjects[elementIndex] = this.getObj('roof', 0, 0);
-                    this.setBetonMaterial(this.roofObjects[elementIndex]);
-                    this.roofGroup.add(this.roofObjects[elementIndex]);
+                let object = this.roofObjects[elementIndex];
+                if (object === null && this.roofRow[elementIndex] !== null) {
+                    object = this.getObj('roof', 0, 0);
+                    this.setBetonMaterial(object);
+                    this.roofGroup.add(object);
+                    this.roofObjects[elementIndex] = object;
                 }
                 // update position for all roof objects
-                if (this.roofObjects[elementIndex]) {
-                    let posX = elementIndex * this.roofObjects[elementIndex].children[0].geometry.boundingBox.max.x;
-                    this.roofObjects[elementIndex].position.set(posX, this.sizes.objects.y + this.sizes.basement.y, 0);
+                if (object) {
+                    let posX = elementIndex * this.getObjectPosX(object);
+                    object.position.set(posX, this.sizes.objects.y + this.sizes.basement.y, 0);
                 }
             });
+        },
+        getObjectPosX(object: THREE.Object3D): number {
+            return object.children[0].geometry.boundingBox.max.x;
         },
         getObj(type: ObjectType, sizeIndex: number, modelIndex: number): THREE.Object3D {
             return objects[type][sizeIndex][modelIndex].object.clone();
