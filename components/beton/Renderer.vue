@@ -243,8 +243,6 @@ export default Vue.extend({
 
             this.renderer.render(this.scene, this.camera);
 
-            let keyframe = 0;
-
             const totalColumnsMax = defaults.totalColumns.max;
             const totalRowsMax = defaults.totalRows.max;
 
@@ -271,8 +269,6 @@ export default Vue.extend({
 
             const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
                 renderer.render(scene, camera);
-                keyframe++;
-                this.setSpotlightFlicker(keyframe, scene);
                 requestAnimationFrame(() => animate(renderer, scene, camera));
             }
 
@@ -343,9 +339,9 @@ export default Vue.extend({
             this.$nextTick(() => {
                 this.setRoof(this.betonMaterial);
             })
-            this.$nextTick(() => {
-                this.setCameraPosition();
-            })
+            // this.$nextTick(() => {
+            //     this.setCameraPosition();
+            // })
         },
         prepareRenderMatrix(): void {
             const totalColumnsMax = defaults.totalColumns.max;
@@ -383,25 +379,16 @@ export default Vue.extend({
                 this.camera.lookAt(newSize);
             }
         },
-        setSpotlightFlicker(keyframe: number, scene: THREE.Scene): void {
-            if (keyframe % 10 === 0) {
-                const spotlight1 = scene.getObjectByName('spotlight1');
-                spotlight1.intensity += (Math.random() - 0.5) * 0.025;
-                spotlight1.intensity = Math.abs(spotlight1.intensity);
-
-                const spotlight2 = scene.getObjectByName('spotlight2');
-                spotlight2.intensity += (Math.random() - 0.5) * 0.015;
-                spotlight2.intensity = Math.abs(spotlight2.intensity);
-
+        checkAndRemoveObject(objectTypes, objectGroup, objectStore, elementIndex) {
+            if (this[objectTypes][elementIndex] === null && this[objectStore][elementIndex]) {
+                this[objectGroup].remove(this[objectStore][elementIndex]);
+                this[objectStore][elementIndex] = null;
             }
         },
         setBasement(betonMaterial: THREE.Material): void {
             this.basementRow.forEach((_elementType: null|number, elementIndex: number) => {
                 // if cell should be null and has object, remove object
-                if (this.basementRow[elementIndex] === null && this.basementObjects[elementIndex]) {
-                    this.basementGroup.remove(this.basementObjects[elementIndex]);
-                    this.basementObjects[elementIndex] = null;
-                }
+                this.checkAndRemoveObject('basementRow', 'basementGroup', 'basementObjects', elementIndex);
                 // if cell has no object and should have, add object
                 if (this.basementObjects[elementIndex] === null && this.basementRow[elementIndex] !== null) {
                     this.basementObjects[elementIndex] = objects.basement[0][0].object.clone();
@@ -415,12 +402,9 @@ export default Vue.extend({
             });
         },
         setRoof(betonMaterial: THREE.Material): void {
-            this.roofRow.forEach((_elementType: null|number, elementIndex: number) => {
+            this.roofRow.forEach((_elementType: null|number, elementIndex: number): void => {
                 // if cell should be null and has object, remove object
-                if (this.roofRow[elementIndex] === null && this.roofObjects[elementIndex]) {
-                    this.roofGroup.remove(this.roofObjects[elementIndex]);
-                    this.roofObjects[elementIndex] = null;
-                }
+                this.checkAndRemoveObject('roofRow', 'roofGroup', 'roofObjects', elementIndex);
                 // if cell has no object and should have, add object
                 if (this.roofObjects[elementIndex] === null && this.roofRow[elementIndex] !== null) {
                     this.roofObjects[elementIndex] = objects.roof[0][0].object.clone();
