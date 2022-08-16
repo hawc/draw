@@ -22,6 +22,8 @@ interface BetonObjects {
     [key: string]: BetonObject[][];
 }
 
+type ObjectType = 'basement'|'roof'|'room';
+
 // outer array is dimension, inner is the different designs for that dimension
 const objects: BetonObjects = {
     basement: [
@@ -185,10 +187,6 @@ export default Vue.extend({
 
             this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 
-            const concreteTextureUrl = () => concreteTexture;
-
-            const textureLoader = new THREE.TextureLoader();
-
             this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             this.renderer.toneMappingExposure = 1.25;
@@ -218,27 +216,8 @@ export default Vue.extend({
             // PI / 2 = 90 degrees
             plane.rotation.x = Math.PI / 2;
 
-            this.betonMaterial = plane.material;
-            this.betonMaterial.bumpScale = 0.25;
-            this.betonMaterial.roughness = 0.65;
-            this.betonMaterial.metalness = 0;
-
-            // Add a texture to the plane
-            const loadedConcreteTexture = await textureLoader.load(concreteTextureUrl());
-            this.betonMaterial.map = loadedConcreteTexture;
-            this.betonMaterial.bumpMap = loadedConcreteTexture;
-            this.betonMaterial.roughnessMap = loadedConcreteTexture;
-
-            const concreteTextureRepetition = 32;
-            ['map', 'bumpMap', 'roughnessMap'].forEach((mapName: string): void => {
-                this.betonMaterial[mapName].wrapS = THREE.RepeatWrapping;
-                this.betonMaterial[mapName].wrapT = THREE.RepeatWrapping;
-                this.betonMaterial[mapName].repeat.set(
-                    concreteTextureRepetition,
-                    concreteTextureRepetition,
-                );
-            });
-            
+            const textureLoader = new THREE.TextureLoader();
+            await this.initBetonMaterial(plane.material, textureLoader, concreteTexture);
             this.setEnvironment();
 
             this.renderer.render(this.scene, this.camera);
@@ -334,10 +313,10 @@ export default Vue.extend({
         },
         updateObjects(): void {
             this.prepareRenderMatrix();
-            this.updateRenderObjects(objects, this.betonMaterial);
-            this.setBasement(this.betonMaterial);
+            this.updateRenderObjects(objects);
+            this.setBasement();
             this.$nextTick(() => {
-                this.setRoof(this.betonMaterial);
+                this.setRoof();
             })
             // this.$nextTick(() => {
             //     this.setCameraPosition();
@@ -379,20 +358,23 @@ export default Vue.extend({
                 this.camera.lookAt(newSize);
             }
         },
-        checkAndRemoveObject(objectTypes, objectGroup, objectStore, elementIndex) {
+        checkAndRemoveObject(objectTypes: string, objectGroup: string, objectStore: string, elementIndex: number): void {
             if (this[objectTypes][elementIndex] === null && this[objectStore][elementIndex]) {
                 this[objectGroup].remove(this[objectStore][elementIndex]);
                 this[objectStore][elementIndex] = null;
             }
         },
-        setBasement(betonMaterial: THREE.Material): void {
+        setBetonMaterial(targetObject: THREE.Object3D): void {
+            targetObject.children[0].material = this.betonMaterial.clone();
+        },
+        setBasement(): void {
             this.basementRow.forEach((_elementType: null|number, elementIndex: number) => {
                 // if cell should be null and has object, remove object
                 this.checkAndRemoveObject('basementRow', 'basementGroup', 'basementObjects', elementIndex);
                 // if cell has no object and should have, add object
                 if (this.basementObjects[elementIndex] === null && this.basementRow[elementIndex] !== null) {
-                    this.basementObjects[elementIndex] = objects.basement[0][0].object.clone();
-                    this.basementObjects[elementIndex].children[0].material = betonMaterial.clone();
+                    this.basementObjects[elementIndex] = this.getObj('basement', 0, 0);
+                    this.setBetonMaterial(this.basementObjects[elementIndex]);
                     this.basementGroup.add(this.basementObjects[elementIndex]);
                     let posX = elementIndex * this.basementObjects[elementIndex].children[0].geometry.boundingBox.max.x;
                     this.basementObjects[elementIndex].position.set(posX, 0, 0);
@@ -401,14 +383,14 @@ export default Vue.extend({
                 }
             });
         },
-        setRoof(betonMaterial: THREE.Material): void {
+        setRoof(): void {
             this.roofRow.forEach((_elementType: null|number, elementIndex: number): void => {
                 // if cell should be null and has object, remove object
                 this.checkAndRemoveObject('roofRow', 'roofGroup', 'roofObjects', elementIndex);
                 // if cell has no object and should have, add object
                 if (this.roofObjects[elementIndex] === null && this.roofRow[elementIndex] !== null) {
-                    this.roofObjects[elementIndex] = objects.roof[0][0].object.clone();
-                    this.roofObjects[elementIndex].children[0].material = betonMaterial.clone();
+                    this.roofObjects[elementIndex] = this.getObj('roof', 0, 0);
+                    this.setBetonMaterial(this.roofObjects[elementIndex]);
                     this.roofGroup.add(this.roofObjects[elementIndex]);
                 }
                 // update position for all roof objects
@@ -418,28 +400,35 @@ export default Vue.extend({
                 }
             });
         },
+        getObj(type: ObjectType, sizeIndex: number, modelIndex: number): THREE.Object3D {
+            return objects[type][sizeIndex][modelIndex].object.clone();
+        },
+        setMaterialColor(targetObject: THREE.Object3D, color: THREE.color) {
+            targetObject.children[0].material.color.setHex(color);
+        },
         updateRenderObjects(objects: BetonObject, betonMaterial: THREE.MeshStandardMaterial): void {
             // remove legacy objects from object matrix and fill with new ones
             this.renderMatrix.forEach((row, rowIndex: number): void => {
                 row.forEach((_column, columnIndex: number): void => {
                     const currentCell = this.objectMatrix[rowIndex][columnIndex];
-                    const elementShouldBeRemoved = this.renderMatrix[rowIndex][columnIndex] === null && this.objectMatrix[rowIndex][columnIndex];
-                    const elementShouldBeReplaced = this.renderMatrix[rowIndex][columnIndex] !== this.objectMatrix[rowIndex][columnIndex]?.renderId;
+                    const currentCellType = this.renderMatrix[rowIndex][columnIndex];
+                    const elementShouldBeRemoved = currentCellType === null && currentCell;
+                    const elementShouldBeReplaced = currentCellType !== currentCell?.renderId;
 
                     if (elementShouldBeRemoved || elementShouldBeReplaced) {
                         this.objectGroup.remove(currentCell);
                         this.objectMatrix[rowIndex][columnIndex] = null;
                     }
 
-                    const elementNotYetRendered = this.renderMatrix[rowIndex][columnIndex] !== null && this.objectMatrix[rowIndex][columnIndex] === null;
+                    const elementNotYetRendered = currentCellType !== null && this.objectMatrix[rowIndex][columnIndex] === null;
                     if (elementNotYetRendered) {
-                        this.objectMatrix[rowIndex][columnIndex] = objects['room'][0][this.renderMatrix[rowIndex][columnIndex]].object.clone();
-                        this.objectMatrix[rowIndex][columnIndex].children[0].material = betonMaterial.clone(); // doesn't work with custom obj
-                        this.objectMatrix[rowIndex][columnIndex].renderId = this.renderMatrix[rowIndex][columnIndex];
+                        this.objectMatrix[rowIndex][columnIndex] = this.getObj('room', 0, currentCellType);
+                        this.setBetonMaterial(this.objectMatrix[rowIndex][columnIndex]);
+                        this.objectMatrix[rowIndex][columnIndex].renderId = currentCellType;
                         if (rowIndex === this.settings.currentColumn) {
-                            this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xff0000);
+                            this.setMaterialColor(this.objectMatrix[rowIndex][columnIndex], 0xff0000);
                         } else {
-                            this.objectMatrix[rowIndex][columnIndex].children[0].material.color.setHex(0xffffff);
+                            this.setMaterialColor(this.objectMatrix[rowIndex][columnIndex], 0xffffff);
                         }
                         this.objectGroup.add(this.objectMatrix[rowIndex][columnIndex]);
                         const posX = rowIndex * this.objectMatrix[rowIndex][columnIndex].children[0].geometry.boundingBox.max.x;
@@ -449,13 +438,35 @@ export default Vue.extend({
                 });
             });
         },
+        async initBetonMaterial(material: THREE.MeshStandardMaterial, textureLoader: THREE.TextureLoader, concreteTexture: string): Promise<void> {
+            this.betonMaterial = material;
+            this.betonMaterial.bumpScale = 0.25;
+            this.betonMaterial.roughness = 0.65;
+            this.betonMaterial.metalness = 0;
+
+            // Add a texture to the plane
+            const loadedConcreteTexture = await textureLoader.load(concreteTexture);
+            this.betonMaterial.map = loadedConcreteTexture;
+            this.betonMaterial.bumpMap = loadedConcreteTexture;
+            this.betonMaterial.roughnessMap = loadedConcreteTexture;
+
+            const concreteTextureRepetition = 32;
+            ['map', 'bumpMap', 'roughnessMap'].forEach((mapName: string): void => {
+                this.betonMaterial[mapName].wrapS = THREE.RepeatWrapping;
+                this.betonMaterial[mapName].wrapT = THREE.RepeatWrapping;
+                this.betonMaterial[mapName].repeat.set(
+                    concreteTextureRepetition,
+                    concreteTextureRepetition,
+                );
+            });
+        },
         getPlane(width: number, height: number): THREE.Mesh {
             const geo = new THREE.PlaneGeometry(width, height);
             const material = new THREE.MeshStandardMaterial({
                 color: 0xffffff,
                 side: THREE.DoubleSide,
             });
-            const mesh = new THREE.Mesh(geo, material as any);
+            const mesh = new THREE.Mesh(geo, material);
             mesh.receiveShadow = true;
 
             return mesh;
@@ -463,8 +474,8 @@ export default Vue.extend({
         getSpotlight(color: string, intensity: number): THREE.PointLight {
             const light = new THREE.PointLight(color, intensity);
             light.castShadow = true;
-            light.shadow.mapSize.x = 4096;
-            light.shadow.mapSize.y = 4096;
+            light.shadow.mapSize.x = 4096 / 2;
+            light.shadow.mapSize.y = 4096 / 2;
 
             return light;
         },
