@@ -83,9 +83,6 @@ export default Vue.extend({
         },
     },
     methods: {
-        ...mapMutations([
-            'SET_STOP_MULTIPLICATOR',
-        ]),
         async initThree(): Promise<void> {
             this.scene = new THREE.Scene();
 
@@ -161,21 +158,12 @@ export default Vue.extend({
 
             const spotlight1 = this.getSpotlight('rgb(255, 200, 255)', 1);
             this.scene.add(spotlight1);
-            spotlight1.name = 'spotlight1';
-            spotlight1.position.x = 6;
-            spotlight1.position.y = 8;
-            spotlight1.position.z = -20;
+            spotlight1.position.set(6, 8, -20);
 
             const spotlight2 = this.getSpotlight('rgb(255, 200, 255)', 1);
             this.scene.add(spotlight2);
-            spotlight2.name = 'spotlight2';
-            spotlight2.position.x = -16;
-            spotlight2.position.y = 6;
-            spotlight2.position.z = 5;
-
-            this.camera.position.x = 0;
-            this.camera.position.y = 16;
-            this.camera.position.z = 48;
+            spotlight2.position.set(-16, 6, 5);
+            this.camera.position.set(0, 16, 48);
             this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         },
         getElementTypeForPreviousRow(rowIndex: number, columnIndex: number): number {
