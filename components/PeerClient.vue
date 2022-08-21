@@ -36,7 +36,7 @@ export default Vue.extend({
     },
     methods: {
         initPeer(): void {
-            this.generateQrCode(`https://${ location.hostname }${ this.$route.fullPath }/sender?k=${ this.key }`);
+            this.generateQrCode(`https://${ location.hostname }${ this.$route.fullPath }${ this.$route.fullPath.substr(-1) === '/' ? '' : '/' }sender?k=${ this.key }`);
 
             this.peer.on('open', () => {
                 this.peerID = `${ this.peer.id }`;

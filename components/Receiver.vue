@@ -10,7 +10,7 @@
                 <a
                     v-if="peerID"
                     class="joystick"
-                    :href="`${ $route.fullPath }/sender?k=${ peerID }`"
+                    :href="`${ $route.fullPath }${ $route.fullPath.substr(-1) === '/' ? '' : '/' }sender?k=${ peerID }`"
                     target="_new">
                     🕹
                 </a>
