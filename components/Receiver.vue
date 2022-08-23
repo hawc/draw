@@ -6,7 +6,7 @@
         <div class="container">
             <p :hidden="standalone"
                 class="statusMessage">
-                <span :hidden="!isProduction">{{ peerID ? peerID : 'Not connected.' }}</span>
+                <span :hidden="isProduction">{{ peerID ? peerID : 'Not connected.' }}</span>
                 <a
                     v-if="peerID"
                     class="joystick"
