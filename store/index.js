@@ -97,22 +97,19 @@ export const actions = {
                 navigator.requestMIDIAccess()
                     .then(
                         (midi) => midiReady(midi),
-                        (err) => console.log('Something went wrong', err));
+                        (err) => console.error('Something went wrong', err));
             }
         };
 
         const midiReady = (midi) => {
-            console.log("init", midi);
             midi.addEventListener('statechange', (event) => initDevices(event.target));
             initDevices(midi);
         };
         const midiDevices = [];
 
         const initDevices = (midi) => {
-            console.log(midi.inputs);
             const inputs = midi.inputs.values();
             for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
-                console.log(input);
                 midiDevices.push(input.value);
             }
 
