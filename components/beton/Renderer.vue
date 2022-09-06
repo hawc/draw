@@ -6,14 +6,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapMutations, mapState } from 'vuex';
+import { mapState } from 'vuex';
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { defaults } from 'assets/beton/defaults';
 import { concreteTexture } from '~/static/textures/textures';
 import { objects } from 'static/beton/objects';
-import { ObjectType } from '~/interfaces/beton/objects';
+import { RowType, ObjectType, ObjectStore } from '~/interfaces/beton/objects';
 
 export default Vue.extend({
     computed: {
@@ -49,7 +49,7 @@ export default Vue.extend({
                 this.updateObjects();
         },
         'settings.elementType'(elementType: number): void {
-            this.objectRow.forEach((object: number, objectIndex: number): void => {
+            this.objectRow.forEach((object: ObjectType, objectIndex: number): void => {
                 if (objectIndex === this.settings.currentColumn && object !== null) {
                     this.objectRow[objectIndex] = elementType;
                 }
@@ -57,8 +57,8 @@ export default Vue.extend({
             this.updateObjects();
         },
         'settings.currentColumn'(currentColumn: number): void {
-            this.objectMatrix.forEach((row, rowIndex: number): void => {
-                row.forEach((_column, columnIndex: number): void => {
+            this.objectMatrix.forEach((row: ObjectStore, rowIndex: number): void => {
+                row.forEach((_column: THREE.Group | null, columnIndex: number): void => {
                     if (rowIndex === currentColumn) {
                         row[columnIndex]?.children[0].material.color.setHex(0xff0000);
                     } else {
@@ -149,17 +149,17 @@ export default Vue.extend({
             };
         },
         initEnvironment(): void {
-            const fog = new THREE.FogExp2('#000000', 0.005);
+            const fog = new THREE.FogExp2(0x000000, 0.005);
             this.scene.fog = fog;
 
             const light = new THREE.AmbientLight(0x404040);
             this.scene.add(light);
 
-            const spotlight1 = this.getSpotlight('rgb(255, 200, 255)', 1);
+            const spotlight1 = this.getSpotlight(0xffddff, 1);
             this.scene.add(spotlight1);
             spotlight1.position.set(6, 8, -20);
 
-            const spotlight2 = this.getSpotlight('rgb(255, 200, 255)', 1);
+            const spotlight2 = this.getSpotlight(0xffddff, 1);
             this.scene.add(spotlight2);
             spotlight2.position.set(-16, 6, 5);
             this.camera.position.set(0, 16, 48);
@@ -230,7 +230,7 @@ export default Vue.extend({
                 this.camera.lookAt(newSize);
             }
         },
-        checkAndRemoveObject(objectTypes: any, objectGroup: any, objectStore: any, elementIndex: number): void {
+        checkAndRemoveObject(objectTypes: ObjectType[], objectGroup: THREE.Group, objectStore: ObjectStore, elementIndex: number): void {
             if (objectTypes[elementIndex] === null && objectStore[elementIndex]) {
                 objectGroup.remove(objectStore[elementIndex]);
                 objectStore[elementIndex] = null;
@@ -280,7 +280,7 @@ export default Vue.extend({
         getObjectPosX(object: THREE.Object3D): number {
             return object.children[0].geometry.boundingBox.max.x;
         },
-        getObj(type: ObjectType, sizeIndex: number, modelIndex: number): THREE.Object3D {
+        getObj(type: RowType, sizeIndex: number, modelIndex: number): THREE.Object3D {
             return objects[type][sizeIndex][modelIndex].object.clone();
         },
         setMaterialColor(targetObject: THREE.Object3D, color: THREE.color): void {
