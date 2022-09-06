@@ -26,8 +26,8 @@ export default Vue.extend({
             window,
             betonMaterial: null,
             cubes: [],
-            renderMatrix: [],
             objectMatrix: [],
+            objectRow: [],
             basementRow: [],
             roofRow: [],
             objectGroup: new THREE.Group(),
@@ -49,12 +49,10 @@ export default Vue.extend({
                 this.updateObjects();
         },
         'settings.elementType'(elementType: number): void {
-            this.renderMatrix.forEach((row: number[], rowIndex: number): void => {
-                row.forEach((_column: number, columnIndex: number): void => {
-                    if (rowIndex === this.settings.currentColumn && row[columnIndex] !== null) {
-                        row[columnIndex] = elementType;
-                    }
-                })
+            this.objectRow.forEach((object: number, objectIndex: number): void => {
+                if (objectIndex === this.settings.currentColumn && object !== null) {
+                    this.objectRow[objectIndex] = elementType;
+                }
             });
             this.updateObjects();
         },
@@ -69,7 +67,7 @@ export default Vue.extend({
                 })
             });
         },
-        renderMatrix(): void {
+        objectRow(): void {
             const objectsBox = new THREE.Box3().setFromObject(this.objectGroup);
             this.sizes.objects = objectsBox.getSize(new THREE.Vector3());
         },
@@ -96,8 +94,8 @@ export default Vue.extend({
             this.$refs.main.appendChild(this.renderer.domElement);
             this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-            await this.loadObjectFiles();
             await this.initFloorPlane();
+            await this.loadObjectFiles();
             this.initEnvironment();
 
             this.renderer.render(this.scene, this.camera);
@@ -142,6 +140,7 @@ export default Vue.extend({
                         loadedObject.traverse((child: THREE.Mesh|any): void => {
                             if (child instanceof THREE.Mesh) {
                                 child.geometry.computeBoundingBox();
+                                child.material = this.betonMaterial;
                             }
                         });
                         objectGroup[objectSizeIndex - 1][objectIndex - 1].object = loadedObject;
@@ -167,8 +166,8 @@ export default Vue.extend({
             this.camera.lookAt(new THREE.Vector3(0, 0, 0));
         },
         getElementTypeForPreviousRow(rowIndex: number, columnIndex: number): number {
-            if (columnIndex > 0 && this.renderMatrix[rowIndex][columnIndex - 1]) {
-                return this.renderMatrix[rowIndex][columnIndex - 1];
+            if (columnIndex > 0 && this.objectMatrix[rowIndex][columnIndex - 1]) {
+                return this.objectMatrix[rowIndex][columnIndex - 1].renderId;
             }
 
             return 0;
@@ -183,12 +182,12 @@ export default Vue.extend({
                 for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
                     columns[columnIndex] = null;
                 }
-                this.renderMatrix[rowIndex] = columns;
+                this.objectMatrix[rowIndex] = columns;
+                this.objectRow[rowIndex] = columns[0];
                 this.basementRow[rowIndex] = null;
                 this.roofRow[rowIndex] = null;
             }
 
-            this.objectMatrix = JSON.parse(JSON.stringify(this.renderMatrix));
             this.basementObjects = JSON.parse(JSON.stringify(this.basementRow));
             this.roofObjects = JSON.parse(JSON.stringify(this.roofRow));
 
@@ -208,26 +207,14 @@ export default Vue.extend({
             // })
         },
         prepareRenderMatrix(): void {
-            const totalColumnsMax = defaults.totalColumns.max;
             const totalRowsMax = defaults.totalRows.max;
-            // main objects
-            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                const columns = [];
-                for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
-                    if (rowIndex <= this.settings.totalRows && columnIndex <= this.settings.totalColumns) {
-                        columns[columnIndex] = this.renderMatrix[rowIndex][columnIndex] ?? this.getElementTypeForPreviousRow(rowIndex, columnIndex);
-                    } else {
-                        columns[columnIndex] = null;
-                    }
-                }
-                this.$set(this.renderMatrix, rowIndex, columns);
-            }
-            // basement & roof
             for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
                 if(rowIndex <= this.settings.totalRows) {
+                    this.$set(this.objectRow, rowIndex, this.objectRow[rowIndex] ?? 0);
                     this.$set(this.basementRow, rowIndex, 0);
                     this.$set(this.roofRow, rowIndex, 0);
                 } else {
+                    this.$set(this.objectRow, rowIndex, null);
                     this.$set(this.basementRow, rowIndex, null);
                     this.$set(this.roofRow, rowIndex, null);
                 }
@@ -301,19 +288,18 @@ export default Vue.extend({
         },
         updateRenderObjects(): void {
             // remove legacy objects from object matrix and fill with new ones
-            this.renderMatrix.forEach((row, rowIndex: number): void => {
-                row.forEach((_column, columnIndex: number): void => {
-                    let object = this.objectMatrix[rowIndex][columnIndex];
-                    const objectType = this.renderMatrix[rowIndex][columnIndex];
-                    const elementShouldBeRemoved = objectType === null && object;
+            this.objectMatrix.forEach((row, rowIndex: number): void => {
+                row.forEach((column, columnIndex: number): void => {
+                    let object = column;
+                    const objectType = this.objectRow[rowIndex];
+                    const elementShouldBeRemoved = (object && (objectType === null || columnIndex > this.settings.totalColumns));
                     const elementShouldBeReplaced = objectType !== object?.renderId;
-
                     if (elementShouldBeRemoved || elementShouldBeReplaced) {
                         this.objectGroup.remove(object);
                         object = null;
                     }
 
-                    const elementNotYetRendered = objectType !== null && object === null;
+                    const elementNotYetRendered = (objectType !== null && columnIndex <= this.settings.totalColumns) && object === null;
                     if (elementNotYetRendered) {
                         object = this.getObj('room', 0, objectType);
                         this.setBetonMaterial(object);
