@@ -15,10 +15,11 @@ import { concreteTexture } from '~/static/textures/textures';
 import { objects } from 'static/beton/objects';
 import { RowType, ObjectType, ObjectStore } from '~/interfaces/beton/objects';
 
+const FLOOR_PLANE_SIDE_LENGTH = 1000;
+
 export default Vue.extend({
     data() {
         return {
-            window,
             betonMaterial: null,
             objectMatrix: [],
             side: 'front',
@@ -342,7 +343,7 @@ export default Vue.extend({
             });
         },
         async initFloorPlane(): Promise<void> {
-            const plane = this.getPlane(1000, 1000);
+            const plane = this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
             this.scene.add(plane);
             // PI / 2 = 90 degrees
             plane.rotation.x = Math.PI / 2;
