@@ -16,23 +16,36 @@ import { objects } from 'static/beton/objects';
 import { RowType, ObjectType, ObjectStore } from '~/interfaces/beton/objects';
 
 export default Vue.extend({
-    computed: {
-        ...mapState([
-            'settings',
-        ]),
-    },
     data() {
         return {
             window,
             betonMaterial: null,
-            cubes: [],
             objectMatrix: [],
-            objectRow: [],
-            basementRow: [],
-            roofRow: [],
-            objectGroup: new THREE.Group(),
-            basementGroup: new THREE.Group(),
-            roofGroup: new THREE.Group(),
+            side: 'front',
+            objectTypes: {
+                front: {
+                    roof: [],
+                    rooms: [],
+                    basement: [],
+                },
+                back: {
+                    roof: [],
+                    rooms: [],
+                    basement: [],
+                },
+            },
+            objects: {
+                front: {
+                    roof: new THREE.Group(),
+                    rooms: new THREE.Group(),
+                    basement: new THREE.Group(),
+                },
+                back: {
+                    roof: new THREE.Group(),
+                    rooms: new THREE.Group(),
+                    basement: new THREE.Group(),
+                },
+            },
             camera: null,
             sizes: {
                 objects: 0,
@@ -40,6 +53,15 @@ export default Vue.extend({
                 basement: 0,
             }
         }
+    },
+    computed: {
+        ...mapState([
+            'settings',
+        ]),
+        objectTypesSide() {
+            // only necessary for watcher
+            return this.objectTypes[this.side];
+        },
     },
     watch: {
         'settings.totalColumns'(): void {
@@ -49,9 +71,9 @@ export default Vue.extend({
                 this.updateObjects();
         },
         'settings.elementType'(elementType: number): void {
-            this.objectRow.forEach((object: ObjectType, objectIndex: number): void => {
+            this.objectTypes[this.side].rooms.forEach((object: ObjectType, objectIndex: number): void => {
                 if (objectIndex === this.settings.currentColumn && object !== null) {
-                    this.objectRow[objectIndex] = elementType;
+                    this.objectTypes[this.side].rooms[objectIndex] = elementType;
                 }
             });
             this.updateObjects();
@@ -67,16 +89,16 @@ export default Vue.extend({
                 })
             });
         },
-        objectRow(): void {
-            const objectsBox = new THREE.Box3().setFromObject(this.objectGroup);
+        'objectTypesSide.rooms'(): void {
+            const objectsBox = new THREE.Box3().setFromObject(this.objects[this.side].rooms);
             this.sizes.objects = objectsBox.getSize(new THREE.Vector3());
         },
-        basementRow(): void {
-            const basementBox = new THREE.Box3().setFromObject(this.basementGroup);
+        'objectTypesSide.basement'(): void {
+            const basementBox = new THREE.Box3().setFromObject(this.objects[this.side].basement);
             this.sizes.basement = basementBox.getSize(new THREE.Vector3());
         },
-        roofRow(): void {
-            const roofBox = new THREE.Box3().setFromObject(this.roofGroup);
+        'objectTypesSide.roof'(): void {
+            const roofBox = new THREE.Box3().setFromObject(this.objects[this.side].roof);
             this.sizes.roof = roofBox.getSize(new THREE.Vector3());
         },
     },
@@ -183,17 +205,17 @@ export default Vue.extend({
                     columns[columnIndex] = null;
                 }
                 this.objectMatrix[rowIndex] = columns;
-                this.objectRow[rowIndex] = columns[0];
-                this.basementRow[rowIndex] = null;
-                this.roofRow[rowIndex] = null;
+                this.objectTypes[this.side].rooms[rowIndex] = columns[0];
+                this.objectTypes[this.side].basement[rowIndex] = null;
+                this.objectTypes[this.side].roof[rowIndex] = null;
             }
 
-            this.basementObjects = JSON.parse(JSON.stringify(this.basementRow));
-            this.roofObjects = JSON.parse(JSON.stringify(this.roofRow));
+            this.basementObjects = JSON.parse(JSON.stringify(this.objectTypes[this.side].basement));
+            this.roofObjects = JSON.parse(JSON.stringify(this.objectTypes[this.side].roof));
 
-            this.scene.add(this.objectGroup);
-            this.scene.add(this.basementGroup);
-            this.scene.add(this.roofGroup);
+            this.scene.add(this.objects[this.side].rooms);
+            this.scene.add(this.objects[this.side].basement);
+            this.scene.add(this.objects[this.side].roof);
         },
         updateObjects(): void {
             this.prepareRenderMatrix();
@@ -210,13 +232,13 @@ export default Vue.extend({
             const totalRowsMax = defaults.totalRows.max;
             for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
                 if(rowIndex <= this.settings.totalRows) {
-                    this.$set(this.objectRow, rowIndex, this.objectRow[rowIndex] ?? 0);
-                    this.$set(this.basementRow, rowIndex, 0);
-                    this.$set(this.roofRow, rowIndex, 0);
+                    this.$set(this.objectTypes[this.side].rooms, rowIndex, this.objectTypes[this.side].rooms[rowIndex] ?? 0);
+                    this.$set(this.objectTypes[this.side].basement, rowIndex, 0);
+                    this.$set(this.objectTypes[this.side].roof, rowIndex, 0);
                 } else {
-                    this.$set(this.objectRow, rowIndex, null);
-                    this.$set(this.basementRow, rowIndex, null);
-                    this.$set(this.roofRow, rowIndex, null);
+                    this.$set(this.objectTypes[this.side].rooms, rowIndex, null);
+                    this.$set(this.objectTypes[this.side].basement, rowIndex, null);
+                    this.$set(this.objectTypes[this.side].roof, rowIndex, null);
                 }
             }
         },
@@ -240,34 +262,34 @@ export default Vue.extend({
             targetObject.children[0].material = this.betonMaterial.clone();
         },
         setBasement(): void {
-            this.basementRow.forEach((_elementType: null|number, elementIndex: number): void => {
+            this.objectTypes[this.side].basement.forEach((_elementType: null|number, elementIndex: number): void => {
                 // if cell should be null and has object, remove object
-                this.checkAndRemoveObject(this.basementRow, this.basementGroup, this.basementObjects, elementIndex);
+                this.checkAndRemoveObject(this.objectTypes[this.side].basement, this.objects[this.side].basement, this.basementObjects, elementIndex);
                 // if cell has no object and should have, add object
                 let object = this.basementObjects[elementIndex];
-                if (object === null && this.basementRow[elementIndex] !== null) {
+                if (object === null && this.objectTypes[this.side].basement[elementIndex] !== null) {
                     object = this.getObj('basement', 0, 0);
                     this.setBetonMaterial(object);
-                    this.basementGroup.add(object);
+                    this.objects[this.side].basement.add(object);
                     this.basementObjects[elementIndex] = object;
 
                     let posX = elementIndex * this.getObjectPosX(object);
                     object.position.set(posX, 0, 0);
 
-                    this.objectGroup.position.y = object.children[0].geometry.boundingBox.max.y;
+                    this.objects[this.side].rooms.position.y = object.children[0].geometry.boundingBox.max.y;
                 }
             });
         },
         setRoof(): void {
-            this.roofRow.forEach((_elementType: null|number, elementIndex: number): void => {
+            this.objectTypes[this.side].roof.forEach((_elementType: null|number, elementIndex: number): void => {
                 // if cell should be null and has object, remove object
-                this.checkAndRemoveObject(this.roofRow, this.roofGroup, this.roofObjects, elementIndex);
+                this.checkAndRemoveObject(this.objectTypes[this.side].roof, this.objects[this.side].roof, this.roofObjects, elementIndex);
                 // if cell has no object and should have, add object
                 let object = this.roofObjects[elementIndex];
-                if (object === null && this.roofRow[elementIndex] !== null) {
+                if (object === null && this.objectTypes[this.side].roof[elementIndex] !== null) {
                     object = this.getObj('roof', 0, 0);
                     this.setBetonMaterial(object);
-                    this.roofGroup.add(object);
+                    this.objects[this.side].roof.add(object);
                     this.roofObjects[elementIndex] = object;
                 }
                 // update position for all roof objects
@@ -291,11 +313,11 @@ export default Vue.extend({
             this.objectMatrix.forEach((row, rowIndex: number): void => {
                 row.forEach((column, columnIndex: number): void => {
                     let object = column;
-                    const objectType = this.objectRow[rowIndex];
+                    const objectType = this.objectTypes[this.side].rooms[rowIndex];
                     const elementShouldBeRemoved = (object && (objectType === null || columnIndex > this.settings.totalColumns));
                     const elementShouldBeReplaced = objectType !== object?.renderId;
                     if (elementShouldBeRemoved || elementShouldBeReplaced) {
-                        this.objectGroup.remove(object);
+                        this.objects[this.side].rooms.remove(object);
                         object = null;
                     }
 
@@ -309,7 +331,7 @@ export default Vue.extend({
                         } else {
                             this.setMaterialColor(object, 0xffffff);
                         }
-                        this.objectGroup.add(object);
+                        this.objects[this.side].rooms.add(object);
                         const posX = rowIndex * this.getObjectPosX(object);
                         const posY = columnIndex * object.children[0].geometry.boundingBox.max.y;
                         object.position.set(posX, posY, 0);
