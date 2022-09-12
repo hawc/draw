@@ -31,6 +31,12 @@ const defaults: ControllerSettings = {
         step: 1,
         default: 0,
     },
+    side: {
+        min: 0,
+        max: 1,
+        step: 1,
+        default: 0,
+    },
 };
 
 export {
