@@ -15,7 +15,7 @@ import { concreteTexture } from '~/static/textures/textures';
 import { objects } from 'static/beton/objects';
 import { RowType, ObjectType, ObjectStore } from '~/interfaces/beton/objects';
 
-const FLOOR_PLANE_SIDE_LENGTH = 1000;
+const FLOOR_PLANE_SIDE_LENGTH = 2000;
 let scene = null;
 const sides = ['front', 'back'];
 
@@ -124,9 +124,10 @@ export default Vue.extend({
         async initThree(): Promise<void> {
             scene = new THREE.Scene();
 
-            this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+            this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
 
-            this.renderer = new THREE.WebGLRenderer({ antialias: true });
+            // this.renderer = new THREE.WebGLRenderer({ antialias: true });
+            this.renderer = new THREE.WebGLRenderer();
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             this.renderer.toneMappingExposure = 1.25;
             this.renderer.shadowMap.enabled = true;
@@ -160,7 +161,6 @@ export default Vue.extend({
                 requestAnimationFrame(() => animate(renderer, scene, camera));
             }
 
-            new OrbitControls(this.camera, this.renderer.domElement);
             animate(this.renderer, scene, this.camera);
         },
         async loadObjectFiles(): Promise<void> {
@@ -189,7 +189,11 @@ export default Vue.extend({
             };
         },
         initEnvironment(): void {
-            const fog = new THREE.FogExp2(0x000000, 0.005);
+            const lookAtTarget = new THREE.Vector3(20, 17, 0);
+
+            this.renderer.setClearColor(0xffffff, 1);
+
+            const fog = new THREE.FogExp2(0xffffff, 0.0025);
             scene.fog = fog;
 
             const light = new THREE.AmbientLight(0x404040);
@@ -202,8 +206,12 @@ export default Vue.extend({
             const spotlight2 = this.getSpotlight(0xffddff, 1);
             scene.add(spotlight2);
             spotlight2.position.set(-16, 6, 5);
-            this.camera.position.set(0, 16, 48);
-            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+            this.camera.position.set(-20, 10, 90);
+            this.camera.lookAt(lookAtTarget);
+            
+            const orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+            orbitControls.target = lookAtTarget;
+            orbitControls.update();
         },
         prepareObjectStore(): void {
             const totalColumnsMax = defaults.totalColumns.max;
@@ -215,7 +223,7 @@ export default Vue.extend({
                 for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
                     columns[columnIndex] = null;
                 }
-                ['front', 'back'].forEach(side => {
+                sides.forEach(side => {
                     this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
                     this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
                     this.objectTypes[side].rooms[rowIndex] = JSON.parse(JSON.stringify(columns[0]));
@@ -224,7 +232,7 @@ export default Vue.extend({
                 });
             }
 
-            ['front', 'back'].forEach(side => {
+            sides.forEach(side => {
                 this.basementObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].basement));
                 this.roofObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].roof));
 
@@ -244,7 +252,7 @@ export default Vue.extend({
         },
         prepareRenderMatrix(): void {
             const totalRowsMax = defaults.totalRows.max;
-            ['front', 'back'].forEach(side => {
+            sides.forEach(side => {
                 for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
                     if(rowIndex <= this.settings.totalRows) {
                         this.$set(this.objectTypes[side].rooms, rowIndex, this.objectTypes[side].rooms[rowIndex] ?? 0);
@@ -259,8 +267,8 @@ export default Vue.extend({
             });
         },
         setCameraPosition(): void {
-            const size = this.sizes.objects;
-            const height = this.sizes.objects.y + this.sizes.basement.y + this.sizes.roof.y;
+            const size = this.sizes.rooms;
+            const height = this.sizes.rooms.y + this.sizes.basement.y + this.sizes.roof.y;
             if (size.x > 0 && height > 0 && size.x > 0) {
                 const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(height) / 2, Math.round(size.z) / 2);
                 this.camera.position.x = Math.round(size.x) / 2;
@@ -278,7 +286,7 @@ export default Vue.extend({
             targetObject.children[0].material = this.betonMaterial.clone();
         },
         setBasement(): void {
-            ['front', 'back'].forEach(side => {
+            sides.forEach(side => {
                 this.objectTypes[side].basement.forEach((_elementType: null|number, elementIndex: number): void => {
                     // if cell should be null and has object, remove object
                     this.checkAndRemoveObject(this.objectTypes[side].basement, this.objects[side].basement, this.basementObjects[side], elementIndex);
@@ -303,7 +311,7 @@ export default Vue.extend({
             });
         },
         setRoof(): void {
-            ['front', 'back'].forEach(side => {
+            sides.forEach(side => {
                 this.objectTypes[side].roof.forEach((_elementType: null|number, elementIndex: number): void => {
                     // if cell should be null and has object, remove object
                     this.checkAndRemoveObject(this.objectTypes[side].roof, this.objects[side].roof, this.roofObjects[side], elementIndex);
@@ -339,8 +347,7 @@ export default Vue.extend({
         },
         updateRenderObjects(): void {
             // remove legacy objects from object matrix and fill with new ones
-            ['front', 'back'].forEach(side => {
-                // const side = this.side;
+            sides.forEach(side => {
                 this.objectMatrix[side].forEach((row, rowIndex: number): void => {
                     row.forEach((column, columnIndex: number): void => {
                         let object = column;
@@ -380,39 +387,40 @@ export default Vue.extend({
             });
         },
         async initFloorPlane(): Promise<void> {
-            const plane = this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
+            const plane = await this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
             scene.add(plane);
             // PI / 2 = 90 degrees
             plane.rotation.x = Math.PI / 2;
-
-            const textureLoader = new THREE.TextureLoader();
-            this.betonMaterial = plane.material;
-            this.betonMaterial.bumpScale = 0.25;
-            this.betonMaterial.roughness = 0.65;
-            this.betonMaterial.metalness = 0;
-
-            // Add a texture to the plane
-            const loadedConcreteTexture = await textureLoader.load(concreteTexture);
-            this.betonMaterial.map = loadedConcreteTexture;
-            this.betonMaterial.bumpMap = loadedConcreteTexture;
-            this.betonMaterial.roughnessMap = loadedConcreteTexture;
-
-            const concreteTextureRepetition = 32;
-            ['map', 'bumpMap', 'roughnessMap'].forEach((mapName: string): void => {
-                this.betonMaterial[mapName].wrapS = THREE.RepeatWrapping;
-                this.betonMaterial[mapName].wrapT = THREE.RepeatWrapping;
-                this.betonMaterial[mapName].repeat.set(
-                    concreteTextureRepetition,
-                    concreteTextureRepetition,
-                );
-            });
+            this.betonMaterial = await this.getMaterial(concreteTexture);
         },
-        getPlane(width: number, height: number): THREE.Mesh {
-            const geo = new THREE.PlaneGeometry(width, height);
+        async getMaterial(texture: string): Promise<THREE.MeshStandardMaterial> {
             const material = new THREE.MeshStandardMaterial({
                 color: 0xffffff,
                 side: THREE.DoubleSide,
             });
+            material.bumpScale = 0.25;
+            material.roughness = 1;
+            material.metalness = 0;
+            const textureLoader = new THREE.TextureLoader();
+            const loadedConcreteTexture = await textureLoader.load(texture);
+            material.map = loadedConcreteTexture;
+            material.bumpMap = loadedConcreteTexture;
+
+            const concreteTextureRepetition = 64;
+            ['map', 'bumpMap'].forEach((mapName: string): void => {
+                material[mapName].wrapS = THREE.RepeatWrapping;
+                material[mapName].wrapT = THREE.RepeatWrapping;
+                material[mapName].repeat.set(
+                    concreteTextureRepetition,
+                    concreteTextureRepetition,
+                );
+            });
+
+            return material;
+        },
+        async getPlane(width: number, height: number): THREE.Mesh {
+            const geo = new THREE.PlaneGeometry(width, height);
+            const material = await this.getMaterial(require('@/assets/beton/grass.jpeg'));
             const mesh = new THREE.Mesh(geo, material);
             mesh.receiveShadow = true;
 
