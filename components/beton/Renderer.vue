@@ -9,6 +9,8 @@ import Vue from 'vue';
 import { mapState } from 'vuex';
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import { TGALoader } from 'three/examples/jsm/loaders/TGALoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { defaults } from 'assets/beton/defaults';
 import { concreteTexture } from '~/static/textures/textures';
@@ -25,7 +27,9 @@ type DimensionProperty = 'min' | 'max';
 export default Vue.extend({
     data() {
         return {
-            betonMaterial: null,
+            betonMaterial: new THREE.MeshPhongMaterial({
+                color: 0xdddddd,
+            }),
             objectMatrix: {
                 front: [],
                 back: [],
@@ -62,6 +66,7 @@ export default Vue.extend({
                     basement: new THREE.Group(),
                 },
             },
+            floorObject: null,
             camera: null,
         }
     },
@@ -113,11 +118,19 @@ export default Vue.extend({
                         if (rowIndex === currentColumn) {
                             row[columnIndex]?.children[0].material.color.setHex(0xff0000);
                         } else {
-                            row[columnIndex]?.children[0].material.color.setHex(0xffffff);
+                            row[columnIndex]?.children[0].material.color.setHex(0xdddddd);
                         }
                     })
                 });
             });
+        },
+        floorObject(floorObject): void {
+            floorObject.scale.set(0.008,0.008,0.008);
+            floorObject.rotation.y = Math.PI / 2;
+            floorObject.position.x = -24;
+            scene.add(floorObject);
+            console.log(floorObject,"added");
+            // floorObject.position.set(-50,-50,-50);
         },
     },
     methods: {
@@ -126,17 +139,19 @@ export default Vue.extend({
 
             this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
 
-            // this.renderer = new THREE.WebGLRenderer({ antialias: true });
-            this.renderer = new THREE.WebGLRenderer();
+            // this.renderer = new THREE.WebGLRenderer();
+            this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             this.renderer.toneMappingExposure = 1.25;
             this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
             this.$refs.main.appendChild(this.renderer.domElement);
             this.renderer.setSize(window.innerWidth, window.innerHeight);
 
             await this.initFloorPlane();
             await this.loadObjectFiles();
+            await this.loadFloorObject();
             this.initEnvironment();
 
             this.renderer.render(scene, this.camera);
@@ -163,6 +178,23 @@ export default Vue.extend({
 
             animate(this.renderer, scene, this.camera);
         },
+        async loadFloorObject(): Promise<void> {
+            var mtlLoader = new MTLLoader();
+            const materials = await mtlLoader.loadAsync('/obj/material.lib');
+            const objLoader = new OBJLoader();
+            objLoader.setMaterials(materials);
+            const loadedObject = await objLoader.loadAsync('/obj/mars.obj');
+            const textureLoader = new TGALoader();
+            const loadedNormalsTexture = await textureLoader.load('/obj/MarsEnv_nrm.tga');
+            const loadedSpecTexture = await textureLoader.load('/obj/MarsEnv_spc.tga');
+            const loadedMapTexture = await textureLoader.load('/obj/MarsEnv_diff.tga');
+            loadedObject.children[0].material.normalMap = loadedNormalsTexture;
+            loadedObject.children[0].material.specularMap = loadedSpecTexture;
+            loadedObject.children[0].material.map = loadedMapTexture;
+            loadedObject.children[0].castShadow = true;
+            loadedObject.children[0].receiveShadow = true;
+            this.floorObject = loadedObject;
+        },
         async loadObjectFiles(): Promise<void> {
             const objLoader = new OBJLoader();
 
@@ -181,8 +213,12 @@ export default Vue.extend({
                             if (child instanceof THREE.Mesh) {
                                 child.geometry.computeBoundingBox();
                                 child.material = this.betonMaterial;
+                                child.castShadow = true;
+                                child.receiveShadow = true;
                             }
                         });
+                        loadedObject.castShadow = true;
+                        loadedObject.receiveShadow = true;
                         objectGroup[objectSizeIndex - 1][objectIndex - 1].object = loadedObject;
                     }
                 }
@@ -191,22 +227,29 @@ export default Vue.extend({
         initEnvironment(): void {
             const lookAtTarget = new THREE.Vector3(20, 17, 0);
 
-            this.renderer.setClearColor(0xffffff, 1);
+            this.renderer.setClearColor(0xffaa77, 1);
+            // this.renderer.setClearColor(0xffffff, 1);
 
-            const fog = new THREE.FogExp2(0xffffff, 0.0025);
+            const fog = new THREE.FogExp2(0xffaa77, 0.002);
+            // const fog = new THREE.FogExp2(0xffffff, 0.0015);
             scene.fog = fog;
 
-            const light = new THREE.AmbientLight(0x404040);
+            const light = new THREE.AmbientLight(0x202020);
             scene.add(light);
 
+            const spotlight0 = this.getSpotlight(0xffcccc, 4);
+            scene.add(spotlight0);
+            spotlight0.position.set(50, 60, -30);
+
             const spotlight1 = this.getSpotlight(0xffddff, 1);
-            scene.add(spotlight1);
+            // scene.add(spotlight1);
             spotlight1.position.set(6, 8, -20);
 
             const spotlight2 = this.getSpotlight(0xffddff, 1);
-            scene.add(spotlight2);
+            // scene.add(spotlight2);
             spotlight2.position.set(-16, 6, 5);
-            this.camera.position.set(-20, 10, 90);
+
+            this.camera.position.set(90, 30, -160);
             this.camera.lookAt(lookAtTarget);
             
             const orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -283,7 +326,7 @@ export default Vue.extend({
             }
         },
         setBetonMaterial(targetObject: THREE.Object3D): void {
-            targetObject.children[0].material = this.betonMaterial.clone();
+            targetObject.children[0].material = this.betonMaterial;
         },
         setBasement(): void {
             sides.forEach(side => {
@@ -342,7 +385,7 @@ export default Vue.extend({
         getObj(type: RowType, sizeIndex: number, modelIndex: number): THREE.Object3D {
             return objects[type][sizeIndex][modelIndex].object.clone();
         },
-        setMaterialColor(targetObject: THREE.Object3D, color: THREE.color): void {
+        setMaterialColor(targetObject: THREE.Object3D, color: THREE.Color): void {
             targetObject.children[0].material.color.setHex(color);
         },
         updateRenderObjects(): void {
@@ -367,7 +410,7 @@ export default Vue.extend({
                             if (rowIndex === this.settings.currentColumn && side === sides[this.settings.side]) {
                                 this.setMaterialColor(object, 0xff0000);
                             } else {
-                                this.setMaterialColor(object, 0xffffff);
+                                this.setMaterialColor(object, 0xdddddd);
                             }
                             this.objects[side].rooms.add(object);
 
@@ -390,12 +433,13 @@ export default Vue.extend({
             const plane = await this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
             scene.add(plane);
             // PI / 2 = 90 degrees
+            plane.position.y = -70;
             plane.rotation.x = Math.PI / 2;
-            this.betonMaterial = await this.getMaterial(concreteTexture);
+            // this.betonMaterial = await this.getMaterial(concreteTexture);
         },
         async getMaterial(texture: string): Promise<THREE.MeshStandardMaterial> {
             const material = new THREE.MeshStandardMaterial({
-                color: 0xffffff,
+                color: 0xdddddd,
                 side: THREE.DoubleSide,
             });
             material.bumpScale = 0.25;
@@ -418,9 +462,11 @@ export default Vue.extend({
 
             return material;
         },
-        async getPlane(width: number, height: number): THREE.Mesh {
+        async getPlane(width: number, height: number): Promise<THREE.Mesh> {
             const geo = new THREE.PlaneGeometry(width, height);
-            const material = await this.getMaterial(require('@/assets/beton/grass.jpeg'));
+            // const material = await this.getMaterial(require('@/assets/beton/grass.jpeg'));
+            const material = this.betonMaterial.clone();
+            material.side = THREE.DoubleSide;
             const mesh = new THREE.Mesh(geo, material);
             mesh.receiveShadow = true;
 
@@ -429,9 +475,8 @@ export default Vue.extend({
         getSpotlight(color: string, intensity: number): THREE.PointLight {
             const light = new THREE.PointLight(color, intensity);
             light.castShadow = true;
-            light.shadow.mapSize.x = 4096 / 2;
-            light.shadow.mapSize.y = 4096 / 2;
-
+            light.shadow.mapSize.x = 4096;
+            light.shadow.mapSize.y = 4096;
             return light;
         },
     },
