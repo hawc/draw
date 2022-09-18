@@ -13,9 +13,12 @@ import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { TGALoader } from 'three/examples/jsm/loaders/TGALoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { defaults } from 'assets/beton/defaults';
-import { concreteTexture } from '~/static/textures/textures';
 import { objects } from 'static/beton/objects';
 import { RowType, ObjectType, ObjectStore } from '~/interfaces/beton/objects';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 
 const FLOOR_PLANE_SIDE_LENGTH = 2000;
 let scene = null;
@@ -139,8 +142,9 @@ export default Vue.extend({
 
             this.camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
 
-            // this.renderer = new THREE.WebGLRenderer();
-            this.renderer = new THREE.WebGLRenderer({ antialias: true });
+            this.renderer = new THREE.WebGLRenderer();
+            // don't need antialias because where multisampling in WebGLRenderTarget
+            // this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             this.renderer.toneMappingExposure = 1.25;
             this.renderer.shadowMap.enabled = true;
@@ -154,7 +158,18 @@ export default Vue.extend({
             await this.loadFloorObject();
             this.initEnvironment();
 
-            this.renderer.render(scene, this.camera);
+            const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+                samples: 8,
+            })
+
+            const composer = new EffectComposer(this.renderer, target);
+            composer.addPass(new RenderPass(scene, this.camera));
+            const grainPass = new ShaderPass(GRAIN_SHADER);
+            composer.addPass(grainPass);
+
+            composer.render();
+
+
 
             //  What should happen next?
             /*
@@ -172,11 +187,12 @@ export default Vue.extend({
             this.updateObjects();
 
             const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
-                renderer.render(scene, camera);
+                renderer.render();
+                grainPass.uniforms.rand.value =  1 - Math.random();
                 requestAnimationFrame(() => animate(renderer, scene, camera));
             }
 
-            animate(this.renderer, scene, this.camera);
+            animate(composer, scene, this.camera);
         },
         async loadFloorObject(): Promise<void> {
             var mtlLoader = new MTLLoader();
@@ -191,7 +207,7 @@ export default Vue.extend({
             loadedObject.children[0].material.normalMap = loadedNormalsTexture;
             loadedObject.children[0].material.specularMap = loadedSpecTexture;
             loadedObject.children[0].material.map = loadedMapTexture;
-            loadedObject.children[0].castShadow = true;
+            // loadedObject.children[0].castShadow = true;
             loadedObject.children[0].receiveShadow = true;
             this.floorObject = loadedObject;
         },
@@ -217,8 +233,6 @@ export default Vue.extend({
                                 child.receiveShadow = true;
                             }
                         });
-                        loadedObject.castShadow = true;
-                        loadedObject.receiveShadow = true;
                         objectGroup[objectSizeIndex - 1][objectIndex - 1].object = loadedObject;
                     }
                 }
@@ -228,10 +242,8 @@ export default Vue.extend({
             const lookAtTarget = new THREE.Vector3(20, 17, 0);
 
             this.renderer.setClearColor(0xffaa77, 1);
-            // this.renderer.setClearColor(0xffffff, 1);
 
             const fog = new THREE.FogExp2(0xffaa77, 0.002);
-            // const fog = new THREE.FogExp2(0xffffff, 0.0015);
             scene.fog = fog;
 
             const light = new THREE.AmbientLight(0x202020);
@@ -240,14 +252,6 @@ export default Vue.extend({
             const spotlight0 = this.getSpotlight(0xffcccc, 4);
             scene.add(spotlight0);
             spotlight0.position.set(50, 60, -30);
-
-            const spotlight1 = this.getSpotlight(0xffddff, 1);
-            // scene.add(spotlight1);
-            spotlight1.position.set(6, 8, -20);
-
-            const spotlight2 = this.getSpotlight(0xffddff, 1);
-            // scene.add(spotlight2);
-            spotlight2.position.set(-16, 6, 5);
 
             this.camera.position.set(90, 30, -160);
             this.camera.lookAt(lookAtTarget);
