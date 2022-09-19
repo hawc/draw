@@ -19,12 +19,12 @@ const defaults: ControllerSettings = {
         step: 1,
         default: -1,
     },
-    // elementWidth: {
-    //     min: 0,
-    //     max: 1,
-    //     step: 1,
-    //     default: 0,
-    // },
+    elementWidth: {
+        min: 0,
+        max: 1,
+        step: 1,
+        default: 0,
+    },
     elementType: {
         min: 0,
         max: 1,
@@ -34,6 +34,12 @@ const defaults: ControllerSettings = {
     side: {
         min: 0,
         max: 1,
+        step: 1,
+        default: 0,
+    },
+    style: {
+        min: 0,
+        max: 2,
         step: 1,
         default: 0,
     },

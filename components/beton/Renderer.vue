@@ -19,10 +19,14 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { HalftonePass } from 'three/examples/jsm/postprocessing/HalftonePass.js';
 
 const FLOOR_PLANE_SIDE_LENGTH = 2000;
 let scene = null;
 const sides = ['front', 'back'];
+let grainPass;
+let halftonePassDotMatrix;
+let halftonePassGrayscale;
 
 type Dimension = 'x' | 'y' | 'z';
 type DimensionProperty = 'min' | 'max';
@@ -115,10 +119,11 @@ export default Vue.extend({
             this.updateObjects();
         },
         'settings.currentColumn'(currentColumn: number): void {
-            ['front', 'back'].forEach(side => {
+            sides.forEach(side => {
                 this.objectMatrix[side].forEach((row: ObjectStore, rowIndex: number): void => {
                     row.forEach((_column: THREE.Group | null, columnIndex: number): void => {
-                        if (rowIndex === currentColumn) {
+                        if (rowIndex === currentColumn && sides[this.settings.side] === side) {
+                            console.log(row[columnIndex])
                             row[columnIndex]?.children[0].material.color.setHex(0xff0000);
                         } else {
                             row[columnIndex]?.children[0].material.color.setHex(0xdddddd);
@@ -127,13 +132,16 @@ export default Vue.extend({
                 });
             });
         },
+        'settings.style'(style) {
+            grainPass.enabled = style === 1;
+            halftonePassDotMatrix.enabled = style === 1;
+            halftonePassGrayscale.enabled = style === 2;
+        },
         floorObject(floorObject): void {
             floorObject.scale.set(0.008,0.008,0.008);
             floorObject.rotation.y = Math.PI / 2;
             floorObject.position.x = -24;
             scene.add(floorObject);
-            console.log(floorObject,"added");
-            // floorObject.position.set(-50,-50,-50);
         },
     },
     methods: {
@@ -159,13 +167,34 @@ export default Vue.extend({
             this.initEnvironment();
 
             const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
-                samples: 8,
+                samples: 2,
             })
 
             const composer = new EffectComposer(this.renderer, target);
             composer.addPass(new RenderPass(scene, this.camera));
-            const grainPass = new ShaderPass(GRAIN_SHADER);
+            grainPass = new ShaderPass(GRAIN_SHADER);
             composer.addPass(grainPass);
+            halftonePassDotMatrix = new HalftonePass(window.innerWidth, window.innerHeight, {
+                    shape: 1,
+                    radius: 4,
+                    scatter: 0,
+                    blending: 1,
+                    blendingMode: 0,
+                    greyscale: false,
+                });
+            halftonePassGrayscale = new HalftonePass(window.innerWidth, window.innerHeight, {
+                    shape: 1,
+                    radius: 2,
+                    scatter: 1,
+                    blending: 1,
+                    blendingMode: 0,
+                    greyscale: true,
+                });
+            composer.addPass(halftonePassDotMatrix);
+            composer.addPass(halftonePassGrayscale);
+            grainPass.enabled = this.settings.style === 1;
+            halftonePassDotMatrix.enabled = this.settings.style === 1;
+            halftonePassGrayscale.enabled = this.settings.style === 2;
 
             composer.render();
 
@@ -188,6 +217,8 @@ export default Vue.extend({
 
             const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
                 renderer.render();
+                halftonePassDotMatrix.uniforms.random.value =  1 - Math.random();
+                halftonePassGrayscale.uniforms.random.value =  1 - Math.random();
                 grainPass.uniforms.rand.value =  1 - Math.random();
                 requestAnimationFrame(() => animate(renderer, scene, camera));
             }
@@ -330,7 +361,7 @@ export default Vue.extend({
             }
         },
         setBetonMaterial(targetObject: THREE.Object3D): void {
-            targetObject.children[0].material = this.betonMaterial;
+            targetObject.children[0].material = this.betonMaterial.clone();
         },
         setBasement(): void {
             sides.forEach(side => {
@@ -411,11 +442,11 @@ export default Vue.extend({
                             object = this.getObj('room', 0, objectType);
                             this.setBetonMaterial(object);
                             object.renderId = objectType;
-                            if (rowIndex === this.settings.currentColumn && side === sides[this.settings.side]) {
-                                this.setMaterialColor(object, 0xff0000);
-                            } else {
-                                this.setMaterialColor(object, 0xdddddd);
-                            }
+                            // if (rowIndex === this.settings.currentColumn && side === sides[this.settings.side]) {
+                            //     this.setMaterialColor(object, 0xff0000);
+                            // } else {
+                            //     this.setMaterialColor(object, 0xdddddd);
+                            // }
                             this.objects[side].rooms.add(object);
 
                             if (side === 'back') {
