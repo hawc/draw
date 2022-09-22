@@ -192,9 +192,9 @@ export default Vue.extend({
                 });
             composer.addPass(halftonePassDotMatrix);
             composer.addPass(halftonePassGrayscale);
-            grainPass.enabled = this.settings.style === 1;
-            halftonePassDotMatrix.enabled = this.settings.style === 1;
-            halftonePassGrayscale.enabled = this.settings.style === 2;
+            grainPass.enabled = (this.settings.style === 1);
+            halftonePassDotMatrix.enabled = (this.settings.style === 1);
+            halftonePassGrayscale.enabled = (this.settings.style === 2);
 
             composer.render();
 
@@ -217,9 +217,9 @@ export default Vue.extend({
 
             const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
                 renderer.render();
-                halftonePassDotMatrix.uniforms.random.value =  1 - Math.random();
-                halftonePassGrayscale.uniforms.random.value =  1 - Math.random();
-                grainPass.uniforms.rand.value =  1 - Math.random();
+                halftonePassDotMatrix.uniforms.random.value = (1 - Math.random());
+                halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
+                grainPass.uniforms.rand.value = (1 - Math.random());
                 requestAnimationFrame(() => animate(renderer, scene, camera));
             }
 
