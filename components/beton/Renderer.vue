@@ -217,9 +217,15 @@ export default Vue.extend({
 
             const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
                 renderer.render();
-                halftonePassDotMatrix.uniforms.random.value = (1 - Math.random());
-                halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
-                grainPass.uniforms.rand.value = (1 - Math.random());
+                if (halftonePassDotMatrix && halftonePassDotMatrix.uniforms.random) {
+                    halftonePassDotMatrix.uniforms.random.value = (1 - Math.random());
+                }
+                if (halftonePassGrayscale && halftonePassGrayscale.uniforms.random) {
+                    halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
+                }
+                if (grainPass && grainPass.uniforms.rand) {
+                    grainPass.uniforms.rand.value = (1 - Math.random());
+                }
                 requestAnimationFrame(() => animate(renderer, scene, camera));
             }
 
