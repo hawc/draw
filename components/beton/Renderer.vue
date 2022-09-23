@@ -261,7 +261,7 @@ export default Vue.extend({
                     objectIndex = 0;
                     for (const object of objectSize) {
                         objectIndex++;
-                        const loadedObject = await objLoader.loadAsync(`/obj/${ object.file }`);
+                        const loadedObject = await objLoader.loadAsync(`/obj/objects/${ object.file }`);
                         loadedObject.traverse((child: THREE.Mesh|any): void => {
                             if (child instanceof THREE.Mesh) {
                                 child.geometry.computeBoundingBox();
