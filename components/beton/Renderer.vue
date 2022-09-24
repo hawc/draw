@@ -21,15 +21,16 @@ import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { HalftonePass } from 'three/examples/jsm/postprocessing/HalftonePass.js';
 
+type Dimension = 'x' | 'y' | 'z';
+type DimensionProperty = 'min' | 'max';
+type Side = 'front' | 'back';
+
 const FLOOR_PLANE_SIDE_LENGTH = 2000;
 let scene = null;
-const sides = ['front', 'back'];
+const sides: Side[] = ['front', 'back'];
 let grainPass;
 let halftonePassDotMatrix;
 let halftonePassGrayscale;
-
-type Dimension = 'x' | 'y' | 'z';
-type DimensionProperty = 'min' | 'max';
 
 export default Vue.extend({
     data() {
@@ -41,14 +42,14 @@ export default Vue.extend({
                 front: [],
                 back: [],
             },
-            basementObjects: {
-                front: [],
-                back: [],
-            },
-            roofObjects: {
-                front: [],
-                back: [],
-            },
+            // basementObjects: {
+            //     front: [],
+            //     back: [],
+            // },
+            // roofObjects: {
+            //     front: [],
+            //     back: [],
+            // },
             objectTypes: {
                 front: {
                     roof: [],
@@ -64,13 +65,9 @@ export default Vue.extend({
             objects: {
                 front: {
                     roof: new THREE.Group(),
-                    rooms: new THREE.Group(),
-                    basement: new THREE.Group(),
                 },
                 back: {
                     roof: new THREE.Group(),
-                    rooms: new THREE.Group(),
-                    basement: new THREE.Group(),
                 },
             },
             renderedObjects: {
@@ -92,16 +89,10 @@ export default Vue.extend({
             // only necessary for watcher
             return this.objectTypes[this.side];
         },
-        sizes() {
-            const roomsBox = new THREE.Box3().setFromObject(this.objects[this.side].rooms);
-            const basementBox = new THREE.Box3().setFromObject(this.objects[this.side].basement);
+        objectsSize(): THREE.Vector3 {
             const roofBox = new THREE.Box3().setFromObject(this.objects[this.side].roof);
-            
-            return {
-                rooms: roomsBox.getSize(new THREE.Vector3()),
-                basement: basementBox.getSize(new THREE.Vector3()),
-                roof: roofBox.getSize(new THREE.Vector3()),
-            }
+
+            return roofBox.getSize(new THREE.Vector3());
         },
     },
     watch: {
@@ -123,11 +114,10 @@ export default Vue.extend({
             this.updateObjects();
         },
         'settings.currentColumn'(currentColumn: number): void {
-            sides.forEach(side => {
+            sides.forEach((side: Side) => {
                 this.objectMatrix[side].forEach((row: ObjectStore, rowIndex: number): void => {
                     row.forEach((_column: THREE.Group | null, columnIndex: number): void => {
                         if (rowIndex === currentColumn && sides[this.settings.side] === side) {
-                            console.log(row[columnIndex])
                             row[columnIndex]?.children[0].material.color.setHex(0xff0000);
                         } else {
                             row[columnIndex]?.children[0].material.color.setHex(0xdddddd);
@@ -136,7 +126,7 @@ export default Vue.extend({
                 });
             });
         },
-        'settings.style'(style) {
+        'settings.style'(style: number): void {
             grainPass.enabled = style === 1;
             halftonePassDotMatrix.enabled = style === 1;
             halftonePassGrayscale.enabled = style === 2;
@@ -236,7 +226,7 @@ export default Vue.extend({
             animate(composer, scene, this.camera);
         },
         async loadFloorObject(): Promise<void> {
-            var mtlLoader = new MTLLoader();
+            const mtlLoader = new MTLLoader();
             const materials = await mtlLoader.loadAsync('/obj/material.lib');
             const objLoader = new OBJLoader();
             objLoader.setMaterials(materials);
@@ -277,7 +267,7 @@ export default Vue.extend({
                         objectGroup[objectSizeIndex - 1][objectIndex - 1].object = loadedObject;
                     }
                 }
-            };
+            }
         },
         initEnvironment(): void {
             const lookAtTarget = new THREE.Vector3(20, 17, 0);
@@ -311,7 +301,7 @@ export default Vue.extend({
                 for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
                     columns[columnIndex] = null;
                 }
-                sides.forEach(side => {
+                sides.forEach((side: Side) => {
                     this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
                     this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
                     this.objectTypes[side].rooms[rowIndex] = JSON.parse(JSON.stringify(columns[0]));
@@ -321,16 +311,17 @@ export default Vue.extend({
             }
 
             sides.forEach(side => {
-                this.basementObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].basement));
-                this.roofObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].roof));
+                // this.basementObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].basement));
+                // this.roofObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].roof));
 
-                scene.add(this.objects[side].rooms);
-                scene.add(this.objects[side].basement);
+                // scene.add(this.objects[side].rooms);
+                // scene.add(this.objects[side].basement);
                 scene.add(this.objects[side].roof);
             });
         },
         updateObjects(): void {
             this.prepareRenderMatrix();
+            // this.clearObjects();
             this.renderAll();
 
             // this.updateRenderObjects();
@@ -358,8 +349,8 @@ export default Vue.extend({
             });
         },
         setCameraPosition(): void {
-            const size = this.sizes.rooms;
-            const height = this.sizes.rooms.y + this.sizes.basement.y + this.sizes.roof.y;
+            const size = this.objectsSize;
+            const height = size.y;
             if (size.x > 0 && height > 0 && size.x > 0) {
                 const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(height) / 2, Math.round(size.z) / 2);
                 this.camera.position.x = Math.round(size.x) / 2;
@@ -385,11 +376,16 @@ export default Vue.extend({
         setMaterialColor(targetObject: THREE.Object3D, color: THREE.Color): void {
             targetObject.children[0].material.color.setHex(color);
         },
-        renderAll(): void {
+        clearObjects(): void {
             sides.forEach(side => {
-                const currentDimensions = new THREE.Vector3(0, 0, side === 'front' ? 6 : 0);
+                this.objects[side].roof = new THREE.Group();
+            });
+        },
+        renderAll(): void {
+            sides.forEach((side: Side) => {
+                const currentDimensions = new THREE.Vector3(0, 0, side === 'front' ? 0 : 0);
                 for (let columnIndex = 0; columnIndex < this.settings.totalColumns; columnIndex++) {
-                    const renderedColumnDimensions = this.renderColumn(columnIndex, side, currentDimensions);
+                    const renderedColumnDimensions = this.renderColumn(columnIndex, side, currentDimensions, columnIndex);
                     currentDimensions.set(
                         currentDimensions.x + renderedColumnDimensions.x,
                         currentDimensions.y,
@@ -398,40 +394,53 @@ export default Vue.extend({
                 }
             });
         },
-        renderColumn(columnIndex, side, fullSize): THREE.Vector3 {
+        renderColumn(columnIndex: number, side: Side, fullSize: THREE.Vector3, objectX): THREE.Vector3 {
             const currentColumnDimensions = fullSize.clone();
             let renderedCellDimensions;
             for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
                 const isFirstCellInColumn = (cellIndex === 0);
                 const isLastCellInColumn = ((cellIndex + 1) === this.settings.totalRows);
-                renderedCellDimensions = this.renderCell(cellIndex, side, isFirstCellInColumn, isLastCellInColumn, currentColumnDimensions);
+                renderedCellDimensions = this.renderCell(cellIndex, side, isFirstCellInColumn, isLastCellInColumn, currentColumnDimensions, objectX, cellIndex);
                 currentColumnDimensions.set(
-                    renderedCellDimensions.x,
+                    currentColumnDimensions.x,
                     currentColumnDimensions.y + renderedCellDimensions.y,
                     currentColumnDimensions.z,
                 );
             }
             currentColumnDimensions.x = currentColumnDimensions.x + renderedCellDimensions.x;
 
-            return currentColumnDimensions;
+            return renderedCellDimensions;
         },
-        renderCell(cellIndex, side, isFirstCellInColumn, isLastCellInColumn, position): THREE.Vector3 {
+        renderCell(cellIndex, side: Side, isFirstCellInColumn: boolean, isLastCellInColumn: boolean, columnPosition, objectX, objectY): THREE.Vector3 {
             // render object
+            console.log(objectX, objectY);
+            const obsoleteObject = this.getObjectByUserDataId(side, `${ objectX }-${ objectY }`);
+            if (obsoleteObject) {
+                // hier müsste auch alles "> totalColumns" und "> totalRows" gelöscht werden
+                obsoleteObject.removeFromParent();
+            }
+            const position = columnPosition.clone();
             const objectType = isFirstCellInColumn ? 'basement' : (isLastCellInColumn ? 'roof' : 'rooms');
             const objectModel = this.getObj(objectType, 0, 0);
             const dimensions = this.getObjectDimensions(objectModel);
             this.setBetonMaterial(objectModel);
             this.objects[side].roof.add(objectModel);
-            objectModel.children[0].position = position.clone();
-            // console.log(this.objects[side][objectType].add(objectModel).position = position);
-            // console.log(this.objects[side][objectType].position, this.objects[side][objectType].position.y);
-            // objectModel.position = position;
-            // console.log(this.objects[side][objectType].position, this.objects[side][objectType].position.y);
+            // um alles "> totalColumns" und "> totalRows" zu löschen, sollten x und y in einzelnen properties gespeichert werden
+            objectModel.userData.id = `${ objectX }-${ objectY }`;
+            if (side === 'back') {
+                position.set(position.x + dimensions.x, position.y, position.z - (2 * dimensions.z));
+            }
+            objectModel.children[0].position = position;
+            if (side === 'back') {
+                objectModel.children[0].rotation.y = Math.PI;
+            }
 
-            // return dimensions of object
             return dimensions;
         },
-        getObjectDimensions(objectModel): THREE.Vector3 {
+        getObjectByUserDataId(side: Side, id: string): THREE.Object3D|null {
+            return this.objects[side].roof.children.find(object => object.userData.id === id);
+        },
+        getObjectDimensions(objectModel: THREE.Object3D): THREE.Vector3 {
             return new THREE.Vector3(
                 objectModel.children[0].geometry.boundingBox.max.x - objectModel.children[0].geometry.boundingBox.min.x,
                 objectModel.children[0].geometry.boundingBox.max.y - objectModel.children[0].geometry.boundingBox.min.y,
@@ -573,7 +582,7 @@ export default Vue.extend({
 
             return mesh;
         },
-        getSpotlight(color: string, intensity: number): THREE.PointLight {
+        getSpotlight(color: THREE.Color, intensity: number): THREE.PointLight {
             const light = new THREE.PointLight(color, intensity);
             light.castShadow = true;
             light.shadow.mapSize.x = 4096;
