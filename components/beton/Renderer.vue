@@ -73,6 +73,10 @@ export default Vue.extend({
                     basement: new THREE.Group(),
                 },
             },
+            renderedObjects: {
+                front: new THREE.Group(),
+                back: new THREE.Group(),
+            },
             floorObject: null,
             camera: null,
         }
@@ -281,7 +285,7 @@ export default Vue.extend({
             this.renderer.setClearColor(0xffaa77, 1);
 
             const fog = new THREE.FogExp2(0xffaa77, 0.002);
-            scene.fog = fog;
+            // scene.fog = fog;
 
             const light = new THREE.AmbientLight(0x202020);
             scene.add(light);
@@ -327,9 +331,12 @@ export default Vue.extend({
         },
         updateObjects(): void {
             this.prepareRenderMatrix();
-            this.updateRenderObjects();
-            this.setBasement();
-            this.setRoof();
+            this.renderAll();
+
+            // this.updateRenderObjects();
+            // this.setBasement();
+            // this.setRoof();
+
             // this.$nextTick(() => {
             //     this.setCameraPosition();
             // })
@@ -369,57 +376,6 @@ export default Vue.extend({
         setBetonMaterial(targetObject: THREE.Object3D): void {
             targetObject.children[0].material = this.betonMaterial.clone();
         },
-        setBasement(): void {
-            sides.forEach(side => {
-                this.objectTypes[side].basement.forEach((_elementType: null|number, elementIndex: number): void => {
-                    // if cell should be null and has object, remove object
-                    this.checkAndRemoveObject(this.objectTypes[side].basement, this.objects[side].basement, this.basementObjects[side], elementIndex);
-                    // if cell has no object and should have, add object
-                    let object = this.basementObjects[side][elementIndex];
-                    if (object === null && this.objectTypes[side].basement[elementIndex] !== null) {
-                        object = this.getObj('basement', 0, 0);
-                        this.setBetonMaterial(object);
-                        this.objects[side].basement.add(object);
-                        this.basementObjects[side][elementIndex] = object;
-
-                        if (side === 'back') {
-                            object.children[0].rotation.y = Math.PI;
-                        }
-                        const posX = elementIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? this.getDimension(object, 'max', 'x') : 0);
-                        const posZ = side === 'back' ? this.getDimension(object, 'min', 'z') * 2 : 0;
-                        object.children[0].position.set(posX, 0, posZ);
-
-                        this.objects[side].rooms.position.y = object.children[0].geometry.boundingBox.max.y;
-                    }
-                });
-            });
-        },
-        setRoof(): void {
-            sides.forEach(side => {
-                this.objectTypes[side].roof.forEach((_elementType: null|number, elementIndex: number): void => {
-                    // if cell should be null and has object, remove object
-                    this.checkAndRemoveObject(this.objectTypes[side].roof, this.objects[side].roof, this.roofObjects[side], elementIndex);
-                    // if cell has no object and should have, add object
-                    let object = this.roofObjects[side][elementIndex];
-                    if (object === null && this.objectTypes[side].roof[elementIndex] !== null) {
-                        object = this.getObj('roof', 0, 0);
-                        this.setBetonMaterial(object);
-                        this.objects[side].roof.add(object);
-                        this.roofObjects[side][elementIndex] = object;
-                    }
-                    // update position for all roof objects
-                    if (object) {
-                        if (side === 'back') {
-                            object.children[0].rotation.y = Math.PI;
-                        }
-                        const posX = elementIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? this.getDimension(object, 'max', 'x') : 0);
-                        const posY = this.sizes.rooms.y + this.sizes.basement.y;
-                        const posZ = side === 'back' ? this.getDimension(object, 'min', 'z') * 2 : 0;
-                        object.children[0].position.set(posX, posY, posZ);
-                    }
-                });
-            });
-        },
         getDimension(object: THREE.Object3D, property: DimensionProperty, dimension: Dimension): number {
             return object.children[0].geometry.boundingBox[property][dimension];
         },
@@ -429,47 +385,151 @@ export default Vue.extend({
         setMaterialColor(targetObject: THREE.Object3D, color: THREE.Color): void {
             targetObject.children[0].material.color.setHex(color);
         },
-        updateRenderObjects(): void {
-            // remove legacy objects from object matrix and fill with new ones
+        renderAll(): void {
             sides.forEach(side => {
-                this.objectMatrix[side].forEach((row, rowIndex: number): void => {
-                    row.forEach((column, columnIndex: number): void => {
-                        let object = column;
-                        const objectType = this.objectTypes[side].rooms[rowIndex];
-                        const elementShouldBeRemoved = (object && (objectType === null || columnIndex > this.settings.totalColumns));
-                        const elementShouldBeReplaced = objectType !== object?.renderId;
-                        if (elementShouldBeRemoved || elementShouldBeReplaced) {
-                            this.objects[side].rooms.remove(object);
-                            object = null;
-                        }
-
-                        const elementNotYetRendered = (objectType !== null && columnIndex <= this.settings.totalColumns) && object === null;
-                        if (elementNotYetRendered) {
-                            object = this.getObj('room', 0, objectType);
-                            this.setBetonMaterial(object);
-                            object.renderId = objectType;
-                            // if (rowIndex === this.settings.currentColumn && side === sides[this.settings.side]) {
-                            //     this.setMaterialColor(object, 0xff0000);
-                            // } else {
-                            //     this.setMaterialColor(object, 0xdddddd);
-                            // }
-                            this.objects[side].rooms.add(object);
-
-                            if (side === 'back') {
-                                object.children[0].rotation.y = Math.PI;
-                            }
-                            const posX = rowIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? object.children[0].geometry.boundingBox.max.x : 0);
-                            const posY = columnIndex * object.children[0].geometry.boundingBox.max.y;
-                            const posZ = side === 'back' ? object.children[0].geometry.boundingBox.min.z * 2 : 0;
-                            object.children[0].position.set(posX, posY, posZ);
-                        }
-
-                        this.objectMatrix[side][rowIndex][columnIndex] = object;
-                    });
-                });
-                
+                const currentDimensions = new THREE.Vector3(0, 0, side === 'front' ? 6 : 0);
+                for (let columnIndex = 0; columnIndex < this.settings.totalColumns; columnIndex++) {
+                    const renderedColumnDimensions = this.renderColumn(columnIndex, side, currentDimensions);
+                    currentDimensions.set(
+                        currentDimensions.x + renderedColumnDimensions.x,
+                        currentDimensions.y,
+                        currentDimensions.z,
+                    );
+                }
             });
         },
+        renderColumn(columnIndex, side, fullSize): THREE.Vector3 {
+            const currentColumnDimensions = fullSize.clone();
+            let renderedCellDimensions;
+            for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
+                const isFirstCellInColumn = (cellIndex === 0);
+                const isLastCellInColumn = ((cellIndex + 1) === this.settings.totalRows);
+                renderedCellDimensions = this.renderCell(cellIndex, side, isFirstCellInColumn, isLastCellInColumn, currentColumnDimensions);
+                currentColumnDimensions.set(
+                    renderedCellDimensions.x,
+                    currentColumnDimensions.y + renderedCellDimensions.y,
+                    currentColumnDimensions.z,
+                );
+            }
+            currentColumnDimensions.x = currentColumnDimensions.x + renderedCellDimensions.x;
+
+            return currentColumnDimensions;
+        },
+        renderCell(cellIndex, side, isFirstCellInColumn, isLastCellInColumn, position): THREE.Vector3 {
+            // render object
+            const objectType = isFirstCellInColumn ? 'basement' : (isLastCellInColumn ? 'roof' : 'rooms');
+            const objectModel = this.getObj(objectType, 0, 0);
+            const dimensions = this.getObjectDimensions(objectModel);
+            this.setBetonMaterial(objectModel);
+            this.objects[side].roof.add(objectModel);
+            objectModel.children[0].position = position.clone();
+            // console.log(this.objects[side][objectType].add(objectModel).position = position);
+            // console.log(this.objects[side][objectType].position, this.objects[side][objectType].position.y);
+            // objectModel.position = position;
+            // console.log(this.objects[side][objectType].position, this.objects[side][objectType].position.y);
+
+            // return dimensions of object
+            return dimensions;
+        },
+        getObjectDimensions(objectModel): THREE.Vector3 {
+            return new THREE.Vector3(
+                objectModel.children[0].geometry.boundingBox.max.x - objectModel.children[0].geometry.boundingBox.min.x,
+                objectModel.children[0].geometry.boundingBox.max.y - objectModel.children[0].geometry.boundingBox.min.y,
+                objectModel.children[0].geometry.boundingBox.max.z - objectModel.children[0].geometry.boundingBox.min.z,
+            );
+        },
+        // setBasement(): void {
+        //     sides.forEach(side => {
+        //         this.objectTypes[side].basement.forEach((_elementType: null|number, elementIndex: number): void => {
+        //             // if cell should be null and has object, remove object
+        //             this.checkAndRemoveObject(this.objectTypes[side].basement, this.objects[side].basement, this.basementObjects[side], elementIndex);
+        //             // if cell has no object and should have, add object
+        //             let object = this.basementObjects[side][elementIndex];
+        //             if (object === null && this.objectTypes[side].basement[elementIndex] !== null) {
+        //                 object = this.getObj('basement', 0, 0);
+        //                 this.setBetonMaterial(object);
+        //                 this.objects[side].basement.add(object);
+        //                 this.basementObjects[side][elementIndex] = object;
+
+        //                 if (side === 'back') {
+        //                     object.children[0].rotation.y = Math.PI;
+        //                 }
+        //                 const posX = elementIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? this.getDimension(object, 'max', 'x') : 0);
+        //                 const posZ = side === 'back' ? this.getDimension(object, 'min', 'z') * 2 : 0;
+        //                 object.children[0].position.set(posX, 0, posZ);
+
+        //                 this.objects[side].rooms.position.y = object.children[0].geometry.boundingBox.max.y;
+        //             }
+        //         });
+        //     });
+        // },
+        // setRoof(): void {
+        //     sides.forEach(side => {
+        //         this.objectTypes[side].roof.forEach((_elementType: null|number, elementIndex: number): void => {
+        //             // if cell should be null and has object, remove object
+        //             this.checkAndRemoveObject(this.objectTypes[side].roof, this.objects[side].roof, this.roofObjects[side], elementIndex);
+        //             // if cell has no object and should have, add object
+        //             let object = this.roofObjects[side][elementIndex];
+        //             if (object === null && this.objectTypes[side].roof[elementIndex] !== null) {
+        //                 object = this.getObj('roof', 0, 0);
+        //                 this.setBetonMaterial(object);
+        //                 this.objects[side].roof.add(object);
+        //                 this.roofObjects[side][elementIndex] = object;
+        //             }
+        //             // update position for all roof objects
+        //             if (object) {
+        //                 if (side === 'back') {
+        //                     object.children[0].rotation.y = Math.PI;
+        //                 }
+        //                 const posX = elementIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? this.getDimension(object, 'max', 'x') : 0);
+        //                 const posY = this.sizes.rooms.y + this.sizes.basement.y;
+        //                 const posZ = side === 'back' ? this.getDimension(object, 'min', 'z') * 2 : 0;
+        //                 object.children[0].position.set(posX, posY, posZ);
+        //             }
+        //         });
+        //     });
+        // },
+        // updateRenderObjects(): void {
+        //     // remove legacy objects from object matrix and fill with new ones
+        //     sides.forEach(side => {
+        //         this.objectMatrix[side].forEach((row, rowIndex: number): void => {
+        //             row.forEach((column, columnIndex: number): void => {
+        //                 let object = column;
+        //                 const objectType = this.objectTypes[side].rooms[rowIndex];
+        //                 const elementShouldBeRemoved = (object && (objectType === null || columnIndex > this.settings.totalColumns));
+        //                 const elementShouldBeReplaced = objectType !== object?.renderId;
+        //                 if (elementShouldBeRemoved || elementShouldBeReplaced) {
+        //                     this.objects[side].rooms.remove(object);
+        //                     object = null;
+        //                 }
+
+        //                 const elementNotYetRendered = (objectType !== null && columnIndex <= this.settings.totalColumns) && object === null;
+        //                 if (elementNotYetRendered) {
+        //                     object = this.getObj('room', 0, objectType);
+        //                     this.setBetonMaterial(object);
+        //                     object.renderId = objectType;
+        //                     // if (rowIndex === this.settings.currentColumn && side === sides[this.settings.side]) {
+        //                     //     this.setMaterialColor(object, 0xff0000);
+        //                     // } else {
+        //                     //     this.setMaterialColor(object, 0xdddddd);
+        //                     // }
+        //                     this.objects[side].rooms.add(object);
+
+        //                     if (side === 'back') {
+        //                         object.children[0].rotation.y = Math.PI;
+        //                     }
+        //                     const posX = rowIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? object.children[0].geometry.boundingBox.max.x : 0);
+        //                     const posY = columnIndex * object.children[0].geometry.boundingBox.max.y;
+        //                     const posZ = side === 'back' ? object.children[0].geometry.boundingBox.min.z * 2 : 0;
+        //                     object.children[0].position.set(posX, posY, posZ);
+        //                 }
+
+        //                 this.objectMatrix[side][rowIndex][columnIndex] = object;
+        //             });
+        //         });
+                
+        //     });
+        // },
         async initFloorPlane(): Promise<void> {
             const plane = await this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
             scene.add(plane);

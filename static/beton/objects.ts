@@ -27,7 +27,7 @@ const objects: BetonObjects = {
 
         ],
     ],
-    room: [
+    rooms: [
         [
             {
                 file: 'room360-01.obj',
