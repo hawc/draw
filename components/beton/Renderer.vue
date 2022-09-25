@@ -19,7 +19,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { HalftonePass } from 'three/examples/jsm/postprocessing/HalftonePass.js';
+import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
 
 type Dimension = 'x' | 'y' | 'z';
 type DimensionProperty = 'min' | 'max';
@@ -31,6 +31,11 @@ const sides: Side[] = ['front', 'back'];
 let grainPass;
 let halftonePassDotMatrix;
 let halftonePassGrayscale;
+enum BuildingSections {
+    basement,
+    rooms,
+    roof,
+}
 
 export default Vue.extend({
     data() {
@@ -38,15 +43,7 @@ export default Vue.extend({
             betonMaterial: new THREE.MeshPhongMaterial({
                 color: 0xdddddd,
             }),
-            objectMatrix: {
-                front: [],
-                back: [],
-            },
-            // basementObjects: {
-            //     front: [],
-            //     back: [],
-            // },
-            // roofObjects: {
+            // objectMatrix: {
             //     front: [],
             //     back: [],
             // },
@@ -63,10 +60,6 @@ export default Vue.extend({
                 },
             },
             objects: {
-                front: new THREE.Group(),
-                back: new THREE.Group(),
-            },
-            renderedObjects: {
                 front: new THREE.Group(),
                 back: new THREE.Group(),
             },
@@ -110,17 +103,10 @@ export default Vue.extend({
             this.updateObjects();
         },
         'settings.currentColumn'(currentColumn: number): void {
-            sides.forEach((side: Side) => {
-                this.objectMatrix[side].forEach((row: ObjectStore, rowIndex: number): void => {
-                    row.forEach((_column: THREE.Group | null, columnIndex: number): void => {
-                        if (rowIndex === currentColumn && sides[this.settings.side] === side) {
-                            row[columnIndex]?.children[0].material.color.setHex(0xff0000);
-                        } else {
-                            row[columnIndex]?.children[0].material.color.setHex(0xdddddd);
-                        }
-                    })
-                });
-            });
+            this.highlightCurrentBuildingSection(this.settings.buildingSection, currentColumn);
+        },
+        'settings.buildingSection'(buildingSection: number): void {
+            this.highlightCurrentBuildingSection(buildingSection, this.settings.currentColumn);
         },
         'settings.style'(style: number): void {
             grainPass.enabled = style === 1;
@@ -135,6 +121,17 @@ export default Vue.extend({
         },
     },
     methods: {
+        highlightCurrentBuildingSection(buildingSection: number, currentColumn: number) {
+            sides.forEach((side: Side) => {
+                this.objects[side].children.forEach((object): void => {
+                    if (object.userData.buildingSection === BuildingSections[buildingSection] && object.userData.position.x === currentColumn && sides[this.settings.side] === side) {
+                        object.children[0].material.color.setHex(0xff0000);
+                    } else {
+                        object.children[0].material.color.setHex(0xdddddd);
+                    }
+                });
+            });
+        },
         async initThree(): Promise<void> {
             scene = new THREE.Scene();
 
@@ -188,35 +185,19 @@ export default Vue.extend({
 
             composer.render();
 
-
-
-            //  What should happen next?
-            /*
-                When turning knobs different changes should be made to the rendered Building, e.g.:
-                Knob 1: Set Building Rows
-                Knob 2: Set Building Columns
-                Knob 3: Change Editable Column
-                Knob 4: Change Editable Row (If 0 then style full column)
-                Knob 5: Change Element Width
-                Knob 6: Change Element Type
-
-                Rendering the roof is a bit more tricky, as it is combined from multiple elements.
-            */
             this.prepareObjectStore();
+            this.prepareRenderMatrix();
             this.updateObjects();
 
-            const animate = (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
-                renderer.render();
-                if (halftonePassDotMatrix && halftonePassDotMatrix.uniforms.random) {
-                    halftonePassDotMatrix.uniforms.random.value = (1 - Math.random());
-                }
+            const animate = (composer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
+                composer.render();
                 if (halftonePassGrayscale && halftonePassGrayscale.uniforms.random) {
                     halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
                 }
                 if (grainPass && grainPass.uniforms.rand) {
                     grainPass.uniforms.rand.value = (1 - Math.random());
                 }
-                requestAnimationFrame(() => animate(renderer, scene, camera));
+                requestAnimationFrame(() => animate(composer, scene, camera));
             }
 
             animate(composer, scene, this.camera);
@@ -297,8 +278,8 @@ export default Vue.extend({
                     columns[columnIndex] = null;
                 }
                 sides.forEach((side: Side) => {
-                    this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
-                    this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
+                    // this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
+                    // this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
                     this.objectTypes[side].rooms[rowIndex] = JSON.parse(JSON.stringify(columns[0]));
                     this.objectTypes[side].basement[rowIndex] = null;
                     this.objectTypes[side].roof[rowIndex] = null;
@@ -310,7 +291,7 @@ export default Vue.extend({
             });
         },
         updateObjects(): void {
-            this.prepareRenderMatrix();
+            // this.prepareRenderMatrix();
             this.renderAll();
             // this.$nextTick(() => {
             //     this.setCameraPosition();
@@ -354,7 +335,7 @@ export default Vue.extend({
         getDimension(object: THREE.Object3D, property: DimensionProperty, dimension: Dimension): number {
             return object.children[0].geometry.boundingBox[property][dimension];
         },
-        getObj(type: RowType, sizeIndex: number, modelIndex: number): THREE.Object3D {
+        getObj(type: string, sizeIndex: number, modelIndex: number): THREE.Object3D {
             return objects[type][sizeIndex][modelIndex].object.clone();
         },
         setMaterialColor(targetObject: THREE.Object3D, color: THREE.Color): void {
@@ -396,15 +377,16 @@ export default Vue.extend({
 
             return renderedCellDimensions;
         },
-        renderCell(cellIndex, side: Side, isFirstCellInColumn: boolean, isLastCellInColumn: boolean, columnPosition, objectPosition: THREE.Vector2): THREE.Vector3 {
+        renderCell(cellIndex, side: Side, isFirstCellInColumn: boolean, isLastCellInColumn: boolean, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): THREE.Vector3 {
             this.removeObsoleteObjects(side, objectPosition.clone());
             const position = columnPosition.clone();
-            const objectType = isFirstCellInColumn ? 'basement' : (isLastCellInColumn ? 'roof' : 'rooms');
+            const objectType = isFirstCellInColumn ? BuildingSections[0] : (isLastCellInColumn ? BuildingSections[2] : BuildingSections[1]);
             const objectModel = this.getObj(objectType, 0, 0);
             const dimensions = this.getObjectDimensions(objectModel);
             this.setBetonMaterial(objectModel);
             this.objects[side].add(objectModel);
             objectModel.userData.position = objectPosition.clone();
+            objectModel.userData.buildingSection = objectType;
             if (side === 'back') {
                 position.set(position.x + dimensions.x, position.y, position.z - (2 * dimensions.z));
             }

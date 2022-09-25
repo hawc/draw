@@ -19,13 +19,19 @@ const defaults: ControllerSettings = {
         step: 1,
         default: 0,
     },
-    elementWidth: {
+    buildingSection: {
+        min: 0,
+        max: 2,
+        step: 1,
+        default: 0,
+    },
+    elementType: {
         min: 0,
         max: 1,
         step: 1,
         default: 0,
     },
-    elementType: {
+    elementWidth: {
         min: 0,
         max: 1,
         step: 1,
