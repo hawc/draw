@@ -63,12 +63,8 @@ export default Vue.extend({
                 },
             },
             objects: {
-                front: {
-                    roof: new THREE.Group(),
-                },
-                back: {
-                    roof: new THREE.Group(),
-                },
+                front: new THREE.Group(),
+                back: new THREE.Group(),
             },
             renderedObjects: {
                 front: new THREE.Group(),
@@ -90,7 +86,7 @@ export default Vue.extend({
             return this.objectTypes[this.side];
         },
         objectsSize(): THREE.Vector3 {
-            const roofBox = new THREE.Box3().setFromObject(this.objects[this.side].roof);
+            const roofBox = new THREE.Box3().setFromObject(this.objects[this.side]);
 
             return roofBox.getSize(new THREE.Vector3());
         },
@@ -274,8 +270,7 @@ export default Vue.extend({
 
             this.renderer.setClearColor(0xffaa77, 1);
 
-            const fog = new THREE.FogExp2(0xffaa77, 0.002);
-            // scene.fog = fog;
+            scene.fog = new THREE.FogExp2(0xffaa77, 0.002);
 
             const light = new THREE.AmbientLight(0x202020);
             scene.add(light);
@@ -311,26 +306,15 @@ export default Vue.extend({
             }
 
             sides.forEach(side => {
-                // this.basementObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].basement));
-                // this.roofObjects[side] = JSON.parse(JSON.stringify(this.objectTypes[side].roof));
-
-                // scene.add(this.objects[side].rooms);
-                // scene.add(this.objects[side].basement);
-                scene.add(this.objects[side].roof);
+                scene.add(this.objects[side]);
             });
         },
         updateObjects(): void {
             this.prepareRenderMatrix();
-            // this.clearObjects();
             this.renderAll();
-
-            // this.updateRenderObjects();
-            // this.setBasement();
-            // this.setRoof();
-
             // this.$nextTick(() => {
             //     this.setCameraPosition();
-            // })
+            // });
         },
         prepareRenderMatrix(): void {
             const totalRowsMax = defaults.totalRows.max;
@@ -400,7 +384,8 @@ export default Vue.extend({
             for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
                 const isFirstCellInColumn = (cellIndex === 0);
                 const isLastCellInColumn = ((cellIndex + 1) === this.settings.totalRows);
-                renderedCellDimensions = this.renderCell(cellIndex, side, isFirstCellInColumn, isLastCellInColumn, currentColumnDimensions, objectX, cellIndex);
+                const position = new THREE.Vector2(objectX, cellIndex);
+                renderedCellDimensions = this.renderCell(cellIndex, side, isFirstCellInColumn, isLastCellInColumn, currentColumnDimensions, position);
                 currentColumnDimensions.set(
                     currentColumnDimensions.x,
                     currentColumnDimensions.y + renderedCellDimensions.y,
@@ -411,22 +396,15 @@ export default Vue.extend({
 
             return renderedCellDimensions;
         },
-        renderCell(cellIndex, side: Side, isFirstCellInColumn: boolean, isLastCellInColumn: boolean, columnPosition, objectX, objectY): THREE.Vector3 {
-            // render object
-            console.log(objectX, objectY);
-            const obsoleteObject = this.getObjectByUserDataId(side, `${ objectX }-${ objectY }`);
-            if (obsoleteObject) {
-                // hier müsste auch alles "> totalColumns" und "> totalRows" gelöscht werden
-                obsoleteObject.removeFromParent();
-            }
+        renderCell(cellIndex, side: Side, isFirstCellInColumn: boolean, isLastCellInColumn: boolean, columnPosition, objectPosition: THREE.Vector2): THREE.Vector3 {
+            this.removeObsoleteObjects(side, objectPosition.clone());
             const position = columnPosition.clone();
             const objectType = isFirstCellInColumn ? 'basement' : (isLastCellInColumn ? 'roof' : 'rooms');
             const objectModel = this.getObj(objectType, 0, 0);
             const dimensions = this.getObjectDimensions(objectModel);
             this.setBetonMaterial(objectModel);
-            this.objects[side].roof.add(objectModel);
-            // um alles "> totalColumns" und "> totalRows" zu löschen, sollten x und y in einzelnen properties gespeichert werden
-            objectModel.userData.id = `${ objectX }-${ objectY }`;
+            this.objects[side].add(objectModel);
+            objectModel.userData.position = objectPosition.clone();
             if (side === 'back') {
                 position.set(position.x + dimensions.x, position.y, position.z - (2 * dimensions.z));
             }
@@ -437,8 +415,11 @@ export default Vue.extend({
 
             return dimensions;
         },
-        getObjectByUserDataId(side: Side, id: string): THREE.Object3D|null {
-            return this.objects[side].roof.children.find(object => object.userData.id === id);
+        removeObsoleteObjects(side: Side, position: THREE.Vector2) {
+            const results = this.objects[side].children.filter(object => (object.userData.position.y >= position.y && object.userData.position.x >= position.x));
+            results.forEach(result => {
+                result.removeFromParent();
+            });
         },
         getObjectDimensions(objectModel: THREE.Object3D): THREE.Vector3 {
             return new THREE.Vector3(
@@ -447,98 +428,6 @@ export default Vue.extend({
                 objectModel.children[0].geometry.boundingBox.max.z - objectModel.children[0].geometry.boundingBox.min.z,
             );
         },
-        // setBasement(): void {
-        //     sides.forEach(side => {
-        //         this.objectTypes[side].basement.forEach((_elementType: null|number, elementIndex: number): void => {
-        //             // if cell should be null and has object, remove object
-        //             this.checkAndRemoveObject(this.objectTypes[side].basement, this.objects[side].basement, this.basementObjects[side], elementIndex);
-        //             // if cell has no object and should have, add object
-        //             let object = this.basementObjects[side][elementIndex];
-        //             if (object === null && this.objectTypes[side].basement[elementIndex] !== null) {
-        //                 object = this.getObj('basement', 0, 0);
-        //                 this.setBetonMaterial(object);
-        //                 this.objects[side].basement.add(object);
-        //                 this.basementObjects[side][elementIndex] = object;
-
-        //                 if (side === 'back') {
-        //                     object.children[0].rotation.y = Math.PI;
-        //                 }
-        //                 const posX = elementIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? this.getDimension(object, 'max', 'x') : 0);
-        //                 const posZ = side === 'back' ? this.getDimension(object, 'min', 'z') * 2 : 0;
-        //                 object.children[0].position.set(posX, 0, posZ);
-
-        //                 this.objects[side].rooms.position.y = object.children[0].geometry.boundingBox.max.y;
-        //             }
-        //         });
-        //     });
-        // },
-        // setRoof(): void {
-        //     sides.forEach(side => {
-        //         this.objectTypes[side].roof.forEach((_elementType: null|number, elementIndex: number): void => {
-        //             // if cell should be null and has object, remove object
-        //             this.checkAndRemoveObject(this.objectTypes[side].roof, this.objects[side].roof, this.roofObjects[side], elementIndex);
-        //             // if cell has no object and should have, add object
-        //             let object = this.roofObjects[side][elementIndex];
-        //             if (object === null && this.objectTypes[side].roof[elementIndex] !== null) {
-        //                 object = this.getObj('roof', 0, 0);
-        //                 this.setBetonMaterial(object);
-        //                 this.objects[side].roof.add(object);
-        //                 this.roofObjects[side][elementIndex] = object;
-        //             }
-        //             // update position for all roof objects
-        //             if (object) {
-        //                 if (side === 'back') {
-        //                     object.children[0].rotation.y = Math.PI;
-        //                 }
-        //                 const posX = elementIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? this.getDimension(object, 'max', 'x') : 0);
-        //                 const posY = this.sizes.rooms.y + this.sizes.basement.y;
-        //                 const posZ = side === 'back' ? this.getDimension(object, 'min', 'z') * 2 : 0;
-        //                 object.children[0].position.set(posX, posY, posZ);
-        //             }
-        //         });
-        //     });
-        // },
-        // updateRenderObjects(): void {
-        //     // remove legacy objects from object matrix and fill with new ones
-        //     sides.forEach(side => {
-        //         this.objectMatrix[side].forEach((row, rowIndex: number): void => {
-        //             row.forEach((column, columnIndex: number): void => {
-        //                 let object = column;
-        //                 const objectType = this.objectTypes[side].rooms[rowIndex];
-        //                 const elementShouldBeRemoved = (object && (objectType === null || columnIndex > this.settings.totalColumns));
-        //                 const elementShouldBeReplaced = objectType !== object?.renderId;
-        //                 if (elementShouldBeRemoved || elementShouldBeReplaced) {
-        //                     this.objects[side].rooms.remove(object);
-        //                     object = null;
-        //                 }
-
-        //                 const elementNotYetRendered = (objectType !== null && columnIndex <= this.settings.totalColumns) && object === null;
-        //                 if (elementNotYetRendered) {
-        //                     object = this.getObj('room', 0, objectType);
-        //                     this.setBetonMaterial(object);
-        //                     object.renderId = objectType;
-        //                     // if (rowIndex === this.settings.currentColumn && side === sides[this.settings.side]) {
-        //                     //     this.setMaterialColor(object, 0xff0000);
-        //                     // } else {
-        //                     //     this.setMaterialColor(object, 0xdddddd);
-        //                     // }
-        //                     this.objects[side].rooms.add(object);
-
-        //                     if (side === 'back') {
-        //                         object.children[0].rotation.y = Math.PI;
-        //                     }
-        //                     const posX = rowIndex * this.getDimension(object, 'max', 'x') + (side === 'back' ? object.children[0].geometry.boundingBox.max.x : 0);
-        //                     const posY = columnIndex * object.children[0].geometry.boundingBox.max.y;
-        //                     const posZ = side === 'back' ? object.children[0].geometry.boundingBox.min.z * 2 : 0;
-        //                     object.children[0].position.set(posX, posY, posZ);
-        //                 }
-
-        //                 this.objectMatrix[side][rowIndex][columnIndex] = object;
-        //             });
-        //         });
-                
-        //     });
-        // },
         async initFloorPlane(): Promise<void> {
             const plane = await this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
             scene.add(plane);
