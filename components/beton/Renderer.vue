@@ -63,6 +63,7 @@ export default Vue.extend({
                 front: new THREE.Group(),
                 back: new THREE.Group(),
             },
+            highlightedObjects: [],
             floorObject: null,
             camera: null,
         }
@@ -95,12 +96,12 @@ export default Vue.extend({
             this.updateObjects();
         },
         'settings.elementType'(elementType: number): void {
-            this.objectTypes[this.side].rooms.forEach((object: ObjectType, objectIndex: number): void => {
-                if (objectIndex === this.settings.currentColumn && object !== null) {
-                    this.objectTypes[this.side].rooms[objectIndex] = elementType;
-                }
-            });
-            this.updateObjects();
+            // this.objectTypes[this.side].rooms.forEach((object: ObjectType, objectIndex: number): void => {
+            //     if (objectIndex === this.settings.currentColumn && object !== null) {
+            //         this.objectTypes[this.side].rooms[objectIndex] = elementType;
+            //     }
+            // });
+            // this.updateObjects();
         },
         'settings.currentColumn'(currentColumn: number): void {
             this.highlightCurrentBuildingSection(this.settings.buildingSection, currentColumn);
@@ -113,6 +114,14 @@ export default Vue.extend({
             halftonePassDotMatrix.enabled = style === 1;
             halftonePassGrayscale.enabled = style === 2;
         },
+        highlightedObjects(objects, oldObjects): void {
+            oldObjects.forEach(object => {
+                object.children[0].material.color.setHex(0xdddddd);
+            });
+            objects.forEach(object => {
+                object.children[0].material.color.setHex(0xff0000);
+            });
+        },
         floorObject(floorObject): void {
             floorObject.scale.set(0.008,0.008,0.008);
             floorObject.rotation.y = Math.PI / 2;
@@ -122,14 +131,9 @@ export default Vue.extend({
     },
     methods: {
         highlightCurrentBuildingSection(buildingSection: number, currentColumn: number) {
-            sides.forEach((side: Side) => {
-                this.objects[side].children.forEach((object): void => {
-                    if (object.userData.buildingSection === BuildingSections[buildingSection] && object.userData.position.x === currentColumn && sides[this.settings.side] === side) {
-                        object.children[0].material.color.setHex(0xff0000);
-                    } else {
-                        object.children[0].material.color.setHex(0xdddddd);
-                    }
-                });
+            const selectedSide = sides[this.settings.side];
+            this.highlightedObjects = this.objects[selectedSide].children.filter(object => {
+                return object.userData.buildingSection === BuildingSections[buildingSection] && object.userData.position.x === currentColumn;
             });
         },
         async initThree(): Promise<void> {
