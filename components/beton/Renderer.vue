@@ -93,6 +93,7 @@ export default Vue.extend({
             this.updateObjects();
         },
         'settings.side'(): void {
+            this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
             this.updateObjects();
         },
         'settings.elementType'(elementType: number): void {
@@ -100,6 +101,8 @@ export default Vue.extend({
             this.highlightedObjects.forEach(object => {
                 this.renderCell(selectedSide, object.userData.buildingSection, elementType, object.userData.columnPosition, object.userData.objectPosition);
             })
+
+            this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
         },
         'settings.currentColumn'(currentColumn: number): void {
             this.highlightCurrentBuildingSection(this.settings.buildingSection, currentColumn);
@@ -427,6 +430,9 @@ export default Vue.extend({
             if (side === 'back') {
                 objectModel.children[0].rotation.y = Math.PI;
             }
+            const sameObject = this.highlightedObjects.find(highlightedObject => {
+                highlightedObject.userData.objectPosition.equals(objectModel.userData.objectPosition);
+            });
 
             return objectModel;
         },
