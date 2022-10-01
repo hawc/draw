@@ -88,9 +88,11 @@ export default Vue.extend({
     watch: {
         'settings.totalColumns'(): void {
             this.updateObjects();
+            this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
         },
         'settings.totalRows'(): void {
             this.updateObjects();
+            this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
         },
         'settings.side'(): void {
             this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
