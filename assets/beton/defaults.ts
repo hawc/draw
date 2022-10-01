@@ -5,13 +5,13 @@ const defaults: ControllerSettings = {
         min: 2,
         max: 12,
         step: 1,
-        default: 1,
+        default: 5,
     },
     totalColumns: {
         min: 1,
         max: 12,
         step: 1,
-        default: 1,
+        default: 5,
     },
     currentColumn: {
         min: 0,
@@ -48,6 +48,24 @@ const defaults: ControllerSettings = {
         max: 2,
         step: 1,
         default: 0,
+    },
+    x: {
+        min: 0,
+        max: 2,
+        step: 0.05,
+        default: 0,
+    },
+    y: {
+        min: 0,
+        max: 1,
+        step: 0.05,
+        default: 0.5,
+    },
+    z: {
+        min: 0,
+        max: 2,
+        step: 0.05,
+        default: 2,
     },
 };
 

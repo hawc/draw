@@ -14,12 +14,17 @@ import { TGALoader } from 'three/examples/jsm/loaders/TGALoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { defaults } from 'assets/beton/defaults';
 import { objects } from 'static/beton/objects';
-import { RowType, ObjectType, ObjectStore } from '~/interfaces/beton/objects';
+import { ObjectType, ObjectStore } from '~/interfaces/beton/objects';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
+import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
+if ( WebGL.isWebGL2Available() === false ) {
+    console.error('No WebGL2 support');
+}
+
 
 type Dimension = 'x' | 'y' | 'z';
 type DimensionProperty = 'min' | 'max';
@@ -196,7 +201,10 @@ export default Vue.extend({
             this.prepareRenderMatrix();
             this.updateObjects();
 
+            const lookAtTarget = new THREE.Vector3(20, 17, 0);
             const animate = (composer: EffectComposer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
+                this.camera.position.set(180 * (this.settings.x - 1), 180 * this.settings.y, -160 * (this.settings.z - 1));
+                this.camera.lookAt(lookAtTarget);
                 composer.render();
                 if (halftonePassGrayscale && halftonePassGrayscale.uniforms.random) {
                     halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
@@ -268,11 +276,11 @@ export default Vue.extend({
             spotlight0.position.set(50, 60, -30);
 
             this.camera.position.set(90, 30, -160);
-            this.camera.lookAt(lookAtTarget);
+            // this.camera.lookAt(lookAtTarget);
             
-            const orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
-            orbitControls.target = lookAtTarget;
-            orbitControls.update();
+            // const orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+            // orbitControls.target = lookAtTarget;
+            // orbitControls.update();
         },
         prepareObjectStore(): void {
             const totalColumnsMax = defaults.totalColumns.max;
