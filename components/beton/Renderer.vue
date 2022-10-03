@@ -21,34 +21,37 @@ import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
-if ( WebGL.isWebGL2Available() === false ) {
+
+if (WebGL.isWebGL2Available() === false) {
     console.error('No WebGL2 support');
 }
-
 
 type Dimension = 'x' | 'y' | 'z';
 type DimensionProperty = 'min' | 'max';
 type Side = 'front' | 'back';
-
-const FLOOR_PLANE_SIDE_LENGTH = 2000;
-let scene = null;
-const betonMaterial = new THREE.MeshPhongMaterial({
-                color: 0xdddddd,
-            });
-let camera = null;
-const sides: Side[] = ['front', 'back'];
-let renderedObjects = {
-                front: new THREE.Group(),
-                back: new THREE.Group(),
-            };
-let grainPass;
-let halftonePassDotMatrix;
-let halftonePassGrayscale;
 enum BuildingSections {
     basement,
     rooms,
     roof,
 }
+
+const objectWidths: number[] = [240, 360, 600];
+const FLOOR_PLANE_SIDE_LENGTH = 2000;
+const sides: Side[] = ['front', 'back'];
+
+const betonMaterial = new THREE.MeshPhongMaterial({
+    color: 0xdddddd,
+});
+let scene = null;
+let camera = null;
+let renderedObjects = {
+    front: new THREE.Group(),
+    back: new THREE.Group(),
+};
+let grainPass;
+let halftonePassDotMatrix;
+let halftonePassGrayscale;
+const objLoader = new OBJLoader();
 
 export default Vue.extend({
     data() {
@@ -186,8 +189,10 @@ export default Vue.extend({
 
             composer.render();
 
-            this.prepareObjectStore();
-            this.prepareRenderMatrix();
+            sides.forEach(side => {
+                scene.add(renderedObjects[side]);
+            });
+
             this.updateObjects();
 
             // const lookAtTarget = new THREE.Vector3(20, 17, 0);
@@ -209,7 +214,6 @@ export default Vue.extend({
         async loadFloorObject(): Promise<void> {
             const mtlLoader = new MTLLoader();
             const materials = await mtlLoader.loadAsync('/obj/material.lib');
-            const objLoader = new OBJLoader();
             objLoader.setMaterials(materials);
             const loadedObject = await objLoader.loadAsync('/obj/mars.obj');
             loadedObject.scale.set(0.01, 0.01, 0.01);
@@ -226,8 +230,6 @@ export default Vue.extend({
             scene.add(loadedObject);
         },
         async loadObjectFiles(): Promise<void> {
-            const objLoader = new OBJLoader();
-
             for (const objectKey of Object.keys(objects)) {
                 const objectGroup = objects[objectKey];
                 let objectSizeIndex = 0;
@@ -278,48 +280,8 @@ export default Vue.extend({
             orbitControls.target = lookAtTarget;
             orbitControls.update();
         },
-        prepareObjectStore(): void {
-            const totalColumnsMax = defaults.totalColumns.max;
-            const totalRowsMax = defaults.totalRows.max;
-
-            // create matrix with maximum dimensions
-            for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                const columns = [];
-                for (let columnIndex = 0; columnIndex < totalColumnsMax; columnIndex++) {
-                    columns[columnIndex] = null;
-                }
-                sides.forEach((side: Side) => {
-                    // this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
-                    // this.objectMatrix[side][rowIndex] = JSON.parse(JSON.stringify(columns));
-                    this.objectTypes[side].rooms[rowIndex] = JSON.parse(JSON.stringify(columns[0]));
-                    this.objectTypes[side].basement[rowIndex] = null;
-                    this.objectTypes[side].roof[rowIndex] = null;
-                });
-            }
-
-            sides.forEach(side => {
-                scene.add(renderedObjects[side]);
-            });
-        },
         updateObjects(): void {
-            // this.prepareRenderMatrix();
             this.renderAll();
-        },
-        prepareRenderMatrix(): void {
-            const totalRowsMax = defaults.totalRows.max;
-            sides.forEach(side => {
-                for (let rowIndex = 0; rowIndex < totalRowsMax; rowIndex++) {
-                    if(rowIndex <= this.settings.totalRows) {
-                        this.$set(this.objectTypes[side].rooms, rowIndex, this.objectTypes[side].rooms[rowIndex] ?? 0);
-                        this.$set(this.objectTypes[side].basement, rowIndex, 0);
-                        this.$set(this.objectTypes[side].roof, rowIndex, 0);
-                    } else {
-                        this.$set(this.objectTypes[side].rooms, rowIndex, null);
-                        this.$set(this.objectTypes[side].basement, rowIndex, null);
-                        this.$set(this.objectTypes[side].roof, rowIndex, null);
-                    }
-                }
-            });
         },
         highlightCurrentBuildingSection(buildingSection: number, currentColumn: number) {
             const selectedSide = sides[this.settings.side];
@@ -449,7 +411,7 @@ export default Vue.extend({
             const objectModel = this.getObj(buildingSection, elementWidth, elementType);
             const dimensions = this.getObjectDimensions(objectModel);
             this.setBetonMaterial(objectModel);
-            const oo = renderedObjects[side].add(objectModel);
+            renderedObjects[side].add(objectModel);
             const position = columnPosition.clone();
             objectModel.userData.dimensions = dimensions;
             objectModel.userData.objectPosition = objectPosition.clone();
@@ -487,38 +449,11 @@ export default Vue.extend({
         async initFloorPlane(): Promise<void> {
             const plane = await this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
             scene.add(plane);
-            // PI / 2 = 90 degrees
             plane.position.y = -70;
             plane.rotation.x = Math.PI / 2;
         },
-        async getMaterial(texture: string): Promise<THREE.MeshStandardMaterial> {
-            const material = new THREE.MeshStandardMaterial({
-                color: 0xdddddd,
-                side: THREE.DoubleSide,
-            });
-            material.bumpScale = 0.25;
-            material.roughness = 1;
-            material.metalness = 0;
-            const textureLoader = new THREE.TextureLoader();
-            const loadedConcreteTexture = await textureLoader.load(texture);
-            material.map = loadedConcreteTexture;
-            material.bumpMap = loadedConcreteTexture;
-
-            const concreteTextureRepetition = 64;
-            ['map', 'bumpMap'].forEach((mapName: string): void => {
-                material[mapName].wrapS = THREE.RepeatWrapping;
-                material[mapName].wrapT = THREE.RepeatWrapping;
-                material[mapName].repeat.set(
-                    concreteTextureRepetition,
-                    concreteTextureRepetition,
-                );
-            });
-
-            return material;
-        },
         async getPlane(width: number, height: number): Promise<THREE.Mesh> {
             const geo = new THREE.PlaneGeometry(width, height);
-            // const material = await this.getMaterial(require('@/assets/beton/grass.jpeg'));
             const material = betonMaterial.clone();
             material.side = THREE.DoubleSide;
             const mesh = new THREE.Mesh(geo, material);
@@ -531,6 +466,7 @@ export default Vue.extend({
             light.castShadow = true;
             light.shadow.mapSize.x = 4096;
             light.shadow.mapSize.y = 4096;
+            
             return light;
         },
     },
