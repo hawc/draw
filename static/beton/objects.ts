@@ -5,11 +5,13 @@ const objects: BetonObjects = {
     basement: [
         [
             {
-                file: 'basement360-01.obj',
+                file: 'basement240-01.obj',
                 object: null,
             },
+        ],
+        [
             {
-                file: 'basement360-01.obj', // duplicate
+                file: 'basement360-01.obj',
                 object: null,
             },
         ],
@@ -18,16 +20,26 @@ const objects: BetonObjects = {
                 file: 'basement480-01.obj',
                 object: null,
             },
-            {
-                file: 'basement480-01.obj', // duplicate
-                object: null,
-            },
         ],
         [
 
         ],
     ],
     rooms: [
+        [
+            {
+                file: 'room240-01.obj',
+                object: null,
+            },
+            {
+                file: 'room240-02.obj',
+                object: null,
+            },
+            {
+                file: 'room240-03.obj',
+                object: null,
+            },
+        ],
         [
             {
                 file: 'room360-01.obj',
@@ -40,21 +52,7 @@ const objects: BetonObjects = {
         ],
         [
             {
-                file: 'room480-01.obj',
-                object: null,
-            },
-            {
-                file: 'room480-01.obj', // duplicate
-                object: null,
-            },
-        ],
-        [
-            {
-                file: 'room600-01.obj',
-                object: null,
-            },
-            {
-                file: 'room600-02.obj',
+                file: 'room360-01.obj',
                 object: null,
             },
         ],
@@ -62,26 +60,21 @@ const objects: BetonObjects = {
     roof: [
         [
             {
+                file: 'roof240-01.obj',
+                object: null,
+            },
+        ],
+        [
+            {
                 file: 'roof360-01.obj',
                 object: null,
             },
-            {
-                file: 'roof360-01.obj', // duplicate
-                object: null,
-            },
         ],
         [
             {
-                file: 'roof360-01.obj', // duplicate
+                file: 'roof360-01.obj',
                 object: null,
             },
-            {
-                file: 'roof360-01.obj', // duplicate
-                object: null,
-            },
-        ],
-        [
-
         ],
     ],
 };
