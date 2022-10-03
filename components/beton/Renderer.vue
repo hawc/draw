@@ -32,8 +32,15 @@ type Side = 'front' | 'back';
 
 const FLOOR_PLANE_SIDE_LENGTH = 2000;
 let scene = null;
+const betonMaterial = new THREE.MeshPhongMaterial({
+                color: 0xdddddd,
+            });
 let camera = null;
 const sides: Side[] = ['front', 'back'];
+let renderedObjects = {
+                front: new THREE.Group(),
+                back: new THREE.Group(),
+            };
 let grainPass;
 let halftonePassDotMatrix;
 let halftonePassGrayscale;
@@ -46,13 +53,6 @@ enum BuildingSections {
 export default Vue.extend({
     data() {
         return {
-            betonMaterial: new THREE.MeshPhongMaterial({
-                color: 0xdddddd,
-            }),
-            // objectMatrix: {
-            //     front: [],
-            //     back: [],
-            // },
             objectTypes: {
                 front: {
                     roof: [],
@@ -83,11 +83,6 @@ export default Vue.extend({
             // only necessary for watcher
             return this.objectTypes[this.side];
         },
-        objectsSize(): THREE.Vector3 {
-            const roofBox = new THREE.Box3().setFromObject(this.objects[this.side]);
-
-            return roofBox.getSize(new THREE.Vector3());
-        },
     },
     watch: {
         'settings.totalColumns'(): void {
@@ -103,20 +98,10 @@ export default Vue.extend({
             this.updateObjects();
         },
         'settings.elementType'(elementType: number): void {
-            const selectedSide = sides[this.settings.side];
-            this.highlightedObjects.forEach(object => {
-                this.renderCell(selectedSide, object.userData.buildingSection, elementType, this.settings.elementWidth, object.userData.columnPosition, object.userData.objectPosition);
-            });
-
-            this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
+            this.rerenderColumnOnBothSides(elementType);
         },
-        'settings.elementWidth'(elementWidth: number): void {
-            const selectedSide = sides[this.settings.side];
-            this.highlightedObjects.forEach(object => {
-                this.renderCell(selectedSide, object.userData.buildingSection, this.settings.elementType, elementWidth, object.userData.columnPosition, object.userData.objectPosition);
-            });
-
-            this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
+        'settings.elementWidth'(): void {
+            this.rerenderColumnOnBothSides();
         },
         'settings.currentColumn'(currentColumn: number): void {
             this.highlightCurrentBuildingSection(this.settings.buildingSection, currentColumn);
@@ -134,16 +119,20 @@ export default Vue.extend({
                 object.children[0].material.color.setHex(0xdddddd);
             });
             objects.forEach(object => {
-                object.children[0].material.color.setHex(0xff0000);
+                object.children[0].material.color.setHex(0x999999);
             });
         },
     },
     methods: {
-        highlightCurrentBuildingSection(buildingSection: number, currentColumn: number) {
-            const selectedSide = sides[this.settings.side];
-            this.highlightedObjects = this.objects[selectedSide].children.filter(object => {
-                return object.userData.buildingSection === BuildingSections[buildingSection] && object.userData.objectPosition.x === currentColumn;
+        rerenderColumnOnBothSides(elementType = null) {
+            sides.forEach(side => {
+                renderedObjects[side].children.filter(object => object.userData.objectPosition.x === this.settings.currentColumn).forEach(object => {
+                    const columnPosition = object.userData.columnPosition;
+                    this.renderCell(side, object.userData.buildingSection, elementType, null, columnPosition, object.userData.objectPosition);
+                });
             });
+
+            this.highlightCurrentBuildingSection(this.settings.buildingSection, this.settings.currentColumn);
         },
         async initThree(): Promise<void> {
             scene = new THREE.Scene();
@@ -201,7 +190,7 @@ export default Vue.extend({
             this.prepareRenderMatrix();
             this.updateObjects();
 
-            const lookAtTarget = new THREE.Vector3(20, 17, 0);
+            // const lookAtTarget = new THREE.Vector3(20, 17, 0);
             const animate = (composer: EffectComposer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
                 // camera.position.set(180 * (this.settings.x - 1), 180 * this.settings.y, -160 * (this.settings.z - 1));
                 // camera.lookAt(lookAtTarget);
@@ -254,7 +243,7 @@ export default Vue.extend({
                         loadedObject.traverse((child: THREE.Mesh|any): void => {
                             if (child instanceof THREE.Mesh) {
                                 child.geometry.computeBoundingBox();
-                                child.material = this.betonMaterial;
+                                child.material = betonMaterial;
                                 child.castShadow = true;
                                 child.receiveShadow = true;
                             }
@@ -269,7 +258,7 @@ export default Vue.extend({
 
             this.renderer.setClearColor(0xffaa77, 1);
 
-            // scene.fog = new THREE.FogExp2(0xffaa77, 0.002);
+            scene.fog = new THREE.FogExp2(0xffaa77, 0.002);
 
             const light = new THREE.AmbientLight(0x202020);
             scene.add(light);
@@ -277,6 +266,10 @@ export default Vue.extend({
             const spotlight0 = this.getSpotlight(0xffcccc, 4);
             scene.add(spotlight0);
             spotlight0.position.set(50, 60, -30);
+
+            const spotlight1 = this.getSpotlight(0xffaa77, 1);
+            scene.add(spotlight1);
+            spotlight1.position.set(0, 60, 60);
 
             camera.position.set(90, 30, -160);
             // camera.lookAt(lookAtTarget);
@@ -305,15 +298,12 @@ export default Vue.extend({
             }
 
             sides.forEach(side => {
-                scene.add(this.objects[side]);
+                scene.add(renderedObjects[side]);
             });
         },
         updateObjects(): void {
             // this.prepareRenderMatrix();
             this.renderAll();
-            // this.$nextTick(() => {
-            //     this.setCameraPosition();
-            // });
         },
         prepareRenderMatrix(): void {
             const totalRowsMax = defaults.totalRows.max;
@@ -331,15 +321,11 @@ export default Vue.extend({
                 }
             });
         },
-        setCameraPosition(): void {
-            const size = this.objectsSize;
-            const height = size.y;
-            if (size.x > 0 && height > 0 && size.x > 0) {
-                const newSize = new THREE.Vector3(Math.round(size.x) / 2, Math.round(height) / 2, Math.round(size.z) / 2);
-                camera.position.x = Math.round(size.x) / 2;
-                camera.position.y = Math.round(height);
-                camera.lookAt(newSize);
-            }
+        highlightCurrentBuildingSection(buildingSection: number, currentColumn: number) {
+            const selectedSide = sides[this.settings.side];
+            this.highlightedObjects = renderedObjects[selectedSide].children.filter(object => {
+                return object.userData.buildingSection === BuildingSections[buildingSection] && object.userData.objectPosition.x === currentColumn;
+            });
         },
         checkAndRemoveObject(objectTypes: ObjectType[], objectGroup: THREE.Group, objectStore: ObjectStore, elementIndex: number): void {
             if (objectTypes[elementIndex] === null && objectStore[elementIndex]) {
@@ -348,7 +334,7 @@ export default Vue.extend({
             }
         },
         setBetonMaterial(targetObject: THREE.Object3D): void {
-            targetObject.children[0].material = this.betonMaterial.clone();
+            targetObject.children[0].material = betonMaterial.clone();
         },
         getDimension(object: THREE.Object3D, property: DimensionProperty, dimension: Dimension): number {
             return object.children[0].geometry.boundingBox[property][dimension];
@@ -375,13 +361,14 @@ export default Vue.extend({
         },
         renderColumn(columnIndex: number, side: Side, fullSize: THREE.Vector3, objectX): THREE.Vector3 {
             const currentColumnDimensions = fullSize.clone();
+            // currentColumnDimensions.x = currentColumnDimensions.x * (side === 'front' ? 1 : -1);
             let renderedCellDimensions;
             for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
                 const isFirstCellInColumn = (cellIndex === 0);
                 const isLastCellInColumn = ((cellIndex + 1) === this.settings.totalRows);
                 const position = new THREE.Vector2(objectX, cellIndex);
                 const buildingSection = isFirstCellInColumn ? BuildingSections[0] : (isLastCellInColumn ? BuildingSections[2] : BuildingSections[1]);
-                renderedCellDimensions = this.renderCell(side, buildingSection, null, 0, currentColumnDimensions, position);
+                renderedCellDimensions = this.renderCell(side, buildingSection, null, null, currentColumnDimensions, position);
                 currentColumnDimensions.set(
                     currentColumnDimensions.x,
                     currentColumnDimensions.y + renderedCellDimensions.y,
@@ -393,17 +380,22 @@ export default Vue.extend({
             return renderedCellDimensions;
         },
         renderCell(side: Side, buildingSection, elementType: number|null, elementWidth: number|null, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): THREE.Vector3 {
+            const oldObject = renderedObjects[side].children.find(object => (object.userData.objectPosition.y === objectPosition.y && object.userData.objectPosition.x === objectPosition.x));
             if (elementType === null) {
                 // move elementType info to own array
                 elementType = buildingSection === 'rooms' ? this.getPreviousElementType(side, objectPosition) : 0;
             }
-            const object = this.replaceObjectIfNeeded(side, objectPosition.clone(), buildingSection, elementType, elementWidth, columnPosition);
-
+            if (elementWidth === null) {
+                const inHighlightedObjects = this.settings.currentColumn === objectPosition.x;
+                elementWidth = inHighlightedObjects ? this.settings.elementWidth : ((oldObject?.userData.elementWidth || this.getPreviousElementWidth(side, objectPosition)) ?? 0);
+            }
+            const object = this.replaceObjectIfNeeded(oldObject, side, objectPosition.clone(), buildingSection, elementType, elementWidth, columnPosition);
+            
             return object.userData.dimensions;
 
         },
         removeObsoleteObjects(side: Side, objectPosition: THREE.Vector2) {
-            const results = this.objects[side].children.filter(object => {
+            const results = renderedObjects[side].children.filter(object => {
                 return object.userData.objectPosition.x >= objectPosition.x || object.userData.objectPosition.y >= objectPosition.y;
             });
             results.forEach((result: THREE.Object3D) => {
@@ -411,48 +403,79 @@ export default Vue.extend({
                 result.removeFromParent();
             });
         },
-        replaceObjectIfNeeded(side: Side, objectPosition: THREE.Vector2, buildingSection, elementType, elementWidth, columnPosition): boolean {
-            const result = this.objects[side].children.find(object => (object.userData.objectPosition.y === objectPosition.y && object.userData.objectPosition.x === objectPosition.x));
+        replaceObjectIfNeeded(result, side: Side, objectPosition: THREE.Vector2, buildingSection, elementType, elementWidth, columnPosition): boolean {
+            let resultDimensions;
             if (result) {
-                if (result.userData.elementType === elementType && result.userData.buildingSection === buildingSection) {
+                if (result.userData.elementWidth === elementWidth && result.userData.elementType === elementType && result.userData.buildingSection === buildingSection) {
                     return result;
                 }
+                resultDimensions = result.userData.dimensions.clone();
                 result.removeFromParent();
             }
+ 
+            const generatedObject = this.generateObject(side, objectPosition, buildingSection, elementType, elementWidth, columnPosition);
 
-            return this.generateObject(side, objectPosition, buildingSection, elementType, elementWidth, columnPosition);
+            this.moveNeighbors(resultDimensions, generatedObject, side);
+            return generatedObject;
+        },
+        moveNeighbors(oldObjectDimensions, newObject, side) {
+            const oldX = oldObjectDimensions?.x ?? 0;
+            const objectsToMove = renderedObjects[side].children.filter(object => {
+                return object.userData.objectPosition.x > newObject.userData.objectPosition.x && object.userData.objectPosition.y === newObject.userData.objectPosition.y;
+            });
+
+            const ObjectsForDistance = renderedObjects[side].children.filter(object => {
+                return object.userData.objectPosition.x < newObject.userData.objectPosition.x && object.userData.objectPosition.y === newObject.userData.objectPosition.y;
+            });
+
+            let widthX = 0;
+            let oldDistX = 0;
+            let newDistX = 0;
+            ObjectsForDistance.forEach(element => oldDistX += element.userData.dimensions.x);
+            ObjectsForDistance.forEach(element => newDistX += element.userData.dimensions.x);
+            oldDistX += oldX;
+            newDistX += newObject.userData.dimensions.x;
+
+            ObjectsForDistance.forEach(element => {
+                widthX += element.userData.dimensions.x;
+            });
+
+            objectsToMove.forEach(object => {
+                object.children[0].position.x = object.children[0].position.x + ((newDistX - oldDistX));
+                object.userData.columnPosition.x = object.children[0].position.x;
+            });
         },
         generateObject(side: Side, objectPosition: THREE.Vector2, buildingSection, elementType, elementWidth, columnPosition) {
             const objectModel = this.getObj(buildingSection, elementWidth, elementType);
-
             const dimensions = this.getObjectDimensions(objectModel);
             this.setBetonMaterial(objectModel);
-            const oo = this.objects[side].add(objectModel);
+            const oo = renderedObjects[side].add(objectModel);
             const position = columnPosition.clone();
             objectModel.userData.dimensions = dimensions;
             objectModel.userData.objectPosition = objectPosition.clone();
             objectModel.userData.elementType = elementType;
+            objectModel.userData.elementWidth = elementWidth;
             objectModel.userData.columnPosition = columnPosition.clone();
             objectModel.userData.buildingSection = buildingSection;
             if (side === 'back') {
-                position.set(position.x + dimensions.x, position.y, -6);
+                objectModel.scale.z = -0.001;
+                position.z = -6000;
             } else {
-                position.z = 6;
+                position.z = 6000;
             }
-            objectModel.children[0].position = position;
-            if (side === 'back') {
-                objectModel.children[0].rotation.y = Math.PI;
-            }
-            const sameObject = this.highlightedObjects.find(highlightedObject => {
-                highlightedObject.userData.objectPosition.equals(objectModel.userData.objectPosition);
-            });
+            objectModel.children[0].position.set(position.x, position.y, position.z);
 
             return objectModel;
         },
         getPreviousElementType(side: Side, objectPosition: THREE.Vector2) {
-            const object = this.objects[side].children.find(object => object.userData.objectPosition.x === objectPosition.x && object.userData.objectPosition.y === 1);
+            const object = renderedObjects[side].children.find(object => object.userData.objectPosition.x === objectPosition.x && object.userData.objectPosition.y === 1);
 
             return object?.userData.elementType ?? 0;
+        },
+        getPreviousElementWidth(side: Side, objectPosition: THREE.Vector2) {
+            const object = renderedObjects[side].children.find(object => object.userData.objectPosition.x === objectPosition.x && object.userData.objectPosition.y === 1);
+
+            return object?.userData.elementWidth ?? 0;
         },
         getObjectDimensions(objectModel: THREE.Object3D): THREE.Vector3 {
             return new THREE.Vector3(
@@ -467,7 +490,6 @@ export default Vue.extend({
             // PI / 2 = 90 degrees
             plane.position.y = -70;
             plane.rotation.x = Math.PI / 2;
-            // this.betonMaterial = await this.getMaterial(concreteTexture);
         },
         async getMaterial(texture: string): Promise<THREE.MeshStandardMaterial> {
             const material = new THREE.MeshStandardMaterial({
@@ -497,7 +519,7 @@ export default Vue.extend({
         async getPlane(width: number, height: number): Promise<THREE.Mesh> {
             const geo = new THREE.PlaneGeometry(width, height);
             // const material = await this.getMaterial(require('@/assets/beton/grass.jpeg'));
-            const material = this.betonMaterial.clone();
+            const material = betonMaterial.clone();
             material.side = THREE.DoubleSide;
             const mesh = new THREE.Mesh(geo, material);
             mesh.receiveShadow = true;
