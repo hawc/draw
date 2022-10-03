@@ -24,16 +24,6 @@ const objects: BetonObjects = {
             },
         ],
         [
-            {
-                file: 'basement480-01.obj',
-                object: null,
-            },
-            {
-                file: 'basement480-01.obj',
-                object: null,
-            },
-        ],
-        [
 
         ],
     ],
@@ -61,14 +51,22 @@ const objects: BetonObjects = {
                 file: 'room360-02.obj',
                 object: null,
             },
+            {
+                file: 'room360-03.obj',
+                object: null,
+            },
         ],
         [
             {
-                file: 'room360-01.obj',
+                file: 'room600-01.obj',
                 object: null,
             },
             {
-                file: 'room360-01.obj',
+                file: 'room600-02.obj',
+                object: null,
+            },
+            {
+                file: 'room600-03.obj',
                 object: null,
             },
         ],
@@ -80,7 +78,11 @@ const objects: BetonObjects = {
                 object: null,
             },
             {
-                file: 'roof240-01.obj',
+                file: 'roof240-02.obj',
+                object: null,
+            },
+            {
+                file: 'roof240-03.obj',
                 object: null,
             },
         ],
@@ -90,19 +92,15 @@ const objects: BetonObjects = {
                 object: null,
             },
             {
-                file: 'roof360-01.obj',
+                file: 'roof360-02.obj',
+                object: null,
+            },
+            {
+                file: 'roof360-03.obj',
                 object: null,
             },
         ],
         [
-            {
-                file: 'roof360-01.obj',
-                object: null,
-            },
-            {
-                file: 'roof360-01.obj',
-                object: null,
-            },
         ],
     ],
 };
