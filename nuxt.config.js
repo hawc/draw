@@ -47,6 +47,14 @@ export default {
         use: 'raw-loader',
       });
     }
+  },
+
+  typescript: {
+    typeCheck: {
+      eslint: {
+        files: './**/*.{ts,js,vue}'
+      }
+    }
   }
 
 }
