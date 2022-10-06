@@ -1,10 +1,9 @@
 <template>
     <div class="renderer">
         <canvas
-            class="skyCanvas"
-            ref="canvasDump"
             id="canvasDump"
-        />
+            ref="canvasDump"
+            class="skyCanvas"></canvas>
         <main></main>
     </div>
 </template>
@@ -13,11 +12,11 @@
 import Vue from 'vue';
 import { mapMutations, mapState } from 'vuex';
 import p5 from 'p5';
-import vert from '@/assets/remote-sky/threshold.vert';
-import frag from '@/assets/remote-sky/threshold.frag';
 import gifshot from 'gifshot';
 import colormap from 'colormap';
 import colorscale from 'colormap/colorScale';
+import frag from '@/assets/remote-sky/threshold.frag';
+import vert from '@/assets/remote-sky/threshold.vert';
 import { textures } from 'assets/remote-sky/defaults';
 
 let back = null;
@@ -88,11 +87,11 @@ export default Vue.extend({
             'PUSH_GIF_DATA',
         ]),
         getColorMap(colorMapIndex) {
-            let colors = colormap({
+            const colors = colormap({
                 colormap: this.colors[colorMapIndex],
                 nshades: this.shades,
                 format: 'hex',
-                alpha: 1
+                alpha: 1,
             });
             this.color1 = colors[this.settings.colorPadding];
             this.color2 = colors[(colors.length - (colors.length % 2)) / 2];
@@ -100,17 +99,19 @@ export default Vue.extend({
         },
         hexToRgb(hex) {
             const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-            hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+            hex = hex.replace(shorthandRegex, function(m, r, g, b) {
                 return r + r + g + g + b + b;
             });
 
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 
-            return result ? new Float32Array([
-                parseInt(result[1], 16) / 255,
-                parseInt(result[2], 16) / 255,
-                parseInt(result[3], 16) / 255,
-            ]) : null;
+            return result
+                ? new Float32Array([
+                    parseInt(result[1], 16) / 255,
+                    parseInt(result[2], 16) / 255,
+                    parseInt(result[3], 16) / 255,
+                ])
+                : null;
         },
         getImageData(canvas1, canvas2, width, height) {
             const c = this.$refs.canvasDump;
@@ -128,7 +129,7 @@ export default Vue.extend({
             this.SET_IS_RECORDING_NOW(false);
             this.SET_CURRENT_RECORD_STATUS('render');
             gifshot.createGIF({
-                images: images,
+                images,
                 gifWidth: this.maxDimension,
                 gifHeight: this.maxDimension,
                 numWorkers: 4,
@@ -140,7 +141,7 @@ export default Vue.extend({
             }, (object) => {
                 if (!object.error) {
                     const image = object.image;
-                    this.SET_DL_NAME(`planet-${ textures[this.settings.globeTexture] }.gif`);
+                    this.SET_DL_NAME(`planet-${textures[this.settings.globeTexture]}.gif`);
                     this.SET_DL_GIF(image);
                     this.SET_DL_READY(true);
                     this.recordButtonDisabled = false;
@@ -156,7 +157,7 @@ export default Vue.extend({
         initP5() {
             let loadedRingsTexture;
             let loadedRingsTexture2;
-            
+
             const loadedTextures = [];
 
             this.backLayer = (p) => {
@@ -164,7 +165,7 @@ export default Vue.extend({
                 let loadedBgTexture;
                 let backgroundGraphic;
                 p.setup = () => {
-                    loadedBgTexture = p.loadImage(require('@/assets/textures/bg.jpg'), img => {
+                    loadedBgTexture = p.loadImage(require('@/assets/textures/bg.jpg'), (img) => {
                         p.image(img, -400, -400, 800, 800);
                     });
                     p.frameRate(30);
@@ -194,8 +195,8 @@ export default Vue.extend({
                 p.setup = () => {
                     p.createDiv().class('root');
 
-                    textures.forEach(texture => {
-                        loadedTextures.push(p.loadImage(require(`@/assets/textures/${ texture }.jpg`)));
+                    textures.forEach((texture) => {
+                        loadedTextures.push(p.loadImage(require(`@/assets/textures/${texture}.jpg`)));
                     });
                     loadedRingsTexture = p.loadImage(require('@/assets/textures/2d2.png'));
                     loadedRingsTexture2 = p.loadImage(require('@/assets/textures/2d-donut.png'));
@@ -274,7 +275,6 @@ export default Vue.extend({
                         case 'box':
                             torusDetailY = 4;
                             break;
-
                     }
                     const torusCount = this.settings.ringsCount;
                     const ringsDiameter = this.settings.ringsDiameter;
@@ -341,7 +341,7 @@ export default Vue.extend({
         this.getColorMap(this.settings.colorName);
         this.initP5();
 
-        document.addEventListener('keyup', event => {
+        document.addEventListener('keyup', (event) => {
             if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
                 this.SET_STOP_MULTIPLICATOR(0);
             } else {

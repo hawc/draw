@@ -1,9 +1,9 @@
-import { Shader } from "~/interfaces/Renderer";
+import { Shader } from '~/interfaces/Renderer';
 
 const GRAIN_SHADER: Shader = {
     uniforms: {
-        "tDiffuse": { value: null },
-        "amount": { value: 1.0 }
+        tDiffuse: { value: null },
+        amount: { value: 1.0 },
     },
     vertexShader: `
                     varying vec2 vUv;
@@ -34,6 +34,6 @@ const GRAIN_SHADER: Shader = {
                         color.rgb += random(uvRandom)*0.15;
                         gl_FragColor = vec4(color);
                     }`,
-}
+};
 
 export { GRAIN_SHADER };

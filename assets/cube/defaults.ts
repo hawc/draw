@@ -1,4 +1,4 @@
-import { ControllerSettings } from "~/interfaces/Controller";
+import { ControllerSettings } from '~/interfaces/Controller';
 
 const defaults: ControllerSettings = {
     bloomStrength: {
@@ -65,4 +65,4 @@ const defaults: ControllerSettings = {
 
 export {
     defaults,
-}
+};

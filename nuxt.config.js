@@ -1,60 +1,60 @@
 export default {
-  // Global page headers: https://go.nuxtjs.dev/config-head
-  head: {
-    title: 'draw',
-    htmlAttrs: {
-      lang: 'en',
+    // Global page headers: https://go.nuxtjs.dev/config-head
+    head: {
+        title: 'draw',
+        htmlAttrs: {
+            lang: 'en',
+        },
+        meta: [
+            { charset: 'utf-8' },
+            { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+            { hid: 'description', name: 'description', content: '' },
+            { name: 'format-detection', content: 'telephone=no' },
+        ],
+        link: [
+            { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        ],
     },
-    meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
-      { name: 'format-detection', content: 'telephone=no' }
+
+    ssr: false,
+
+    css: [
+        '~/public/style.css',
     ],
-    link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-    ]
-  },
 
-  ssr: false,
+    plugins: [
+        { src: '~/plugins/default.ts' },
+    ],
 
-  css: [
-    '~/public/style.css',
-  ],
-
-  plugins: [
-    { src: '~/plugins/default.ts' },
-  ],
-
-  serverMiddleware: {
-    '/peer': '~/server/peerServer',
-  },
-
-  components: true,
-
-  buildModules: [
-    // https://go.nuxtjs.dev/typescript
-    '@nuxt/typescript-build',
-  ],
-  
-  build: {
-    optimization: {
-      minimize: false, // disable all minimizers for build time reduction on digital ocean
+    serverMiddleware: {
+        '/peer': '~/server/peerServer',
     },
-    extend(config) {
-      config.module.rules.push({
-        test: /\.(frag|vert|glsl)$/,
-        use: 'raw-loader',
-      });
-    }
-  },
 
-  typescript: {
-    typeCheck: {
-      eslint: {
-        files: './**/*.{ts,js,vue}'
-      }
-    }
-  }
+    components: true,
 
-}
+    buildModules: [
+    // https://go.nuxtjs.dev/typescript
+        '@nuxt/typescript-build',
+    ],
+
+    build: {
+        optimization: {
+            minimize: false, // disable all minimizers for build time reduction on digital ocean
+        },
+        extend(config) {
+            config.module.rules.push({
+                test: /\.(frag|vert|glsl)$/,
+                use: 'raw-loader',
+            });
+        },
+    },
+
+    typescript: {
+        typeCheck: {
+            eslint: {
+                files: './**/*.{ts,js,vue}',
+            },
+        },
+    },
+
+};

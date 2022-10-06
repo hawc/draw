@@ -7,8 +7,8 @@
                 class="row">
                 <label :for="controllerKey.toString()">{{ controllerKey }}</label>
                 <input
-                    v-model.number="controlSettings[controllerKey]"
                     :id="controllerKey.toString()"
+                    v-model.number="controlSettings[controllerKey]"
                     type="range"
                     :min="controller.min"
                     :max="controller.max"
@@ -23,9 +23,9 @@
         <PeerController
             v-if="!standalone"
             ref="controller"
-            @message="setMessage"
             :settings="settings"
-            :options-setter="SET_OPTIONS" />
+            :options-setter="SET_OPTIONS"
+            @message="setMessage" />
     </div>
 </template>
 
@@ -46,7 +46,7 @@ export default Vue.extend({
         standalone: {
             type: Boolean,
             default: false,
-        }
+        },
     },
     data() {
         return {
@@ -68,7 +68,7 @@ export default Vue.extend({
             deep: true,
             handler(settings): void {
                 this.controlSettings = JSON.parse(JSON.stringify(settings));
-            }
+            },
         },
     },
     computed: {

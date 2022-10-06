@@ -1,7 +1,7 @@
-import { DeviceList } from "~/interfaces/Controller";
+import { DeviceList } from '~/interfaces/Controller';
 
 const DEVICES: DeviceList = {
-    '0': {
+    0: {
         name: 'null',
         offset: {
             channel: 0,
@@ -21,7 +21,7 @@ const DEVICES: DeviceList = {
         useChannel: false,
         fadeOut: false,
     },
-    '1315524914': {
+    1315524914: {
         name: 'Maschine 2 Virtual Output',
         offset: {
             channel: 144,
@@ -31,7 +31,7 @@ const DEVICES: DeviceList = {
         useChannel: true,
         fadeOut: true,
     },
-    '822093897': {
+    822093897: {
         name: 'Intech Studio: Grid PO16',
         offset: {
             channel: 0,
@@ -41,6 +41,6 @@ const DEVICES: DeviceList = {
         useChannel: false,
         fadeOut: false,
     },
-}
+};
 
 export { DEVICES };

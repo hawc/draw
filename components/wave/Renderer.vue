@@ -34,7 +34,7 @@ export default Vue.extend({
             return {
                 x: width,
                 y: height,
-            }
+            };
         },
         initThree(): void {
             const CAMERA_DISTANCE = 8;
@@ -47,7 +47,7 @@ export default Vue.extend({
             this.$refs.main.appendChild(renderer.domElement);
 
             const geometry = new THREE.PlaneGeometry(1, 1);
-            const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
             const cube = new THREE.Mesh(geometry, material);
 
             camera.position.z = CAMERA_DISTANCE;
@@ -59,7 +59,7 @@ export default Vue.extend({
                     updateContent();
                 }
                 renderer.render(scene, camera);
-            }
+            };
 
             let lastCube = cube.clone();
 
@@ -71,14 +71,14 @@ export default Vue.extend({
                 scene.add(newCube);
                 camera.position.x = camera.position.x + (this.settings.lineWidth + this.settings.lineDistance);
                 lastCube = newCube;
-            }
+            };
             animate();
         },
     },
     mounted() {
         this.initThree();
 
-        document.addEventListener('keyup', event => {
+        document.addEventListener('keyup', (event) => {
             if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
                 this.SET_STOP_MULTIPLICATOR(0);
             } else {

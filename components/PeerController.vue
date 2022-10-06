@@ -15,7 +15,7 @@ export default Vue.extend({
         optionsSetter: {
             type: Function,
             required: true,
-        }
+        },
     },
     data() {
         return {
@@ -36,8 +36,32 @@ export default Vue.extend({
             deep: true,
             handler(settings) {
                 this.controlSettings = JSON.parse(JSON.stringify(settings));
-            }
+            },
         },
+    },
+    mounted() {
+        this.peer = new Peer(this.$getKey(), {
+            host: location.hostname,
+            path: '/peer',
+            port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic
+            secure: process.env.NODE_ENV === 'production',
+            config: {
+                iceServers: [
+                    {
+                        urls: 'turn:openrelay.metered.ca:80',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject',
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject',
+                    },
+                ],
+            },
+        });
+
+        this.initPeer();
     },
     methods: {
         showCallContent(): void {
@@ -72,7 +96,7 @@ export default Vue.extend({
                         this.showCallContent();
                     });
 
-                    this.$emit('message', `You're connected.`);
+                    this.$emit('message', 'You\'re connected.');
                 });
                 this.connection.on('error', (error) => {
                     console.error('Error connecting: ', error);
@@ -84,7 +108,7 @@ export default Vue.extend({
         },
         recall(): void {
             this.connection = this.peer.reconnect();
-            this.$emit('message', `You're connected.`);
+            this.$emit('message', 'You\'re connected.');
         },
         hangUp(): void {
             this.connection.close();
@@ -107,31 +131,7 @@ export default Vue.extend({
             this.peer.on('error', (data) => {
                 console.error(data);
             });
-        }
-    },
-    mounted() {
-        this.peer = new Peer(this.$getKey(), {
-            host: location.hostname,
-            path: '/peer',
-            port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic
-            secure: process.env.NODE_ENV === 'production',
-            config: {
-                iceServers: [
-                    {
-                        urls: "turn:openrelay.metered.ca:80",
-                        username: "openrelayproject",
-                        credential: "openrelayproject",
-                    },
-                    {
-                        urls: "turn:openrelay.metered.ca:443",
-                        username: "openrelayproject",
-                        credential: "openrelayproject",
-                    },
-                ],
-            },
-        });
-
-        this.initPeer();
+        },
     },
 });
 </script>

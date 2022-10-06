@@ -1,8 +1,7 @@
 <template>
     <div class="renderer">
         <div
-            ref="main"
-        ></div>
+            ref="main"></div>
     </div>
 </template>
 
@@ -12,9 +11,9 @@ import { mapMutations, mapState } from 'vuex';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { HalftonePass } from '~/assets/cube/shaders/HalftonePass.js';
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { HalftonePass } from '~/assets/cube/shaders/HalftonePass.js';
 
 const SIZE = 1; // dynamic scene size for edge debugging
 const OBJECTS = {
@@ -60,7 +59,7 @@ const HALFTONE_PARAMS = {
     hideR: false,
     hideG: true,
     hideB: true,
-    disable: false
+    disable: false,
 };
 
 export default Vue.extend({
@@ -74,7 +73,7 @@ export default Vue.extend({
         return {
             window,
             cubes: [],
-        }
+        };
     },
     methods: {
         ...mapMutations([
@@ -100,7 +99,7 @@ export default Vue.extend({
 
             const bulbGeometry = new THREE.SphereBufferGeometry(0.02 * SIZE, 16, 8);
             const bulbMaterial = new THREE.MeshBasicMaterial({
-                emissive: 0xffffee,
+                emissive: 0xFFFFEE,
                 emissiveIntensity: 1,
                 color: 0x000000,
             });
@@ -119,7 +118,7 @@ export default Vue.extend({
             scene.add(this.getPlane());
 
             const halftonePass = new HalftonePass(window.innerWidth, window.innerHeight, HALFTONE_PARAMS);
-            
+
             const renderPass = new RenderPass(scene, camera);
             const composer = new EffectComposer(renderer);
 
@@ -128,7 +127,7 @@ export default Vue.extend({
                 aperture: 0.0005,
                 maxblur: 1,
                 width: window.innerWidth,
-                height: window.innerHeight
+                height: window.innerHeight,
             });
             bokehPass.needsSwap = true; // important to enable combination with other passes
 
@@ -147,13 +146,13 @@ export default Vue.extend({
                 // this.switchCubes(keyframe);
                 // this.switchChannels(keyframe, halftonePass);
                 composer.render();
-            }
+            };
 
             new OrbitControls(camera, renderer.domElement);
             animate();
         },
         getLight(geometry: THREE.SphereBufferGeometry, material: THREE.MeshBasicMaterial, position: THREE.Vector3, intensity: number, distance: number): THREE.PointLight {
-            const bulbLight = new THREE.PointLight(0xffffff, intensity, distance, 2);
+            const bulbLight = new THREE.PointLight(0xFFFFFF, intensity, distance, 2);
             bulbLight.add(new THREE.Mesh(geometry, material));
             bulbLight.position.set(position.x, position.y, position.z);
             bulbLight.castShadow = true;
@@ -161,7 +160,7 @@ export default Vue.extend({
             bulbLight.shadow.mapSize.width = 2048 * 2;
             bulbLight.shadow.mapSize.height = 2048 * 2;
             bulbLight.shadow.blurSamples = 8;
-            
+
             return bulbLight;
         },
         getCube(geometry: THREE.BoxBufferGeometry, material: THREE.MeshPhongMaterial, position: THREE.Vector3, rotation: THREE.Vector3): THREE.Mesh {
@@ -230,7 +229,7 @@ export default Vue.extend({
         if (process.client) {
             await this.initThree();
 
-            document.addEventListener('keyup', event => {
+            document.addEventListener('keyup', (event) => {
                 if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
                     this.SET_STOP_MULTIPLICATOR(0);
                 } else {
@@ -238,7 +237,6 @@ export default Vue.extend({
                 }
             });
         }
-
     },
 });
 </script>

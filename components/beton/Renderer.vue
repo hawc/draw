@@ -12,15 +12,15 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import { TGALoader } from 'three/examples/jsm/loaders/TGALoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { defaults } from 'assets/beton/defaults';
 import { objects } from 'static/beton/objects';
 import { ObjectType, ObjectStore } from '~/interfaces/beton/objects';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
-import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 
 if (WebGL.isWebGL2Available() === false) {
     console.error('No WebGL2 support');
@@ -40,11 +40,11 @@ const FLOOR_PLANE_SIDE_LENGTH = 2000;
 const sides: Side[] = ['front', 'back'];
 
 const betonMaterial = new THREE.MeshPhongMaterial({
-    color: 0xdddddd,
+    color: 0xDDDDDD,
 });
 let scene = null;
 let camera = null;
-let renderedObjects = {
+const renderedObjects = {
     front: new THREE.Group(),
     back: new THREE.Group(),
 };
@@ -73,7 +73,7 @@ export default Vue.extend({
                 back: new THREE.Group(),
             },
             highlightedObjects: [],
-        }
+        };
     },
     computed: {
         ...mapState([
@@ -118,18 +118,23 @@ export default Vue.extend({
             halftonePassGrayscale.enabled = style === 2;
         },
         highlightedObjects(objects: THREE.Object3D[], oldObjects: THREE.Object3D[]): void {
-            oldObjects.forEach(object => {
-                object.children[0].material.color.setHex(0xdddddd);
+            oldObjects.forEach((object) => {
+                object.children[0].material.color.setHex(0xDDDDDD);
             });
-            objects.forEach(object => {
+            objects.forEach((object) => {
                 object.children[0].material.color.setHex(0x999999);
             });
         },
     },
+    async mounted(): Promise<void> {
+        if (process.client) {
+            await this.initThree();
+        }
+    },
     methods: {
         rerenderColumnOnBothSides(elementType: number|null = null): void {
-            sides.forEach(side => {
-                renderedObjects[side].children.filter(object => object.userData.objectPosition.x === this.settings.currentColumn && (object.userData.elementWidth !== this.settings.elementWidth || object.userData.buildingSection === BuildingSections[this.settings.buildingSection])).forEach(object => {
+            sides.forEach((side) => {
+                renderedObjects[side].children.filter(object => object.userData.objectPosition.x === this.settings.currentColumn && (object.userData.elementWidth !== this.settings.elementWidth || object.userData.buildingSection === BuildingSections[this.settings.buildingSection])).forEach((object) => {
                     const columnPosition = object.userData.columnPosition;
                     this.renderCell(side, object.userData.buildingSection, elementType, null, columnPosition, object.userData.objectPosition);
                 });
@@ -159,28 +164,28 @@ export default Vue.extend({
             await this.loadFloorObject();
             this.initEnvironment();
 
-            const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight)
+            const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 
             const composer = new EffectComposer(this.renderer, target);
             composer.addPass(new RenderPass(scene, camera));
             grainPass = new ShaderPass(GRAIN_SHADER);
             composer.addPass(grainPass);
             halftonePassDotMatrix = new HalftonePass(window.innerWidth, window.innerHeight, {
-                    shape: 1,
-                    radius: 4,
-                    scatter: 0,
-                    blending: 1,
-                    blendingMode: 0,
-                    greyscale: false,
-                });
+                shape: 1,
+                radius: 4,
+                scatter: 0,
+                blending: 1,
+                blendingMode: 0,
+                greyscale: false,
+            });
             halftonePassGrayscale = new HalftonePass(window.innerWidth, window.innerHeight, {
-                    shape: 1,
-                    radius: 2,
-                    scatter: 1,
-                    blending: 1,
-                    blendingMode: 0,
-                    greyscale: true,
-                });
+                shape: 1,
+                radius: 2,
+                scatter: 1,
+                blending: 1,
+                blendingMode: 0,
+                greyscale: true,
+            });
             composer.addPass(halftonePassDotMatrix);
             composer.addPass(halftonePassGrayscale);
             grainPass.enabled = (this.settings.style === 1);
@@ -189,7 +194,7 @@ export default Vue.extend({
 
             composer.render();
 
-            sides.forEach(side => {
+            sides.forEach((side) => {
                 scene.add(renderedObjects[side]);
             });
 
@@ -207,7 +212,7 @@ export default Vue.extend({
                     grainPass.uniforms.rand.value = (1 - Math.random());
                 }
                 requestAnimationFrame(() => animate(composer, scene, camera));
-            }
+            };
 
             animate(composer, scene, camera);
         },
@@ -240,7 +245,7 @@ export default Vue.extend({
                     objectIndex = 0;
                     for (const object of objectSize) {
                         objectIndex++;
-                        const loadedObject = await objLoader.loadAsync(`/obj/objects/${ object.file }`);
+                        const loadedObject = await objLoader.loadAsync(`/obj/objects/${object.file}`);
                         loadedObject.scale.set(0.001, 0.001, 0.001);
                         loadedObject.traverse((child: THREE.Mesh|any): void => {
                             if (child instanceof THREE.Mesh) {
@@ -258,24 +263,24 @@ export default Vue.extend({
         initEnvironment(): void {
             const lookAtTarget = new THREE.Vector3(20, 17, 0);
 
-            this.renderer.setClearColor(0xffaa77, 1);
+            this.renderer.setClearColor(0xFFAA77, 1);
 
-            scene.fog = new THREE.FogExp2(0xffaa77, 0.002);
+            scene.fog = new THREE.FogExp2(0xFFAA77, 0.002);
 
             const light = new THREE.AmbientLight(0x202020);
             scene.add(light);
 
-            const spotlight0 = this.getSpotlight(0xffcccc, 4);
+            const spotlight0 = this.getSpotlight(0xFFCCCC, 4);
             scene.add(spotlight0);
             spotlight0.position.set(50, 60, -30);
 
-            const spotlight1 = this.getSpotlight(0xffaa77, 1);
+            const spotlight1 = this.getSpotlight(0xFFAA77, 1);
             scene.add(spotlight1);
             spotlight1.position.set(0, 60, 60);
 
             camera.position.set(90, 30, -160);
             // camera.lookAt(lookAtTarget);
-            
+
             const orbitControls = new OrbitControls(camera, this.renderer.domElement);
             orbitControls.target = lookAtTarget;
             orbitControls.update();
@@ -285,7 +290,7 @@ export default Vue.extend({
         },
         highlightCurrentBuildingSection(buildingSection: number, currentColumn: number): void {
             const selectedSide = sides[this.settings.side];
-            this.highlightedObjects = renderedObjects[selectedSide].children.filter(object => {
+            this.highlightedObjects = renderedObjects[selectedSide].children.filter((object) => {
                 return object.userData.buildingSection === BuildingSections[buildingSection] && object.userData.objectPosition.x === currentColumn;
             });
         },
@@ -354,16 +359,15 @@ export default Vue.extend({
                 elementWidth = inHighlightedObjects ? this.settings.elementWidth : ((oldObject?.userData.elementWidth || this.getPreviousElementWidth(side, objectPosition)) ?? 0);
             }
             const object = this.replaceObjectIfNeeded(oldObject, side, objectPosition.clone(), buildingSection, elementType, elementWidth, columnPosition);
-            
-            return object.userData.dimensions;
 
+            return object.userData.dimensions;
         },
         removeObsoleteObjects(side: Side, objectPosition: THREE.Vector2): void {
-            const results = renderedObjects[side].children.filter(object => {
+            const results = renderedObjects[side].children.filter((object) => {
                 return object.userData.objectPosition.x >= objectPosition.x || object.userData.objectPosition.y >= objectPosition.y;
             });
             results.forEach((result: THREE.Object3D) => {
-                result.children[0].material.color.set(0x00ff00);
+                result.children[0].material.color.set(0x00FF00);
                 result.removeFromParent();
             });
         },
@@ -376,20 +380,20 @@ export default Vue.extend({
                 resultDimensions = result.userData.dimensions.clone();
                 result.removeFromParent();
             }
- 
+
             const generatedObject = this.generateObject(side, objectPosition, buildingSection, elementType, elementWidth, columnPosition);
 
             this.moveNeighbors(resultDimensions, generatedObject, side);
-            
+
             return generatedObject;
         },
         moveNeighbors(oldObjectDimensions: THREE.Vector3, newObject: THREE.Object3D, side: string): void {
             const oldX = oldObjectDimensions?.x ?? 0;
-            const objectsToMove = renderedObjects[side].children.filter(object => {
+            const objectsToMove = renderedObjects[side].children.filter((object) => {
                 return object.userData.objectPosition.x > newObject.userData.objectPosition.x && object.userData.objectPosition.y === newObject.userData.objectPosition.y;
             });
 
-            const ObjectsForDistance = renderedObjects[side].children.filter(object => {
+            const ObjectsForDistance = renderedObjects[side].children.filter((object) => {
                 return object.userData.objectPosition.x < newObject.userData.objectPosition.x && object.userData.objectPosition.y === newObject.userData.objectPosition.y;
             });
 
@@ -401,11 +405,11 @@ export default Vue.extend({
             oldDistX += oldX;
             newDistX += newObject.userData.dimensions.x;
 
-            ObjectsForDistance.forEach(element => {
+            ObjectsForDistance.forEach((element) => {
                 widthX += element.userData.dimensions.x;
             });
 
-            objectsToMove.forEach(object => {
+            objectsToMove.forEach((object) => {
                 object.children[0].position.x = object.children[0].position.x + (newDistX - oldDistX);
                 object.userData.columnPosition.x = object.children[0].position.x;
             });
@@ -472,14 +476,9 @@ export default Vue.extend({
             light.castShadow = true;
             light.shadow.mapSize.x = 4096;
             light.shadow.mapSize.y = 4096;
-            
+
             return light;
         },
-    },
-    async mounted(): Promise<void> {
-        if (process.client) {
-            await this.initThree();
-        }
     },
 });
 </script>

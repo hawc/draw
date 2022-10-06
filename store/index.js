@@ -1,9 +1,9 @@
-import { DEVICES } from "~/assets/devices";
+import { DEVICES } from '~/assets/devices';
 
 let DEFAULTS = {};
 let DEFAULTS_KEYS = {};
 
-// this should be dependent on a usage mode or something, 
+// this should be dependent on a usage mode or something,
 // because the fading only makes sense when rendering MIDI loops (i.e. with "Maschine")
 const FADE_OUT_SETTINGS = false;
 // MIDI data is basically an array of three values ([1,1,1]) - channel, pitch and velocity. Depending of
@@ -35,8 +35,8 @@ function limitNumber(number, options) {
 function getDefaultSettings(data) {
     return Object.fromEntries(
         Object.entries(data).map(
-            ([key, value]) => ([key, getFromLocalStorage(key) ?? value.default])
-        )
+            ([key, value]) => ([key, getFromLocalStorage(key) ?? value.default]),
+        ),
     );
 }
 
@@ -46,9 +46,9 @@ export const state = () => ({
     populated: false,
 });
 
-let newestTimestamp = {};
+const newestTimestamp = {};
 
-function fadeOption(context, commitData, key, degree, start = true, newTimestamp = + new Date()) {
+function fadeOption(context, commitData, key, degree, start = true, newTimestamp = +new Date()) {
     if (start) {
         newestTimestamp[key] = newTimestamp;
     }
@@ -57,7 +57,7 @@ function fadeOption(context, commitData, key, degree, start = true, newTimestamp
         if (newestTimestamp[key] === newTimestamp && degree > 0) {
             fadeOption(context, commitData, key, degree - 1, false, newTimestamp);
         }
-    }, 10)
+    }, 10);
 }
 
 export const mutations = {
@@ -83,8 +83,8 @@ export const mutations = {
 export const actions = {
     SET_OPTIONS({ commit }, payload) {
         const optionKeys = Object.keys(payload);
-        optionKeys.forEach(optionKey => {
-            let data = {};
+        optionKeys.forEach((optionKey) => {
+            const data = {};
             data[optionKey] = payload[optionKey];
             commit('SET_OPTION', data);
         });
@@ -96,13 +96,13 @@ export const actions = {
             if ('requestMIDIAccess' in navigator) {
                 navigator.requestMIDIAccess()
                     .then(
-                        (midi) => midiReady(midi),
-                        (err) => console.error('Something went wrong', err));
+                        midi => midiReady(midi),
+                        err => console.error('Something went wrong', err));
             }
         };
 
         const midiReady = (midi) => {
-            midi.addEventListener('statechange', (event) => initDevices(event.target));
+            midi.addEventListener('statechange', event => initDevices(event.target));
             initDevices(midi);
         };
         const midiDevices = [];
@@ -136,21 +136,21 @@ export const actions = {
 
         const startListening = () => {
             for (const input of midiDevices) {
-                let deviceId = input.id;
+                const deviceId = input.id;
                 const deviceData = DEVICES[deviceId.toString()] ?? DEVICES['0'];
                 const eventData = {
                     midiKnobPosition: deviceData.useChannel ? 0 : 1,
                     offset: deviceData.offset[deviceData.useChannel ? 'channel' : 'pitch'],
                     fadeOut: deviceData.fadeOut,
                 };
-                input.addEventListener('midimessage', (event) => midiMessageReceived(event, eventData));
+                input.addEventListener('midimessage', event => midiMessageReceived(event, eventData));
             }
         };
 
         connect();
     },
     FIRE_EVENT(context, payload) {
-        let key = Object.keys(context.state.settings)[payload.key];
+        const key = Object.keys(context.state.settings)[payload.key];
         if (key) {
             fireEvent(context, payload.commitData, key, payload.value);
         }
@@ -159,7 +159,7 @@ export const actions = {
 
 function fireEvent(context, commitData, key, degree) {
     if (key && DEFAULTS[key]) {
-        let num = limitNumber(degree, DEFAULTS[key]);
+        const num = limitNumber(degree, DEFAULTS[key]);
         if (num !== null && num !== NaN) {
             commitData[key] = num;
             context.commit('SET_OPTION', commitData);

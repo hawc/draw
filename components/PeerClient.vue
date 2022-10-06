@@ -34,12 +34,40 @@ export default Vue.extend({
             this.$emit('message', message);
         },
     },
+    mounted() {
+        const key = this.$getKey();
+        this.key = key;
+
+        this.peer = new Peer(key, {
+            host: location.hostname,
+            path: '/peer',
+            port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic
+            secure: process.env.NODE_ENV === 'production',
+            // debug: 3,
+            config: {
+                iceServers: [
+                    {
+                        urls: 'turn:openrelay.metered.ca:80',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject',
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject',
+                    },
+                ],
+            },
+        });
+
+        this.initPeer();
+    },
     methods: {
         initPeer(): void {
-            this.generateQrCode(`https://${ location.hostname }${ this.$route.fullPath }${ this.$route.fullPath.substr(-1) === '/' ? '' : '/' }sender?k=${ this.key }`);
+            this.generateQrCode(`https://${location.hostname}${this.$route.fullPath}${this.$route.fullPath.substr(-1) === '/' ? '' : '/'}sender?k=${this.key}`);
 
             this.peer.on('open', () => {
-                this.peerID = `${ this.peer.id }`;
+                this.peerID = `${this.peer.id}`;
 
                 this.peer.on('connection', (connection) => {
                     this.connection = connection;
@@ -66,34 +94,6 @@ export default Vue.extend({
         generateQrCode(text: string): void {
             QRCode.toDataURL(text).then(image => this.qrcodeImage = image);
         },
-    },
-    mounted() {
-        const key = this.$getKey();
-        this.key = key;
-
-        this.peer = new Peer(key, {
-            host: location.hostname,
-            path: '/peer',
-            port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic
-            secure: process.env.NODE_ENV === 'production',
-            // debug: 3,
-            config: {
-                iceServers: [
-                    {
-                        urls: "turn:openrelay.metered.ca:80",
-                        username: "openrelayproject",
-                        credential: "openrelayproject",
-                    },
-                    {
-                        urls: "turn:openrelay.metered.ca:443",
-                        username: "openrelayproject",
-                        credential: "openrelayproject",
-                    },
-                ],
-            },
-        });
-    
-        this.initPeer();
     },
 });
 </script>

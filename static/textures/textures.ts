@@ -5,4 +5,4 @@ const metalTexture = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD//gAiUmV
 export {
     concreteTexture,
     metalTexture,
-}
+};

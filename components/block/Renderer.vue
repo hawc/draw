@@ -1,8 +1,7 @@
 <template>
     <div class="renderer">
         <div
-            ref="main"
-        ></div>
+            ref="main"></div>
     </div>
 </template>
 
@@ -26,13 +25,13 @@ const HALFTONE_PARAMS = {
     hideR: false,
     hideG: true,
     hideB: true,
-    disable: false
+    disable: false,
 };
 
 type ScreenSize = {
     x: number,
     y: number,
-}
+};
 
 export default Vue.extend({
     computed: {
@@ -45,7 +44,7 @@ export default Vue.extend({
         return {
             window,
             cubes: [],
-        }
+        };
     },
     methods: {
         ...mapMutations([
@@ -62,9 +61,8 @@ export default Vue.extend({
                 // Near clipping plane (beyond which nothing is visible)
                 1,
                 // Far clipping plane (beyond which nothing is visible)
-                1000
+                1000,
             );
-
 
             /**
              * Create a Three.js sphere.
@@ -91,14 +89,14 @@ export default Vue.extend({
             const plane = (w, h) => {
                 const geo = new THREE.PlaneGeometry(w, h);
                 const material = new THREE.MeshStandardMaterial({
-                    color: 0xffffff,
+                    color: 0xFFFFFF,
                     side: THREE.DoubleSide,
                 });
                 const mesh = new THREE.Mesh(geo, material);
                 mesh.receiveShadow = true;
 
                 return mesh;
-            }
+            };
 
             /**
              * Create a Three.js spotlight
@@ -113,7 +111,7 @@ export default Vue.extend({
                 light.shadow.mapSize.y = 4096;
 
                 return light;
-            }
+            };
 
             /**
              * Url to a concrete texture from https://codepen.io/jo12bar/pen/LjgVgV
@@ -127,9 +125,7 @@ export default Vue.extend({
              */
             const metalTextureUrl = () => metalTexture;
 
-
             const textureLoader = new THREE.TextureLoader();
-
 
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -139,13 +135,13 @@ export default Vue.extend({
             this.$refs.main.appendChild(renderer.domElement);
             renderer.setSize(window.innerWidth, window.innerHeight);
 
-            let envmaploader = new THREE.PMREMGenerator(renderer);
+            const envmaploader = new THREE.PMREMGenerator(renderer);
 
             let box1;
             let box1Material;
 
-            new RGBELoader().setPath('/hdr/').load('dikhololo_night_2k.hdr', function (hdrmap) {
-                let envmap = envmaploader.fromCubemap(hdrmap);
+            new RGBELoader().setPath('/hdr/').load('dikhololo_night_2k.hdr', function(hdrmap) {
+                const envmap = envmaploader.fromCubemap(hdrmap);
                 // Add a sphere
                 box1 = getCube(2, { color: 0x222222, envMap: envmap.texture });
                 scene.add(box1);
@@ -163,16 +159,15 @@ export default Vue.extend({
                 box1Material.roughnessMap.wrapT = THREE.RepeatWrapping;
                 box1Material.bumpMap.repeat.set(
                     box1.scale.x,
-                    box1.scale.y
+                    box1.scale.y,
                 );
                 box1Material.roughnessMap.repeat.set(
                     box1.scale.x,
-                    box1.scale.y
+                    box1.scale.y,
                 );
                 box1Material.bumpScale = 0.25;
                 box1Material.roughness = 0.95;
                 box1Material.metalness = 0;
-
             });
 
             // Add a plane
@@ -193,19 +188,18 @@ export default Vue.extend({
             plane1Material.roughnessMap = loadedConcreteTexture;
 
             const concreteTextureRepetition = 32;
-            ['map', 'bumpMap', 'roughnessMap'].forEach(mapName => {
+            ['map', 'bumpMap', 'roughnessMap'].forEach((mapName) => {
                 plane1Material[mapName].wrapS = THREE.RepeatWrapping;
                 plane1Material[mapName].wrapT = THREE.RepeatWrapping;
                 plane1Material[mapName].repeat.set(
                     concreteTextureRepetition,
-                    concreteTextureRepetition
+                    concreteTextureRepetition,
                 );
-            })
+            });
 
             // const fog = new THREE.Fog('#000000', 40, 90);
             const fog = new THREE.FogExp2('#000000', 0.01);
             scene.fog = fog;
-
 
             // Add first spotlight
             const spotlight1 = spotlight('rgb(255, 200, 255)', 1);
@@ -244,25 +238,25 @@ export default Vue.extend({
                         box1.position.y = 2 * box1.scale.y;
                         box1Material.bumpMap.repeat.set(
                             box1.scale.x,
-                            box1.scale.y
+                            box1.scale.y,
                         );
                         box1Material.roughnessMap.repeat.set(
                             box1.scale.x,
-                            box1.scale.y
+                            box1.scale.y,
                         );
                     }
-    
+
                     const spotlight1 = scene.getObjectByName('spotlight1');
                     spotlight1.intensity += (Math.random() - 0.5) * 0.025;
                     spotlight1.intensity = Math.abs(spotlight1.intensity);
-    
+
                     const spotlight2 = scene.getObjectByName('spotlight2');
                     spotlight2.intensity += (Math.random() - 0.5) * 0.015;
                     spotlight2.intensity = Math.abs(spotlight2.intensity);
                 }
 
                 requestAnimationFrame(() => animate(renderer, scene, camera));
-            }
+            };
 
             new OrbitControls(camera, renderer.domElement);
             animate(renderer, scene, camera);
@@ -272,7 +266,7 @@ export default Vue.extend({
         if (process.client) {
             await this.initThree();
 
-            document.addEventListener('keyup', event => {
+            document.addEventListener('keyup', (event) => {
                 if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
                     this.SET_STOP_MULTIPLICATOR(0);
                 } else {
@@ -280,7 +274,6 @@ export default Vue.extend({
                 }
             });
         }
-
     },
 });
 </script>

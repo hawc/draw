@@ -3,47 +3,46 @@
         <Receiver
             main-class="wave"
             standalone>
-            <Renderer></Renderer>
+            <Renderer />
         </Receiver>
-        <MicrophoneInput v-if="populated"></MicrophoneInput>
+        <MicrophoneInput v-if="populated" />
         <Sender
             hidden
             standalone
-            :controllers="defaults"
-        ></Sender>
+            :controllers="defaults" />
     </div>
 </template>
 
 <script lang="ts">
-    import Vue from 'vue';
-    import { mapMutations, mapState } from 'vuex';
-    import Receiver from '@/components/Receiver.vue';
-    import Renderer from '@/components/wave/Renderer.vue';
-    import Sender from '@/components/Sender.vue';
-    import { defaults } from '~/assets/wave/defaults';
+import Vue from 'vue';
+import { mapMutations, mapState } from 'vuex';
+import Receiver from '@/components/Receiver.vue';
+import Renderer from '@/components/wave/Renderer.vue';
+import Sender from '@/components/Sender.vue';
+import { defaults } from '~/assets/wave/defaults';
 
-    export default Vue.extend({
-        name: 'IndexPage',
-        components: {
-            Receiver,
-            Renderer, 
-            Sender,
-        },
-        data() {
-            return {
-                defaults,
-            };
-        },
-        computed: {
-            ...mapState(['populated']),
-        },
-        methods: {
-            ...mapMutations([
-                'POPULATE_STORE',
-            ]),
-        },
-        beforeMount() {
-            this.POPULATE_STORE(defaults);
-        },
-    });
+export default Vue.extend({
+    name: 'IndexPage',
+    components: {
+        Receiver,
+        Renderer,
+        Sender,
+    },
+    data() {
+        return {
+            defaults,
+        };
+    },
+    computed: {
+        ...mapState(['populated']),
+    },
+    methods: {
+        ...mapMutations([
+            'POPULATE_STORE',
+        ]),
+    },
+    beforeMount() {
+        this.POPULATE_STORE(defaults);
+    },
+});
 </script>

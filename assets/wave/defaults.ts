@@ -1,4 +1,4 @@
-import { ControllerSettings } from "~/interfaces/Controller";
+import { ControllerSettings } from '~/interfaces/Controller';
 
 const defaults: ControllerSettings = {
     lineHeight: {
@@ -41,4 +41,4 @@ const defaults: ControllerSettings = {
 
 export {
     defaults,
-}
+};

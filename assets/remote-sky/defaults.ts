@@ -89,4 +89,4 @@ const defaults: ControllerSettings = {
 export {
     defaults,
     textures,
-}
+};

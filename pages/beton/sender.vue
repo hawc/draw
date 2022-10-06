@@ -26,7 +26,7 @@ export default Vue.extend({
     },
     beforeMount() {
         this.POPULATE_STORE(defaults);
-    }
+    },
 });
 </script>
 

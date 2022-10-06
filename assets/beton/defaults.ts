@@ -1,4 +1,4 @@
-import { ControllerSettings } from "~/interfaces/Controller";
+import { ControllerSettings } from '~/interfaces/Controller';
 
 const defaults: ControllerSettings = {
     totalRows: {
@@ -71,4 +71,4 @@ const defaults: ControllerSettings = {
 
 export {
     defaults,
-}
+};

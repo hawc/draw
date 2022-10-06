@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
 
     credentials = {
         key: privateKey,
-        cert: certificate
+        cert: certificate,
     };
 }
 
@@ -36,4 +36,4 @@ console.log('Listening.');
 export default {
     path: '/peerjs',
     handler: peerServer,
-}
+};

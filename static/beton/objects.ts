@@ -1,4 +1,4 @@
-import { BetonObjects } from "~/interfaces/beton/objects";
+import { BetonObjects } from '~/interfaces/beton/objects';
 
 // outer array is dimension, inner is the different designs for that dimension
 const objects: BetonObjects = {

@@ -1,8 +1,8 @@
 const GRAIN_SHADER = {
     uniforms: {
-        "tDiffuse": { value: null },
-        "amount": { value: 1.0 },
-        "rand": { value: 1.0 },
+        tDiffuse: { value: null },
+        amount: { value: 1.0 },
+        rand: { value: 1.0 },
     },
     vertexShader: `
                     varying vec2 vUv;
@@ -34,6 +34,6 @@ const GRAIN_SHADER = {
                         color.rgb += random(uvRandom)*0.15;
                         gl_FragColor = vec4(color);
                     }`,
-}
+};
 
 export { GRAIN_SHADER };

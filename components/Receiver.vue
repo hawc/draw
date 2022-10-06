@@ -4,7 +4,8 @@
             <slot name="default"></slot>
         </main>
         <div class="container">
-            <p :hidden="standalone"
+            <p
+                :hidden="standalone"
                 class="statusMessage">
                 <span :hidden="isProduction">{{ peerID ? peerID : 'Not connected.' }}</span>
                 <a
@@ -17,10 +18,9 @@
             </p>
             <PeerClient
                 v-if="!standalone"
-                @message="setMessage"
                 :settings="settings"
                 :options-setter="SET_OPTIONS"
-            />
+                @message="setMessage" />
         </div>
     </div>
 </template>
@@ -31,13 +31,8 @@ import { mapActions, mapState } from 'vuex';
 import PeerClient from './PeerClient.vue';
 
 export default Vue.extend({
-    components: { 
+    components: {
         PeerClient,
-    },
-    data() {
-        return {
-            peerID: '',
-        };
     },
     props: {
         standalone: {
@@ -47,7 +42,12 @@ export default Vue.extend({
         mainClass: {
             type: String,
             default: '',
-        }
+        },
+    },
+    data() {
+        return {
+            peerID: '',
+        };
     },
     computed: {
         ...mapState(['settings']),

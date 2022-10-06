@@ -52,11 +52,11 @@ export default Vue.extend({
             // renderer.toneMapping = THREE.ReinhardToneMapping;
             renderer.setSize(window.innerWidth, window.innerHeight);
             this.$refs.main.appendChild(renderer.domElement);
-            
+
             const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 
             bloomPass.exposure = params.exposure;
-            bloomPass.threshold =params.bloomThreshold;
+            bloomPass.threshold = params.bloomThreshold;
             bloomPass.strength = params.bloomStrength;
             bloomPass.radius = params.bloomRadius;
             const composer = new EffectComposer(renderer);
@@ -64,7 +64,7 @@ export default Vue.extend({
             composer.addPass(bloomPass);
 
             const RGBShift = new ShaderPass(RGBShiftShader);
-            RGBShift.uniforms['amount'].value = 0;
+            RGBShift.uniforms.amount.value = 0;
             composer.addPass(RGBShift);
 
             const geometry = new THREE.ConeGeometry(6, 9, 4, 1, true);
@@ -72,7 +72,7 @@ export default Vue.extend({
             const edges = new THREE.EdgesGeometry(geometry);
             const geo = new LineSegmentsGeometry().fromEdgesGeometry(edges);
             const matLine = new LineMaterial({
-                color: 0xff2222,
+                color: 0xFF2222,
                 linewidth: this.settings.lineWidth,
                 dashed: false,
             });
@@ -113,7 +113,7 @@ export default Vue.extend({
                     updateContent();
                 }
                 composer.render();
-            }
+            };
 
             let rotation = 0;
 
@@ -138,18 +138,18 @@ export default Vue.extend({
                 line2.visible = this.settings.showSecondary > 0.25;
                 line3.visible = this.settings.showSecondary > 0.25;
                 if (this.settings.showSecondary > 0.5) {
-                    RGBShift.uniforms['amount'].value = Math.random() / 50;
+                    RGBShift.uniforms.amount.value = Math.random() / 50;
                 } else {
-                    RGBShift.uniforms['amount'].value = 0;
+                    RGBShift.uniforms.amount.value = 0;
                 }
-            }
+            };
             animate();
         },
     },
     mounted() {
         this.initThree();
 
-        document.addEventListener('keyup', event => {
+        document.addEventListener('keyup', (event) => {
             if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
                 this.SET_STOP_MULTIPLICATOR(0);
             } else {
