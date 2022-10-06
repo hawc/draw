@@ -27,7 +27,7 @@ const defaults: ControllerSettings = {
     },
     elementType: {
         min: 0,
-        max: 1,
+        max: 5,
         step: 1,
         default: 0,
     },

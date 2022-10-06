@@ -129,7 +129,7 @@ export default Vue.extend({
     methods: {
         rerenderColumnOnBothSides(elementType = null) {
             sides.forEach(side => {
-                renderedObjects[side].children.filter(object => object.userData.objectPosition.x === this.settings.currentColumn).forEach(object => {
+                renderedObjects[side].children.filter(object => object.userData.objectPosition.x === this.settings.currentColumn && (object.userData.elementWidth !== this.settings.elementWidth || object.userData.buildingSection === BuildingSections[this.settings.buildingSection])).forEach(object => {
                     const columnPosition = object.userData.columnPosition;
                     this.renderCell(side, object.userData.buildingSection, elementType, null, columnPosition, object.userData.objectPosition);
                 });
@@ -143,7 +143,7 @@ export default Vue.extend({
             camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
 
             this.renderer = new THREE.WebGLRenderer();
-        	// this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        	this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             // don't need antialias because where multisampling in WebGLRenderTarget
             // this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -302,7 +302,10 @@ export default Vue.extend({
             return object.children[0].geometry.boundingBox[property][dimension];
         },
         getObj(type: string, sizeIndex: number, modelIndex: number): THREE.Object3D {
-            return objects[type][sizeIndex][modelIndex].object.clone();
+            const objectType = objects[type];
+            const objectSize = objectType[sizeIndex % objectType.length];
+            const objectModel = objectSize[modelIndex % objectSize.length];
+            return objectModel.object.clone();
         },
         setMaterialColor(targetObject: THREE.Object3D, color: THREE.Color): void {
             targetObject.children[0].material.color.setHex(color);
@@ -312,7 +315,7 @@ export default Vue.extend({
                 this.removeObsoleteObjects(side, new THREE.Vector2(this.settings.totalColumns, this.settings.totalRows));
                 const currentDimensions = new THREE.Vector3(0, 0, side === 'front' ? 0 : 0);
                 for (let columnIndex = 0; columnIndex < this.settings.totalColumns; columnIndex++) {
-                    const renderedColumnDimensions = this.renderColumn(columnIndex, side, currentDimensions, columnIndex);
+                    const renderedColumnDimensions = this.renderColumn(side, currentDimensions, columnIndex);
                     currentDimensions.set(
                         currentDimensions.x + renderedColumnDimensions.x,
                         currentDimensions.y,
@@ -321,9 +324,8 @@ export default Vue.extend({
                 }
             });
         },
-        renderColumn(columnIndex: number, side: Side, fullSize: THREE.Vector3, objectX): THREE.Vector3 {
+        renderColumn(side: Side, fullSize: THREE.Vector3, objectX): THREE.Vector3 {
             const currentColumnDimensions = fullSize.clone();
-            // currentColumnDimensions.x = currentColumnDimensions.x * (side === 'front' ? 1 : -1);
             let renderedCellDimensions;
             for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
                 const isFirstCellInColumn = (cellIndex === 0);
@@ -341,11 +343,11 @@ export default Vue.extend({
 
             return renderedCellDimensions;
         },
-        renderCell(side: Side, buildingSection, elementType: number|null, elementWidth: number|null, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): THREE.Vector3 {
+        renderCell(side: Side, buildingSection: string, elementType: number|null, elementWidth: number|null, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): THREE.Vector3 {
             const oldObject = renderedObjects[side].children.find(object => (object.userData.objectPosition.y === objectPosition.y && object.userData.objectPosition.x === objectPosition.x));
             if (elementType === null) {
                 // move elementType info to own array
-                elementType = buildingSection === 'rooms' ? this.getPreviousElementType(side, objectPosition) : 0;
+                elementType = buildingSection === BuildingSections[2] ? this.getPreviousElementType(side, objectPosition) : 0;
             }
             if (elementWidth === null) {
                 const inHighlightedObjects = this.settings.currentColumn === objectPosition.x;
@@ -356,7 +358,7 @@ export default Vue.extend({
             return object.userData.dimensions;
 
         },
-        removeObsoleteObjects(side: Side, objectPosition: THREE.Vector2) {
+        removeObsoleteObjects(side: Side, objectPosition: THREE.Vector2): void {
             const results = renderedObjects[side].children.filter(object => {
                 return object.userData.objectPosition.x >= objectPosition.x || object.userData.objectPosition.y >= objectPosition.y;
             });
@@ -365,7 +367,7 @@ export default Vue.extend({
                 result.removeFromParent();
             });
         },
-        replaceObjectIfNeeded(result, side: Side, objectPosition: THREE.Vector2, buildingSection, elementType, elementWidth, columnPosition): boolean {
+        replaceObjectIfNeeded(result: THREE.Object3D, side: Side, objectPosition: THREE.Vector2, buildingSection: string, elementType, elementWidth, columnPosition): THREE.Object3D {
             let resultDimensions;
             if (result) {
                 if (result.userData.elementWidth === elementWidth && result.userData.elementType === elementType && result.userData.buildingSection === buildingSection) {
@@ -378,9 +380,10 @@ export default Vue.extend({
             const generatedObject = this.generateObject(side, objectPosition, buildingSection, elementType, elementWidth, columnPosition);
 
             this.moveNeighbors(resultDimensions, generatedObject, side);
+            
             return generatedObject;
         },
-        moveNeighbors(oldObjectDimensions, newObject, side) {
+        moveNeighbors(oldObjectDimensions, newObject, side): void {
             const oldX = oldObjectDimensions?.x ?? 0;
             const objectsToMove = renderedObjects[side].children.filter(object => {
                 return object.userData.objectPosition.x > newObject.userData.objectPosition.x && object.userData.objectPosition.y === newObject.userData.objectPosition.y;
@@ -403,11 +406,11 @@ export default Vue.extend({
             });
 
             objectsToMove.forEach(object => {
-                object.children[0].position.x = object.children[0].position.x + ((newDistX - oldDistX));
+                object.children[0].position.x = object.children[0].position.x + (newDistX - oldDistX);
                 object.userData.columnPosition.x = object.children[0].position.x;
             });
         },
-        generateObject(side: Side, objectPosition: THREE.Vector2, buildingSection, elementType, elementWidth, columnPosition) {
+        generateObject(side: Side, objectPosition: THREE.Vector2, buildingSection: string, elementType, elementWidth, columnPosition): THREE.Object3D {
             const objectModel = this.getObj(buildingSection, elementWidth, elementType);
             const dimensions = this.getObjectDimensions(objectModel);
             this.setBetonMaterial(objectModel);
@@ -429,13 +432,16 @@ export default Vue.extend({
 
             return objectModel;
         },
+        getPreviousElement(side: Side, objectPosition: THREE.Vector2): THREE.Object3D {
+            return renderedObjects[side].children.find(object => object.userData.objectPosition.x === objectPosition.x && object.userData.objectPosition.y === 1);
+        },
         getPreviousElementType(side: Side, objectPosition: THREE.Vector2) {
-            const object = renderedObjects[side].children.find(object => object.userData.objectPosition.x === objectPosition.x && object.userData.objectPosition.y === 1);
+            const object = this.getPreviousElement(side, objectPosition);
 
             return object?.userData.elementType ?? 0;
         },
         getPreviousElementWidth(side: Side, objectPosition: THREE.Vector2) {
-            const object = renderedObjects[side].children.find(object => object.userData.objectPosition.x === objectPosition.x && object.userData.objectPosition.y === 1);
+            const object = this.getPreviousElement(side, objectPosition);
 
             return object?.userData.elementWidth ?? 0;
         },
