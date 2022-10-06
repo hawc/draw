@@ -79,7 +79,7 @@ export default Vue.extend({
         ...mapState([
             'settings',
         ]),
-        side() {
+        side(): Side {
             return this.settings.side === 0 ? 'front' : 'back';
         },
         objectTypesSide() {
@@ -127,7 +127,7 @@ export default Vue.extend({
         },
     },
     methods: {
-        rerenderColumnOnBothSides(elementType = null) {
+        rerenderColumnOnBothSides(elementType: number|null = null): void {
             sides.forEach(side => {
                 renderedObjects[side].children.filter(object => object.userData.objectPosition.x === this.settings.currentColumn && (object.userData.elementWidth !== this.settings.elementWidth || object.userData.buildingSection === BuildingSections[this.settings.buildingSection])).forEach(object => {
                     const columnPosition = object.userData.columnPosition;
@@ -283,7 +283,7 @@ export default Vue.extend({
         updateObjects(): void {
             this.renderAll();
         },
-        highlightCurrentBuildingSection(buildingSection: number, currentColumn: number) {
+        highlightCurrentBuildingSection(buildingSection: number, currentColumn: number): void {
             const selectedSide = sides[this.settings.side];
             this.highlightedObjects = renderedObjects[selectedSide].children.filter(object => {
                 return object.userData.buildingSection === BuildingSections[buildingSection] && object.userData.objectPosition.x === currentColumn;
@@ -324,7 +324,7 @@ export default Vue.extend({
                 }
             });
         },
-        renderColumn(side: Side, fullSize: THREE.Vector3, objectX): THREE.Vector3 {
+        renderColumn(side: Side, fullSize: THREE.Vector3, objectX: number): THREE.Vector3 {
             const currentColumnDimensions = fullSize.clone();
             let renderedCellDimensions;
             for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
@@ -367,7 +367,7 @@ export default Vue.extend({
                 result.removeFromParent();
             });
         },
-        replaceObjectIfNeeded(result: THREE.Object3D, side: Side, objectPosition: THREE.Vector2, buildingSection: string, elementType, elementWidth, columnPosition): THREE.Object3D {
+        replaceObjectIfNeeded(result: THREE.Object3D, side: Side, objectPosition: THREE.Vector2, buildingSection: string, elementType: number, elementWidth: number, columnPosition: THREE.Vector3): THREE.Object3D {
             let resultDimensions;
             if (result) {
                 if (result.userData.elementWidth === elementWidth && result.userData.elementType === elementType && result.userData.buildingSection === buildingSection) {
@@ -383,7 +383,7 @@ export default Vue.extend({
             
             return generatedObject;
         },
-        moveNeighbors(oldObjectDimensions, newObject, side): void {
+        moveNeighbors(oldObjectDimensions: THREE.Vector3, newObject: THREE.Object3D, side: string): void {
             const oldX = oldObjectDimensions?.x ?? 0;
             const objectsToMove = renderedObjects[side].children.filter(object => {
                 return object.userData.objectPosition.x > newObject.userData.objectPosition.x && object.userData.objectPosition.y === newObject.userData.objectPosition.y;
