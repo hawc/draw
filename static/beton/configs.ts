@@ -4,7 +4,7 @@ const configs = [
         name: 'entrance low 240',
         elements: {
             basement: [['door240-01.obj'], ['door240-02.obj'], ['door240-03.obj'], ['door240-04.obj']],
-            ground: [['spacer-half240-01.obj']],
+            ground: [['spacer-half240-01.obj']], // when there's a ground level we need to render 1 room less
             rooms: [['room240-01.obj'], ['room240-02.obj']],
             roof: [['roof240-01.obj'], ['roof240-02.obj'], ['roof240-03.obj']],
         },
@@ -39,7 +39,7 @@ const configs = [
     {
         name: 'living 600',
         elements: {
-            basement: [['basement600-01.obj'], ['basement600-02.obj']],
+            basement: [['basement300-01.obj', 'basement300-01.obj']],
             ground: [],
             rooms: [['room600-01.obj'], ['room600-02.obj'], ['room600-03.obj'], ['room240-01.obj', 'room360-01.obj']],
             roof: [['roof300-01.obj', 'roof300-01.obj'], ['roof300-01.obj', 'roof300-02.obj'], ['roof300-02.obj', 'roof300-01.obj']],
