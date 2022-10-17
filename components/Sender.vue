@@ -5,7 +5,7 @@
                 v-for="(controller, controllerKey) in controllers"
                 :key="controllerKey"
                 class="row">
-                <label :for="controllerKey.toString()">{{ controllerKey }}</label>
+                <label :for="controllerKey.toString()">{{ getTranslation(controllerKey.toString()) }}</label>
                 <input
                     :id="controllerKey.toString()"
                     v-model.number="controlSettings[controllerKey]"
@@ -15,7 +15,9 @@
                     :step="controller.step" />
             </div>
         </div>
-        <div class="container container--controls">
+        <div 
+            v-if="!standalone"
+            class="container container--controls">
             <p>
                 {{ statusMessage }}
             </p>
@@ -33,6 +35,7 @@
 import Vue from 'vue';
 import { mapActions, mapState } from 'vuex';
 import PeerController from './PeerController.vue';
+import { getTranslation } from '@/static/translations';
 
 export default Vue.extend({
     components: {
@@ -82,6 +85,7 @@ export default Vue.extend({
         setMessage(message: string): void {
             this.statusMessage = message;
         },
+        getTranslation,
     },
     mounted() {
         if (process.client) {
