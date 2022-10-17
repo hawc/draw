@@ -2,8 +2,8 @@
     <div>
         <Renderer />
         <Sender 
-            standalone 
-            :controllers="defaults" 
+            standalone
+            :controllers="defaults"
             class="sender"></Sender>
     </div>
 </template>
