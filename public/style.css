@@ -48,11 +48,6 @@ a:focus {
 .statusMessage {
     width: 100%;
     text-align: center;
-    /* opacity: 0; */
-    /* transition: opacity 0.3s; */
-}
-body:hover .statusMessage {
-    /* opacity: 1; */
 }
 
 /* CONTROLS */
@@ -77,12 +72,20 @@ body:hover .statusMessage {
 }
 .controls > .row {
     display: flex;
-    margin: 3px 0;
+    background: black;
+    color: white;
+    padding: 0 4px !important;
 }
 .controls label {
     display: flex;
     flex-grow: 1;
-    padding-right: 35px;
+    padding-right: 10px;
+    font-size: 12px;
+    justify-content: end;
+    height: 24px;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 .controls input,
 .controls select {
@@ -95,9 +98,28 @@ body:hover .statusMessage {
     border-radius: 5px;
 }
 .controls input[type="range"] {
-    padding-left: 0;
-    padding-right: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    align-self: center;
+    height: 1px;
+    padding: 0;
+    background: #ffffff;
 }
+.controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 3px;
+    background: #fff;
+}
+.controls input[type="range"]::-moz-range-thumb {
+    appearance: none;
+    height: 16px;
+    width: 3px;
+    background: #fff;
+}
+
+
 button {
     padding: 0.75rem 1.5rem;
     font-size: 100%;
