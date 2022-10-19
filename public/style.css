@@ -109,13 +109,13 @@ a:focus {
     -webkit-appearance: none;
     appearance: none;
     height: 16px;
-    width: 3px;
+    width: 2px;
     background: #fff;
 }
 .controls input[type="range"]::-moz-range-thumb {
     appearance: none;
     height: 16px;
-    width: 3px;
+    width: 2px;
     background: #fff;
 }
 
