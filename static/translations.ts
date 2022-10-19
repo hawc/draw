@@ -6,7 +6,7 @@ const translations = {
     elementType: 'Element Type',
     side: 'Side',
     style: 'Style',
-}
+};
 
 function getTranslation(text: string): string {
     return translations[text] ?? text;
@@ -14,4 +14,4 @@ function getTranslation(text: string): string {
 
 export {
     getTranslation,
-}
+};

@@ -15,7 +15,7 @@
                     :step="controller.step" />
             </div>
         </div>
-        <div 
+        <div
             v-if="!standalone"
             class="container container--controls">
             <p>

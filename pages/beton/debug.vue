@@ -1,10 +1,10 @@
 <template>
     <div>
         <Renderer />
-        <Sender 
+        <Sender
             standalone
             :controllers="defaults"
-            class="sender"></Sender>
+            class="sender" />
     </div>
 </template>
 
