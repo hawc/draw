@@ -141,7 +141,7 @@ export default Vue.extend({
                     console.error('None here');
                     return;
                 }
-                this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.settings.currentColumn, columnType);
+                this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.settings.currentColumn, columnType, elementType);
                 // const filtered = renderedObjects[side].children.filter(object => object.userData.objectPosition.x === this.settings.currentColumn);
                 // for (const object of filtered) {
                 //     const columnPosition = object.userData.columnPosition;
@@ -155,7 +155,7 @@ export default Vue.extend({
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
             this.renderer = new THREE.WebGLRenderer();
-            // this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             // don't need antialias because where multisampling in WebGLRenderTarget
             // this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -323,12 +323,12 @@ export default Vue.extend({
                 }
             };
         },
-        async renderColumn(side: Side, fullSize: THREE.Vector3, objectX: number, columnType: number = 0): Promise<THREE.Vector3> {
+        async renderColumn(side: Side, fullSize: THREE.Vector3, objectX: number, columnType: number = 0, elementType = null): Promise<THREE.Vector3> {
             const currentColumnDimensions = fullSize.clone();
             let renderedCellDimensions;
             for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
                 const position = new THREE.Vector2(objectX, cellIndex);
-                renderedCellDimensions = await this.renderCell(side, columnType, null, currentColumnDimensions, position);
+                renderedCellDimensions = await this.renderCell(side, columnType, elementType, currentColumnDimensions, position);
                 currentColumnDimensions.set(currentColumnDimensions.x, currentColumnDimensions.y + renderedCellDimensions.y, currentColumnDimensions.z);
             }
             currentColumnDimensions.x = currentColumnDimensions.x + renderedCellDimensions.x;
