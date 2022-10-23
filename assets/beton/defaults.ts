@@ -13,6 +13,12 @@ const defaults: ControllerSettings = {
         step: 1,
         default: 5,
     },
+    side: {
+        min: 0,
+        max: 1,
+        step: 1,
+        default: 1,
+    },
     currentColumn: {
         min: 0,
         max: 12,
@@ -31,35 +37,11 @@ const defaults: ControllerSettings = {
         step: 1,
         default: 0,
     },
-    side: {
-        min: 0,
-        max: 1,
-        step: 1,
-        default: 0,
-    },
     style: {
         min: 0,
         max: 2,
         step: 1,
         default: 0,
-    },
-    x: {
-        min: 0,
-        max: 2,
-        step: 0.05,
-        default: 0,
-    },
-    y: {
-        min: 0,
-        max: 1,
-        step: 0.05,
-        default: 0.5,
-    },
-    z: {
-        min: 0,
-        max: 2,
-        step: 0.05,
-        default: 2,
     },
 };
 

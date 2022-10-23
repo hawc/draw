@@ -26,7 +26,7 @@ const configs = [
         elements: {
             basement: [['basement240-01.obj']],
             ground: [],
-            rooms: [['room240-01.obj'], ['room240-02.obj']],
+            rooms: [['room240-03.obj'], ['room240-04.obj']],
             roof: [['roof240-01.obj'], ['roof240-02.obj'], ['roof240-03.obj']],
         },
     },

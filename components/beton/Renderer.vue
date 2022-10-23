@@ -19,6 +19,7 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { configs } from 'static/beton/configs';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
+import { gsap } from 'gsap';
 
 if (WebGL.isWebGL2Available() === false) {
     console.error('No WebGL2 support');
@@ -51,6 +52,7 @@ const renderedObjects = {
     front: new THREE.Group(),
     back: new THREE.Group(),
 };
+let orbitControls;
 let grainPass;
 let halftonePassDotMatrix;
 let halftonePassGrayscale;
@@ -107,7 +109,18 @@ export default Vue.extend({
                 this.rendering = false;
             }
         },
-        'settings.side'(): void {
+        'settings.side'(side: number): void {
+            const position = new THREE.Vector3(-40, 10, -80 * ((side - 0.5) * 2));
+            if(orbitControls) {
+                const lookAtTarget = new THREE.Vector3(20, 17, 0);
+                gsap.to(camera.position, { 
+                    ...position, 
+                    duration: 1,
+                    onUpdate() {
+                        camera.lookAt(lookAtTarget);
+                    }
+                });
+            }
             this.highlightCurrentBuildingColumn(this.settings.currentColumn);
         },
         async 'settings.columnType'(columnType: number): Promise<void> {
@@ -120,7 +133,7 @@ export default Vue.extend({
         async 'settings.elementType'(elementType: number): Promise<void> {
             if (!this.rendering) {
                 this.rendering = true;
-                await this.rerenderColumnOnBothSides(null, elementType);
+                await this.rerenderColumnOnSide(sides[this.settings.side], null, elementType);
                 this.rendering = false;
             }
         },
@@ -149,14 +162,17 @@ export default Vue.extend({
     methods: {
         async rerenderColumnOnBothSides(columnType: number | null, elementType: number | null = null): Promise<void> {
             for (const side of sides) {
-                const samePos = renderedObjects[side].children.find(child => child.userData.objectPosition.x === this.settings.currentColumn && child.userData.objectPosition.y === 0);
-                if (!samePos) {
-                    console.error('None here');
-                    return;
-                }
-                await this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.settings.currentColumn, columnType, elementType);
+                await this.rerenderColumnOnSide(side, columnType, elementType);
             }
             this.highlightCurrentBuildingColumn(this.settings.currentColumn);
+        },
+        async rerenderColumnOnSide(side: string, columnType: number | null, elementType: number | null = null): Promise<void> {
+            const samePos = renderedObjects[side].children.find(child => child.userData.objectPosition.x === this.settings.currentColumn && child.userData.objectPosition.y === 0);
+            if (!samePos) {
+                console.error('None here');
+                return;
+            }
+            await this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.settings.currentColumn, columnType, elementType);
         },
         async initThree(): Promise<void> {
             scene = new THREE.Scene();
@@ -208,10 +224,7 @@ export default Vue.extend({
                 scene.attach(renderedObjects[side]);
             });
             await this.renderAll();
-            // const lookAtTarget = new THREE.Vector3(20, 17, 0);
             const animate = (composer: EffectComposer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
-                // camera.position.set(180 * (this.settings.x - 1), 180 * this.settings.y, -160 * (this.settings.z - 1));
-                // camera.lookAt(lookAtTarget);
                 composer.render();
                 if (halftonePassGrayscale && halftonePassGrayscale.uniforms.random) {
                     halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
@@ -224,7 +237,6 @@ export default Vue.extend({
             animate(composer, scene, camera);
         },
         initEnvironment(): void {
-            const lookAtTarget = new THREE.Vector3(20, 17, 0);
             this.renderer.setClearColor(16755319, 1);
             scene.fog = new THREE.FogExp2(16755319, 0.002);
             const light = new THREE.AmbientLight(2105376);
@@ -236,8 +248,10 @@ export default Vue.extend({
             scene.add(spotlight1);
             spotlight1.position.set(0, 60, 60);
             camera.position.set(-40, 10, -80);
-            // camera.lookAt(lookAtTarget);
-            const orbitControls = new OrbitControls(camera, this.renderer.domElement);
+            const lookAtTarget = new THREE.Vector3(20, 17, 0);
+            camera.lookAt(lookAtTarget);
+            
+            orbitControls = new OrbitControls(camera, this.renderer.domElement);
             orbitControls.target = lookAtTarget;
             orbitControls.update();
         },
