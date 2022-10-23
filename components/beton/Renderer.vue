@@ -513,10 +513,9 @@ export default Vue.extend({
             const materials = await mtlLoader.loadAsync('/obj/material.lib');
             objLoader.setMaterials(materials);
             const loadedObject = await objLoader.loadAsync('/obj/mars.obj');
-            loadedObject.scale.set(0.01, 0.01, 0.01);
+            loadedObject.scale.set(0.007, 0.007, 0.007);
             loadedObject.rotation.y = Math.PI / 2;
-            loadedObject.position.x = -204;
-            loadedObject.position.y = -9.7;
+            loadedObject.position.set(-110, -6.45, 22);
             const textureLoader = new TGALoader();
             const loadedNormalsTexture = await textureLoader.load('/obj/MarsEnv_nrm.tga');
             const loadedSpecTexture = await textureLoader.load('/obj/MarsEnv_spc.tga');
