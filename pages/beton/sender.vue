@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="sender">
         <Sender :controllers="defaults" />
     </div>
 </template>

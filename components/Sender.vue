@@ -136,6 +136,12 @@ export default Vue.extend({
     .controls {
         z-index: 1;
     }
+    .sender .controls {
+        transform: scale(2);
+    }
+   .sender .container--controls {
+        display: none;
+    }
     a:link {
         color: white;
     }
