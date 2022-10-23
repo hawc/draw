@@ -136,9 +136,6 @@ export default Vue.extend({
     .controls {
         z-index: 1;
     }
-    .sender .controls {
-        transform: scale(1.3);
-    }
    .sender .container--controls {
         display: none;
     }
