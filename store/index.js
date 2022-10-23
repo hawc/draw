@@ -5,22 +5,12 @@ let DEFAULTS_KEYS = {};
 
 // this should be dependent on a usage mode or something,
 // because the fading only makes sense when rendering MIDI loops (i.e. with "Maschine")
-const FADE_OUT_SETTINGS = false;
+// const FADE_OUT_SETTINGS = false;
 // MIDI data is basically an array of three values ([1,1,1]) - channel, pitch and velocity. Depending of
 // the configuration of the device, either "channel" or "pitch" are used for identifying which button
 // has been pressed. While using "channel" makes most sense for mixing audio, "pitch" could be used when
 // working with basic MIDI devices without mixing software in between.
-const USE_CHANNELS = false;
-
-function getRandomNumber(data) {
-    const min = Math.ceil(data.min);
-    const max = Math.floor(data.max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function getRandomElement(array) {
-    return array[(Math.random() * array.length) | 0];
-}
+// const USE_CHANNELS = false;
 
 function getFromLocalStorage(key) {
     return typeof localStorage.midiDrawSettings !== 'undefined' ? JSON.parse(localStorage.midiDrawSettings)[key] : null;
@@ -160,7 +150,7 @@ export const actions = {
 function fireEvent(context, commitData, key, degree) {
     if (key && DEFAULTS[key]) {
         const num = limitNumber(degree, DEFAULTS[key]);
-        if (num !== null && num !== NaN) {
+        if (num !== null && !isNaN(num)) {
             commitData[key] = num;
             context.commit('SET_OPTION', commitData);
             // localStorage.midiDrawSettings = JSON.stringify(payload);

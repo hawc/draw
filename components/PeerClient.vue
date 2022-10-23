@@ -7,7 +7,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import QRCode from 'qrcode';
-import Peer from 'peerjs';
+import PeerJS from 'peerjs';
 
 export default Vue.extend({
     props: {
@@ -38,7 +38,7 @@ export default Vue.extend({
         const key = this.$getKey();
         this.key = key;
 
-        this.peer = new Peer(key, {
+        this.peer = new PeerJS(key, {
             host: location.hostname,
             path: '/peer',
             port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic

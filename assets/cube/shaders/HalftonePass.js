@@ -13,16 +13,16 @@ class HalftonePass extends Pass {
     constructor(width, height, params) {
         super();
 
-	 	if (HalftoneShader === undefined) {
-	 		console.error('THREE.HalftonePass requires HalftoneShader');
-	 	}
+        if (HalftoneShader === undefined) {
+            console.error('THREE.HalftonePass requires HalftoneShader');
+        }
 
-	 	this.uniforms = UniformsUtils.clone(HalftoneShader.uniforms);
-	 	this.material = new ShaderMaterial({
-	 		uniforms: this.uniforms,
-	 		fragmentShader: HalftoneShader.fragmentShader,
-	 		vertexShader: HalftoneShader.vertexShader,
-	 	});
+        this.uniforms = UniformsUtils.clone(HalftoneShader.uniforms);
+        this.material = new ShaderMaterial({
+            uniforms: this.uniforms,
+            fragmentShader: HalftoneShader.fragmentShader,
+            vertexShader: HalftoneShader.vertexShader,
+        });
 
         // set params
         this.uniforms.width.value = width;
@@ -38,22 +38,22 @@ class HalftonePass extends Pass {
     }
 
     render(renderer, writeBuffer, readBuffer/*, deltaTime, maskActive */) {
- 		this.material.uniforms.tDiffuse.value = readBuffer.texture;
+        this.material.uniforms.tDiffuse.value = readBuffer.texture;
 
- 		if (this.renderToScreen) {
- 			renderer.setRenderTarget(null);
- 			this.fsQuad.render(renderer);
+        if (this.renderToScreen) {
+            renderer.setRenderTarget(null);
+            this.fsQuad.render(renderer);
         } else {
- 			renderer.setRenderTarget(writeBuffer);
- 			if (this.clear) { renderer.clear(); }
+            renderer.setRenderTarget(writeBuffer);
+            if (this.clear) { renderer.clear(); }
             this.fsQuad.render(renderer);
         }
- 	}
+    }
 
- 	setSize(width, height) {
- 		this.uniforms.width.value = width;
- 		this.uniforms.height.value = height;
- 	}
+    setSize(width, height) {
+        this.uniforms.width.value = width;
+        this.uniforms.height.value = height;
+    }
 }
 
 export { HalftonePass };

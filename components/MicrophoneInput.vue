@@ -25,6 +25,9 @@ export default Vue.extend({
             HEIGHT: null,
         };
     },
+    mounted() {
+        document.body.addEventListener('click', this.clickHandler);
+    },
     methods: {
         ...mapActions([
             'FIRE_EVENT',
@@ -103,9 +106,6 @@ export default Vue.extend({
             this.initAudioInput();
             document.body.removeEventListener('click', this.clickHandler);
         },
-    },
-    mounted() {
-        document.body.addEventListener('click', this.clickHandler);
     },
 });
 </script>

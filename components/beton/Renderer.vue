@@ -19,8 +19,6 @@ import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { configs } from 'static/beton/configs';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
-import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-
 
 if (WebGL.isWebGL2Available() === false) {
     console.error('No WebGL2 support');
@@ -41,7 +39,6 @@ enum BuildingSections {
 }
 
 const objects = {};
-const objectWidths: number[] = [240, 360, 600];
 const FLOOR_PLANE_SIDE_LENGTH = 2000;
 const sides: Side[] = ['front', 'back'];
 
@@ -94,7 +91,7 @@ export default Vue.extend({
     },
     watch: {
         async 'settings.totalColumns'(): Promise<void> {
-            if(!this.rendering) {
+            if (!this.rendering) {
                 this.rendering = true;
                 await this.renderAll();
                 this.highlightCurrentBuildingColumn(this.settings.currentColumn);
@@ -102,7 +99,7 @@ export default Vue.extend({
             }
         },
         async 'settings.totalRows'(): Promise<void> {
-            if(!this.rendering) {
+            if (!this.rendering) {
                 this.rendering = true;
                 await this.renderAll();
                 this.highlightCurrentBuildingColumn(this.settings.currentColumn);
@@ -113,14 +110,14 @@ export default Vue.extend({
             this.highlightCurrentBuildingColumn(this.settings.currentColumn);
         },
         async 'settings.columnType'(columnType: number): Promise<void> {
-            if(!this.rendering) {
+            if (!this.rendering) {
                 this.rendering = true;
                 await this.rerenderColumnOnBothSides(columnType, null);
                 this.rendering = false;
             }
         },
         async 'settings.elementType'(elementType: number): Promise<void> {
-            if(!this.rendering) {
+            if (!this.rendering) {
                 this.rendering = true;
                 await this.rerenderColumnOnBothSides(null, elementType);
                 this.rendering = false;
@@ -287,12 +284,10 @@ export default Vue.extend({
                 result.object = this.mergeObjects(tempObjects, nameList);
 
                 return result;
+            } else if (!(nameList[0] in objects)) {
+                result.object = await this.loadObjectFile(nameList[0]);
             } else {
-                if (!(nameList[0] in objects)) {
-                    result.object = await this.loadObjectFile(nameList[0]);
-                } else {
-                    result.object = objects[nameList[0]].clone();
-                }
+                result.object = objects[nameList[0]].clone();
             }
             return result;
         },
@@ -304,7 +299,7 @@ export default Vue.extend({
                 obj.geometry.computeBoundingBox();
                 group.add(obj);
             }
-            
+
             let offsetX = 0;
             for (const obj of group.children) {
                 obj.position.x = obj.position.x + offsetX;
@@ -360,7 +355,7 @@ export default Vue.extend({
             if (elementType === null) {
                 elementType = buildingSection === BuildingSections[3] ? this.getPreviousElementType(side, objectPosition) : 0;
             }
-            const nameListConfig = this.getObjectFileName(columnType, buildingSection, elementType, oldObject?.userData.objectType);
+            const nameListConfig = this.getObjectFileName(columnType, buildingSection, elementType);
             const oldObjectDimensions = this.getDimensionsFromUserData(oldObject);
             const object = await this.replaceObjectIfNeeded(oldObject, oldObjectDimensions, side, objectPosition.clone(), nameListConfig.name, buildingSection, elementType, columnPosition, nameListConfig.type);
 
@@ -423,8 +418,8 @@ export default Vue.extend({
             });
             let oldDistX = 0;
             let newDistX = 0;
-            ObjectsForDistance.forEach(element => oldDistX += element.userData.dimensions.x);
-            ObjectsForDistance.forEach(element => newDistX += element.userData.dimensions.x);
+            ObjectsForDistance.forEach(element => oldDistX = oldDistX + element.userData.dimensions.x);
+            ObjectsForDistance.forEach(element => newDistX = newDistX + element.userData.dimensions.x);
             oldDistX += oldX;
             newDistX += newObject.userData.dimensions.x;
             objectsToMove.forEach((object: THREE.Group): void => {
@@ -432,13 +427,13 @@ export default Vue.extend({
                 object.userData.columnPosition.x = object.position.x;
             });
         },
-        getObjectFileName(columnType: number = 0, buildingSection: string, elementType: number, oldObjectType: string|undefined) {
+        getObjectFileName(columnType: number = 0, buildingSection: string, elementType: number) {
             columnType = columnType ?? this.settings.columnType;
             const groundlength = configs[columnType].elements.ground.length;
             if (buildingSection === 'ground' && groundlength === 0) {
                 buildingSection = 'rooms';
             }
-            
+
             const objectlength = configs[columnType].elements[buildingSection].length;
             return { type: buildingSection, name: configs[columnType].elements[buildingSection][elementType % objectlength] };
         },
@@ -473,18 +468,19 @@ export default Vue.extend({
                 child.material.color.setHex(color);
             }
         },
-        async initFloorPlane(): Promise<void> {
-            const plane = await this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
+        initFloorPlane(): void {
+            const plane = this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
             scene.add(plane);
             plane.position.y = -70;
             plane.rotation.x = Math.PI / 2;
         },
-        async getPlane(width: number, height: number): Promise<THREE.Mesh> {
+        getPlane(width: number, height: number): Promise<THREE.Mesh> {
             const geo = new THREE.PlaneGeometry(width, height);
             const material = betonMaterial.clone();
             material.side = THREE.DoubleSide;
             const mesh = new THREE.Mesh(geo, material);
             mesh.receiveShadow = true;
+
             return mesh;
         },
         getSpotlight(color: THREE.Color, intensity: number): THREE.PointLight {

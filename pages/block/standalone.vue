@@ -36,13 +36,13 @@ export default Vue.extend({
     computed: {
         ...mapState(['populated']),
     },
+    beforeMount() {
+        this.POPULATE_STORE(defaults);
+    },
     methods: {
         ...mapMutations([
             'POPULATE_STORE',
         ]),
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
     },
 });
 </script>

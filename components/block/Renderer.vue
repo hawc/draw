@@ -13,62 +13,46 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { concreteTexture, metalTexture } from '~/static/textures/textures';
 
-const SIZE = 1; // dynamic scene size for edge debugging
-
-const HALFTONE_PARAMS = {
-    shape: 1,
-    radius: 12,
-    scatter: 0,
-    blending: 1,
-    blendingMode: 0,
-    greyscale: false,
-    hideR: false,
-    hideG: true,
-    hideB: true,
-    disable: false,
-};
-
-type ScreenSize = {
-    x: number,
-    y: number,
-};
-
 export default Vue.extend({
-    computed: {
-        ...mapState([
-            'settings',
-            'stopMultiplicator',
-        ]),
-    },
     data() {
         return {
             window,
             cubes: [],
         };
     },
+    computed: {
+        ...mapState([
+            'settings',
+            'stopMultiplicator',
+        ]),
+    },
+    mounted() {
+        if (process.client) {
+            this.initThree();
+
+            document.addEventListener('keyup', (event) => {
+                if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
+                    this.SET_STOP_MULTIPLICATOR(0);
+                } else {
+                    this.SET_STOP_MULTIPLICATOR(1);
+                }
+            });
+        }
+    },
     methods: {
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        async initThree(): Promise<void> {
+        initThree(): void {
             const scene = new THREE.Scene();
 
             const camera = new THREE.PerspectiveCamera(
-                // Field of view
                 45,
-                // Aspect ratio
                 window.innerWidth / window.innerHeight,
-                // Near clipping plane (beyond which nothing is visible)
                 1,
-                // Far clipping plane (beyond which nothing is visible)
                 1000,
             );
 
-            /**
-             * Create a Three.js sphere.
-             * @param {number} radius The sphere's radius in Units.
-             * @return The Three.js sphere
-             */
             const getCube = (radius: number, material: THREE.MeshPhysicalMaterial): THREE.Mesh => {
                 const cubeGeometry = new THREE.BoxBufferGeometry(radius * 2, radius * 2, radius * 2);
                 const cubeMaterial = new THREE.MeshPhysicalMaterial(material);
@@ -80,12 +64,6 @@ export default Vue.extend({
                 return mesh;
             };
 
-            /**
-             * Create a Three.js plane with both sides rendered.
-             * @param {number} w The plane's width
-             * @param {number} h The plane's height
-             * @return The Three.js plane
-             */
             const plane = (w, h) => {
                 const geo = new THREE.PlaneGeometry(w, h);
                 const material = new THREE.MeshStandardMaterial({
@@ -98,12 +76,6 @@ export default Vue.extend({
                 return mesh;
             };
 
-            /**
-             * Create a Three.js spotlight
-             * @param {number} color The light's color (preferably in hexadecimal)
-             * @param {number} intensity The light's intensity
-             * @return The Three.js spotlight
-             */
             const spotlight = (color, intensity) => {
                 const light = new THREE.PointLight(color, intensity);
                 light.castShadow = true;
@@ -113,16 +85,7 @@ export default Vue.extend({
                 return light;
             };
 
-            /**
-             * Url to a concrete texture from https://codepen.io/jo12bar/pen/LjgVgV
-             * @return The url
-             */
             const concreteTextureUrl = () => concreteTexture;
-
-            /**
-             * Url to a metal texture from https://codepen.io/jo12bar/pen/GvYpgM
-             * @return The url
-             */
             const metalTextureUrl = () => metalTexture;
 
             const textureLoader = new THREE.TextureLoader();
@@ -261,19 +224,6 @@ export default Vue.extend({
             new OrbitControls(camera, renderer.domElement);
             animate(renderer, scene, camera);
         },
-    },
-    async mounted() {
-        if (process.client) {
-            await this.initThree();
-
-            document.addEventListener('keyup', (event) => {
-                if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
-                    this.SET_STOP_MULTIPLICATOR(0);
-                } else {
-                    this.SET_STOP_MULTIPLICATOR(1);
-                }
-            });
-        }
     },
 });
 </script>

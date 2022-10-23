@@ -63,23 +63,36 @@ const HALFTONE_PARAMS = {
 };
 
 export default Vue.extend({
-    computed: {
-        ...mapState([
-            'settings',
-            'stopMultiplicator',
-        ]),
-    },
     data() {
         return {
             window,
             cubes: [],
         };
     },
+    computed: {
+        ...mapState([
+            'settings',
+            'stopMultiplicator',
+        ]),
+    },
+    mounted() {
+        if (process.client) {
+            this.initThree();
+
+            document.addEventListener('keyup', (event) => {
+                if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
+                    this.SET_STOP_MULTIPLICATOR(0);
+                } else {
+                    this.SET_STOP_MULTIPLICATOR(1);
+                }
+            });
+        }
+    },
     methods: {
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
         ]),
-        async initThree(): Promise<void> {
+        initThree(): void {
             const cameraDistance = 42 * SIZE;
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera(12, window.innerWidth / window.innerHeight, 0.1, 2000 * SIZE);
@@ -224,19 +237,6 @@ export default Vue.extend({
                 this.cubes[3].visible = true;
             }
         },
-    },
-    async mounted() {
-        if (process.client) {
-            await this.initThree();
-
-            document.addEventListener('keyup', (event) => {
-                if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
-                    this.SET_STOP_MULTIPLICATOR(0);
-                } else {
-                    this.SET_STOP_MULTIPLICATOR(1);
-                }
-            });
-        }
     },
 });
 </script>

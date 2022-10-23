@@ -57,6 +57,9 @@ export default Vue.extend({
             controlSettings: {},
         };
     },
+    computed: {
+        ...mapState(['settings']),
+    },
     watch: {
         controlSettings: {
             deep: true,
@@ -74,8 +77,12 @@ export default Vue.extend({
             },
         },
     },
-    computed: {
-        ...mapState(['settings']),
+    mounted() {
+        if (process.client) {
+            this.$nextTick(() => {
+                this.addMidiController();
+            });
+        }
     },
     methods: {
         ...mapActions([
@@ -86,13 +93,6 @@ export default Vue.extend({
             this.statusMessage = message;
         },
         getTranslation,
-    },
-    mounted() {
-        if (process.client) {
-            this.$nextTick(() => {
-                this.addMidiController();
-            });
-        }
     },
 });
 </script>

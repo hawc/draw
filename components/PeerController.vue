@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import Peer from 'peerjs';
+import PeerJS from 'peerjs';
 
 export default Vue.extend({
     props: {
@@ -40,7 +40,7 @@ export default Vue.extend({
         },
     },
     mounted() {
-        this.peer = new Peer(this.$getKey(), {
+        this.peer = new PeerJS(this.$getKey(), {
             host: location.hostname,
             path: '/peer',
             port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic

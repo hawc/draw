@@ -1,8 +1,8 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const app = express();
 const { ExpressPeerServer } = require('peer');
-const path = require('path');
-const fs = require('fs');
 
 const server = app.listen(9001);
 

@@ -22,6 +22,17 @@ export default Vue.extend({
             'stopMultiplicator',
         ]),
     },
+    mounted() {
+        this.initThree();
+
+        document.addEventListener('keyup', (event) => {
+            if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
+                this.SET_STOP_MULTIPLICATOR(0);
+            } else {
+                this.SET_STOP_MULTIPLICATOR(1);
+            }
+        });
+    },
     methods: {
         ...mapMutations([
             'SET_STOP_MULTIPLICATOR',
@@ -74,17 +85,6 @@ export default Vue.extend({
             };
             animate();
         },
-    },
-    mounted() {
-        this.initThree();
-
-        document.addEventListener('keyup', (event) => {
-            if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
-                this.SET_STOP_MULTIPLICATOR(0);
-            } else {
-                this.SET_STOP_MULTIPLICATOR(1);
-            }
-        });
     },
 });
 </script>

@@ -74,6 +74,18 @@ export default Vue.extend({
             }
         },
     },
+    mounted() {
+        this.getColorMap(this.settings.colorName);
+        this.initP5();
+
+        document.addEventListener('keyup', (event) => {
+            if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
+                this.SET_STOP_MULTIPLICATOR(0);
+            } else {
+                this.SET_STOP_MULTIPLICATOR(1);
+            }
+        });
+    },
     methods: {
         ...mapMutations([
             'SET_IS_RECORDING',
@@ -99,7 +111,7 @@ export default Vue.extend({
         },
         hexToRgb(hex) {
             const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-            hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+            hex = hex.replace(shorthandRegex, function(_m, r, g, b) {
                 return r + r + g + g + b + b;
             });
 
@@ -336,18 +348,6 @@ export default Vue.extend({
             back = new p5(this.backLayer);
             front = new p5(this.frontLayer);
         },
-    },
-    mounted() {
-        this.getColorMap(this.settings.colorName);
-        this.initP5();
-
-        document.addEventListener('keyup', (event) => {
-            if (event.keyCode === 32 && this.stopMultiplicator !== 0) {
-                this.SET_STOP_MULTIPLICATOR(0);
-            } else {
-                this.SET_STOP_MULTIPLICATOR(1);
-            }
-        });
     },
 });
 </script>
