@@ -59,6 +59,7 @@ const objLoader = new OBJLoader();
 export default Vue.extend({
     data() {
         return {
+            isDev: process.env.NODE_ENV === 'development',
             rendering: false,
             objectTypes: {
                 front: {
@@ -161,7 +162,9 @@ export default Vue.extend({
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
             this.renderer = new THREE.WebGLRenderer();
-            // this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            if (!this.isDev) {
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            }
             // don't need antialias because where multisampling in WebGLRenderTarget
             // this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
