@@ -16,10 +16,10 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
+import { gsap } from 'gsap';
 import { configs } from 'static/beton/configs';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
-import { gsap } from 'gsap';
 
 if (WebGL.isWebGL2Available() === false) {
     console.error('No WebGL2 support');
@@ -111,14 +111,14 @@ export default Vue.extend({
         },
         'settings.side'(side: number): void {
             const position = new THREE.Vector3(-40, 10, -80 * ((side - 0.5) * 2));
-            if(orbitControls) {
+            if (orbitControls) {
                 const lookAtTarget = new THREE.Vector3(20, 17, 0);
-                gsap.to(camera.position, { 
-                    ...position, 
+                gsap.to(camera.position, {
+                    ...position,
                     duration: 1,
                     onUpdate() {
                         camera.lookAt(lookAtTarget);
-                    }
+                    },
                 });
             }
             this.highlightCurrentBuildingColumn(this.settings.currentColumn);
@@ -250,7 +250,7 @@ export default Vue.extend({
             camera.position.set(-40, 10, -80);
             const lookAtTarget = new THREE.Vector3(20, 17, 0);
             camera.lookAt(lookAtTarget);
-            
+
             orbitControls = new OrbitControls(camera, this.renderer.domElement);
             orbitControls.target = lookAtTarget;
             orbitControls.update();
