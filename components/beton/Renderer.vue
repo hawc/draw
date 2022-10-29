@@ -150,9 +150,9 @@ export default Vue.extend({
     },
     methods: {
         setSide(sideNumber) {
-            const position = new THREE.Vector3(-40, 10, -80 * ((sideNumber - 0.5) * 2));
+            const position = new THREE.Vector3(60, 10, -80 * ((sideNumber - 0.5) * 2));
             if (orbitControls) {
-                const lookAtTarget = new THREE.Vector3(20, 17, 0);
+                const lookAtTarget = new THREE.Vector3(10, 17, 0);
                 gsap.to(camera.position, {
                     ...position,
                     duration: 1,
@@ -244,14 +244,14 @@ export default Vue.extend({
             scene.fog = new THREE.FogExp2(0x301505, 0.002);
             const light = new THREE.AmbientLight(0x151000);
             scene.add(light);
-            const spotlight0 = this.getSpotlight(0xffcc99, 4);
+            const spotlight0 = this.getSpotlight(0xffcc99, 3);
             scene.add(spotlight0);
-            spotlight0.position.set(50, 60, -30);
+            spotlight0.position.set(50, 60, -40);
             const spotlight1 = this.getSpotlight(0xffaa77, 1);
             scene.add(spotlight1);
             spotlight1.position.set(0, 60, 60);
-            camera.position.set(-40, 10, -80 * ((this.settings.side - 0.5) * 2));
-            const lookAtTarget = new THREE.Vector3(20, 17, 0);
+            camera.position.set(60, 10, -80 * ((this.settings.side - 0.5) * 2));
+            const lookAtTarget = new THREE.Vector3(10, 17, 0);
             camera.lookAt(lookAtTarget);
             orbitControls.target = lookAtTarget;
             orbitControls.update();
@@ -495,11 +495,14 @@ export default Vue.extend({
 
             return mesh;
         },
-        getSpotlight(color: THREE.Color, intensity: number): THREE.PointLight {
-            const light = new THREE.PointLight(color, intensity);
+        getSpotlight(color: THREE.Color, intensity: number): THREE.SpotLight {
+            const light = new THREE.SpotLight(color, intensity);
+            light.angle = Math.PI / 3;
+            light.penumbra = 1.13;
             light.castShadow = true;
             light.shadow.mapSize.x = 4096;
             light.shadow.mapSize.y = 4096;
+            light.shadow.radius = 20;
 
             return light;
         },
