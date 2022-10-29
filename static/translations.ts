@@ -1,7 +1,7 @@
 const translations = {
     totalRows: 'Total Rows',
     totalColumns: 'Total Columns',
-    currentColumn: 'Current Columns',
+    currentColumn: 'Current Column',
     columnType: 'Column Type',
     elementType: 'Element Type',
     side: 'Side',

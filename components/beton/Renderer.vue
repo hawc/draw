@@ -40,7 +40,6 @@ enum BuildingSections {
 }
 
 const objects = {};
-const FLOOR_PLANE_SIDE_LENGTH = 2000;
 const sides: Side[] = ['front', 'back'];
 
 const betonMaterial = new THREE.MeshPhongMaterial({
@@ -110,17 +109,7 @@ export default Vue.extend({
             }
         },
         'settings.side'(side: number): void {
-            const position = new THREE.Vector3(-40, 10, -80 * ((side - 0.5) * 2));
-            if (orbitControls) {
-                const lookAtTarget = new THREE.Vector3(20, 17, 0);
-                gsap.to(camera.position, {
-                    ...position,
-                    duration: 1,
-                    onUpdate() {
-                        camera.lookAt(lookAtTarget);
-                    },
-                });
-            }
+            this.setSide(side);
             this.highlightCurrentBuildingColumn(this.settings.currentColumn);
         },
         async 'settings.columnType'(columnType: number): Promise<void> {
@@ -141,7 +130,7 @@ export default Vue.extend({
             this.highlightCurrentBuildingColumn(currentColumn);
         },
         'settings.style'(style: number): void {
-            grainPass.enabled = style === 1;
+            grainPass.enabled = style !== 2;
             halftonePassDotMatrix.enabled = style === 1;
             halftonePassGrayscale.enabled = style === 2;
         },
@@ -160,6 +149,19 @@ export default Vue.extend({
         }
     },
     methods: {
+        setSide(sideNumber) {
+            const position = new THREE.Vector3(-40, 10, -80 * ((sideNumber - 0.5) * 2));
+            if (orbitControls) {
+                const lookAtTarget = new THREE.Vector3(20, 17, 0);
+                gsap.to(camera.position, {
+                    ...position,
+                    duration: 1,
+                    onUpdate() {
+                        camera.lookAt(lookAtTarget);
+                    },
+                });
+            }
+        },
         async rerenderColumnOnBothSides(columnType: number | null, elementType: number | null = null): Promise<void> {
             for (const side of sides) {
                 await this.rerenderColumnOnSide(side, columnType, elementType);
@@ -178,22 +180,22 @@ export default Vue.extend({
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
             this.renderer = new THREE.WebGLRenderer();
+            // this.renderer = new THREE.WebGLRenderer({ antialias: true });
             if (!this.isDev) {
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             }
             // don't need antialias because where multisampling in WebGLRenderTarget
-            // this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             this.renderer.toneMappingExposure = 1.25;
             this.renderer.shadowMap.enabled = true;
             this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             this.$refs.main.appendChild(this.renderer.domElement);
             this.renderer.setSize(window.innerWidth, window.innerHeight);
-            this.initFloorPlane();
             this.loadFloorObject();
             this.initEnvironment();
-            const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+            const target = new THREE.WebGLMultisampleRenderTarget(window.innerWidth, window.innerHeight);
             const composer = new EffectComposer(this.renderer, target);
+            // composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             composer.addPass(new RenderPass(scene, camera));
             grainPass = new ShaderPass(GRAIN_SHADER);
             composer.addPass(grainPass);
@@ -215,7 +217,7 @@ export default Vue.extend({
             });
             composer.addPass(halftonePassDotMatrix);
             composer.addPass(halftonePassGrayscale);
-            grainPass.enabled = (this.settings.style === 1);
+            grainPass.enabled = (this.settings.style !== 2);
             halftonePassDotMatrix.enabled = (this.settings.style === 1);
             halftonePassGrayscale.enabled = (this.settings.style === 2);
             composer.render();
@@ -229,29 +231,28 @@ export default Vue.extend({
                 if (halftonePassGrayscale && halftonePassGrayscale.uniforms.random) {
                     halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
                 }
-                if (grainPass && grainPass.uniforms.rand) {
-                    grainPass.uniforms.rand.value = (1 - Math.random());
+                if (this.settings.style !== 2) {
+                    grainPass.uniforms.rand.value = Math.random();
                 }
                 requestAnimationFrame(() => animate(composer, scene, camera));
             };
             animate(composer, scene, camera);
         },
         initEnvironment(): void {
-            this.renderer.setClearColor(16755319, 1);
-            scene.fog = new THREE.FogExp2(16755319, 0.002);
-            const light = new THREE.AmbientLight(2105376);
+            orbitControls = new OrbitControls(camera, this.renderer.domElement);
+            this.renderer.setClearColor(0x201000, 1);
+            scene.fog = new THREE.FogExp2(0x301505, 0.002);
+            const light = new THREE.AmbientLight(0x151000);
             scene.add(light);
-            const spotlight0 = this.getSpotlight(16764108, 4);
+            const spotlight0 = this.getSpotlight(0xffcc99, 4);
             scene.add(spotlight0);
             spotlight0.position.set(50, 60, -30);
-            const spotlight1 = this.getSpotlight(16755319, 1);
+            const spotlight1 = this.getSpotlight(0xffaa77, 1);
             scene.add(spotlight1);
             spotlight1.position.set(0, 60, 60);
-            camera.position.set(-40, 10, -80);
+            camera.position.set(-40, 10, -80 * ((this.settings.side - 0.5) * 2));
             const lookAtTarget = new THREE.Vector3(20, 17, 0);
             camera.lookAt(lookAtTarget);
-
-            orbitControls = new OrbitControls(camera, this.renderer.domElement);
             orbitControls.target = lookAtTarget;
             orbitControls.update();
         },
@@ -484,12 +485,6 @@ export default Vue.extend({
             for (const child of targetObject.children) {
                 child.material.color.setHex(color);
             }
-        },
-        initFloorPlane(): void {
-            const plane = this.getPlane(FLOOR_PLANE_SIDE_LENGTH, FLOOR_PLANE_SIDE_LENGTH);
-            scene.add(plane);
-            plane.position.y = -70;
-            plane.rotation.x = Math.PI / 2;
         },
         getPlane(width: number, height: number): Promise<THREE.Mesh> {
             const geo = new THREE.PlaneGeometry(width, height);

@@ -16,6 +16,7 @@ module.exports = {
         'new-cap': 'off',
         'no-return-assign': 'off',
         'no-prototype-builtins': 'off',
+        'unicorn/number-literal-case': 'off',
         'vue/multi-word-component-names': 'off',
         'vue/no-unused-components': 'off',
         'vue/html-indent': ['error', 4],

@@ -81,7 +81,7 @@ a:focus {
     flex-grow: 1;
     padding-right: 10px;
     font-size: 12px;
-    justify-content: end;
+    justify-content: flex-end;
     height: 24px;
     align-items: center;
     text-transform: uppercase;
