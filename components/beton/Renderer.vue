@@ -26,11 +26,13 @@ if (WebGL.isWebGL2Available() === false) {
 }
 
 interface NamedObjectWrapper {
-    nameList: string[],
-    object: THREE.Group,
+    nameList: string[];
+    object: THREE.Group;
 }
-type Dimension = 'x' | 'y' | 'z';
-type DimensionProperty = 'min' | 'max';
+interface ObjectIdentifier {
+    type: string;
+    name: string;
+}
 type Side = 'front' | 'back';
 enum BuildingSections {
     basement,
@@ -149,7 +151,7 @@ export default Vue.extend({
         }
     },
     methods: {
-        setSide(sideNumber) {
+        setSide(sideNumber: number): void {
             const position = new THREE.Vector3(60, 10, -80 * ((sideNumber - 0.5) * 2));
             if (orbitControls) {
                 const lookAtTarget = new THREE.Vector3(10, 17, 0);
@@ -184,7 +186,6 @@ export default Vue.extend({
             if (!this.isDev) {
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             }
-            // don't need antialias because where multisampling in WebGLRenderTarget
             this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             this.renderer.toneMappingExposure = 1.25;
             this.renderer.shadowMap.enabled = true;
@@ -193,9 +194,11 @@ export default Vue.extend({
             this.renderer.setSize(window.innerWidth, window.innerHeight);
             this.loadFloorObject();
             this.initEnvironment();
-            const target = new THREE.WebGLMultisampleRenderTarget(window.innerWidth, window.innerHeight);
+            const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { samples: 4 });
             const composer = new EffectComposer(this.renderer, target);
-            // composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            if (!this.isDev) {
+                composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            }
             composer.addPass(new RenderPass(scene, camera));
             grainPass = new ShaderPass(GRAIN_SHADER);
             composer.addPass(grainPass);
@@ -246,7 +249,7 @@ export default Vue.extend({
             scene.add(light);
             const spotlight0 = this.getSpotlight(0xffcc99, 3);
             scene.add(spotlight0);
-            spotlight0.position.set(50, 60, -40);
+            spotlight0.position.set(50, 60, -30);
             const spotlight1 = this.getSpotlight(0xffaa77, 1);
             scene.add(spotlight1);
             spotlight1.position.set(0, 60, 60);
@@ -261,9 +264,6 @@ export default Vue.extend({
             this.highlightedObjects = renderedObjects[selectedSide].children.filter((object: THREE.Object3D) => {
                 return object.userData.objectPosition.x === currentColumn;
             });
-        },
-        getDimension(object: THREE.Object3D, property: DimensionProperty, dimension: Dimension): number {
-            return object.children[0].geometry.boundingBox[property][dimension];
         },
         async getObject(nameList: string[]): Promise<NamedObjectWrapper> {
             const result: NamedObjectWrapper = {
@@ -307,6 +307,7 @@ export default Vue.extend({
             } else {
                 result.object = objects[nameList[0]].clone();
             }
+
             return result;
         },
         mergeObjects(objectGroups: THREE.Group[], name: string): THREE.Group {
@@ -393,20 +394,19 @@ export default Vue.extend({
         },
         async generateObject(side: Side, nameList: string[], objectPosition: THREE.Vector2, elementType, columnPosition, buildingSection, objectType): Promise<THREE.Object3D> {
             const object = await this.getObject(nameList);
-            if (!('object' in object)) {
-                console.log('err', nameList);
-            }
             const objectModel = object.object;
             const dimensions = this.getObjectDimensions(objectModel);
             this.setBetonMaterial(objectModel);
             renderedObjects[side].add(objectModel);
-            objectModel.userData.name = object.nameList.toString();
-            objectModel.userData.objectType = objectType;
-            objectModel.userData.buildingSection = buildingSection;
-            objectModel.userData.dimensions = dimensions;
-            objectModel.userData.objectPosition = objectPosition.clone();
-            objectModel.userData.elementType = elementType;
-            objectModel.userData.columnPosition = columnPosition.clone();
+            objectModel.userData = {
+                name: object.nameList.toString(),
+                objectType: objectType,
+                buildingSection: buildingSection,
+                dimensions: dimensions,
+                objectPosition: objectPosition.clone(),
+                elementType: elementType,
+                columnPosition: columnPosition.clone(),
+            };
             if (side === 'back') {
                 objectModel.scale.z = -1;
             }
@@ -445,7 +445,7 @@ export default Vue.extend({
                 object.userData.columnPosition.x = object.position.x;
             });
         },
-        getObjectFileName(columnType: number = 0, buildingSection: string, elementType: number) {
+        getObjectFileName(columnType: number = 0, buildingSection: string, elementType: number): ObjectIdentifier {
             columnType = columnType ?? this.settings.columnType;
             const groundlength = configs[columnType].elements.ground.length;
             if (buildingSection === 'ground' && groundlength === 0) {
@@ -455,7 +455,7 @@ export default Vue.extend({
             const objectlength = configs[columnType].elements[buildingSection].length;
             return { type: buildingSection, name: configs[columnType].elements[buildingSection][elementType % objectlength] };
         },
-        getBuildingSectionByYCoordinate(y: number) {
+        getBuildingSectionByYCoordinate(y: number): string {
             switch (y) {
                 case 0:
                     return BuildingSections[0];
@@ -468,13 +468,17 @@ export default Vue.extend({
         getPreviousElement(side: Side, objectPosition: THREE.Vector2): THREE.Object3D {
             return renderedObjects[side].children.find(object => object.userData.objectPosition.x === objectPosition.x && object.userData.objectPosition.y === 1);
         },
-        getPreviousElementType(side: Side, objectPosition: THREE.Vector2) {
+        getPreviousElementType(side: Side, objectPosition: THREE.Vector2): number {
             const object = this.getPreviousElement(side, objectPosition);
 
             return object?.userData.elementType ?? 0;
         },
         getObjectDimensions(objectModel: THREE.Object3D): THREE.Vector3 {
-            return new THREE.Vector3(Math.max(...objectModel.children.map(child => child.position.x)) + objectModel.children[0].geometry.boundingBox.max.x - objectModel.children[0].geometry.boundingBox.min.x, objectModel.children[0].geometry.boundingBox.max.y - objectModel.children[0].geometry.boundingBox.min.y, objectModel.children[0].geometry.boundingBox.max.z - objectModel.children[0].geometry.boundingBox.min.z);
+            const x = objectModel.children.map((child: THREE.Object3D) => child.geometry.boundingBox.max.x).reduce((accumulator: number, value: number): number => accumulator + value);
+            const y = objectModel.children[0].geometry.boundingBox.max.y - objectModel.children[0].geometry.boundingBox.min.y;
+            const z = objectModel.children[0].geometry.boundingBox.max.z - objectModel.children[0].geometry.boundingBox.min.z;
+
+            return new THREE.Vector3(x, y, z);
         },
         setBetonMaterial(targetObject: THREE.Object3D): void {
             for (const child of targetObject.children) {
@@ -500,8 +504,8 @@ export default Vue.extend({
             light.angle = Math.PI / 3;
             light.penumbra = 1.13;
             light.castShadow = true;
-            light.shadow.mapSize.x = 4096;
-            light.shadow.mapSize.y = 4096;
+            light.shadow.mapSize.x = 2 * 4096;
+            light.shadow.mapSize.y = 2 * 4096;
             light.shadow.radius = 20;
 
             return light;

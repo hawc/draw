@@ -2,7 +2,7 @@ import { ControllerSettings } from '~/interfaces/Controller';
 
 const defaults: ControllerSettings = {
     totalRows: {
-        min: 2,
+        min: 3,
         max: 12,
         step: 1,
         default: 5,
