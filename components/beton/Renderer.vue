@@ -260,13 +260,14 @@ export default Vue.extend({
             });
         },
         async getObject(nameList: string[]): Promise<NamedObjectWrapper> {
+            const name = nameList.toString();
             const result: NamedObjectWrapper = {
                 nameList,
                 object: null,
             };
 
             switch (nameList.length) {
-                case 0:
+                case 0: {
                     const geometry = new THREE.BoxGeometry(0, 0, 0);
                     geometry.computeBoundingBox();
                     const group = new THREE.Group();
@@ -274,17 +275,18 @@ export default Vue.extend({
                     result.object = group.clone();
 
                     return result;
-                case 1:
-                    if (!(nameList[0] in objects)) {
-                        result.object = await this.loadObjectFile(nameList[0]);
+                }
+                case 1: {
+                    if (!(name in objects)) {
+                        result.object = await this.loadObjectFile(name);
                     } else {
-                        result.object = objects[nameList[0]].clone();
+                        result.object = objects[name].clone();
                     }
 
                     return result;
-                default:
+                }
+                default: {
                     const tempObjects = [];
-                    const name = nameList.toString();
 
                     if (name in objects) {
                         result.object = objects[name].clone();
@@ -292,17 +294,18 @@ export default Vue.extend({
                         return result;
                     }
 
-                    for (const name of nameList) {
-                        if (!(name in objects)) {
-                            tempObjects.push(await this.loadObjectFile(name));
+                    for (const objectName of nameList) {
+                        if (!(objectName in objects)) {
+                            tempObjects.push(await this.loadObjectFile(objectName));
                         } else {
-                            tempObjects.push(objects[name].clone());
+                            tempObjects.push(objects[objectName].clone());
                         }
                     }
 
                     result.object = this.mergeObjects(tempObjects, nameList);
 
                     return result;
+                }
             }
         },
         mergeObjects(objectGroups: THREE.Group[], name: string): THREE.Group {
@@ -395,11 +398,11 @@ export default Vue.extend({
             renderedObjects[side].add(objectModel);
             objectModel.userData = {
                 name: object.nameList.toString(),
-                objectType: objectType,
-                buildingSection: buildingSection,
-                dimensions: dimensions,
+                objectType,
+                elementType,
+                buildingSection,
+                dimensions,
                 objectPosition: objectPosition.clone(),
-                elementType: elementType,
                 columnPosition: columnPosition.clone(),
             };
             if (side === 'back') {
