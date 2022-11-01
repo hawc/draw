@@ -15,15 +15,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import WebGL from 'three/examples/jsm/capabilities/WebGL.js';
 import { gsap } from 'gsap';
 import { configs } from 'static/beton/configs';
 import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 import { HalftonePass } from 'assets/beton/shaders/HalftonePass.js';
-
-if (WebGL.isWebGL2Available() === false) {
-    console.error('No WebGL2 support');
-}
 
 interface NamedObjectWrapper {
     nameList: string[];
@@ -172,10 +167,6 @@ export default Vue.extend({
         },
         async rerenderColumnOnSide(side: string, columnType: number | null, elementType: number | null = null): Promise<void> {
             const samePos = renderedObjects[side].children.find(child => child.userData.objectPosition.x === this.settings.currentColumn && child.userData.objectPosition.y === 0);
-            if (!samePos) {
-                console.error('None here');
-                return;
-            }
             await this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.settings.currentColumn, columnType, elementType);
         },
         async initThree(): Promise<void> {
@@ -199,6 +190,26 @@ export default Vue.extend({
             if (!this.isDev) {
                 composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             }
+            this.initShaders(composer);
+            composer.render();
+            sides.forEach((side: Side): void => {
+                renderedObjects[side].scale.set(0.001, 0.001, 0.001);
+                scene.attach(renderedObjects[side]);
+            });
+            await this.renderAll();
+            const animate = (composer: EffectComposer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
+                composer.render();
+                if (halftonePassGrayscale && halftonePassGrayscale.uniforms.random) {
+                    halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
+                }
+                if (this.settings.style !== 2) {
+                    grainPass.uniforms.rand.value = Math.random();
+                }
+                requestAnimationFrame(() => animate(composer, scene, camera));
+            };
+            animate(composer, scene, camera);
+        },
+        initShaders(composer: EffectComposer): void {
             composer.addPass(new RenderPass(scene, camera));
             grainPass = new ShaderPass(GRAIN_SHADER);
             composer.addPass(grainPass);
@@ -223,23 +234,6 @@ export default Vue.extend({
             grainPass.enabled = (this.settings.style !== 2);
             halftonePassDotMatrix.enabled = (this.settings.style === 1);
             halftonePassGrayscale.enabled = (this.settings.style === 2);
-            composer.render();
-            sides.forEach((side) => {
-                renderedObjects[side].scale.set(0.001, 0.001, 0.001);
-                scene.attach(renderedObjects[side]);
-            });
-            await this.renderAll();
-            const animate = (composer: EffectComposer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): void => {
-                composer.render();
-                if (halftonePassGrayscale && halftonePassGrayscale.uniforms.random) {
-                    halftonePassGrayscale.uniforms.random.value = (1 - Math.random());
-                }
-                if (this.settings.style !== 2) {
-                    grainPass.uniforms.rand.value = Math.random();
-                }
-                requestAnimationFrame(() => animate(composer, scene, camera));
-            };
-            animate(composer, scene, camera);
         },
         initEnvironment(): void {
             orbitControls = new OrbitControls(camera, this.renderer.domElement);
@@ -271,52 +265,53 @@ export default Vue.extend({
                 object: null,
             };
 
-            if (nameList.length === 0) {
-                const geometry = new THREE.BoxGeometry(0, 0, 0);
-                geometry.computeBoundingBox();
-                const group = new THREE.Group();
-                group.add(new THREE.Mesh(geometry));
-                result.object = group.clone();
-
-                return result;
-            }
-
-            if (nameList.length > 1) {
-                const tempObjects = [];
-                const name = nameList.toString();
-
-                if (name in objects) {
-                    result.object = objects[name].clone();
+            switch (nameList.length) {
+                case 0:
+                    const geometry = new THREE.BoxGeometry(0, 0, 0);
+                    geometry.computeBoundingBox();
+                    const group = new THREE.Group();
+                    group.add(new THREE.Mesh(geometry));
+                    result.object = group.clone();
 
                     return result;
-                }
-
-                for (const name of nameList) {
-                    if (!(name in objects)) {
-                        tempObjects.push(await this.loadObjectFile(name));
+                case 1:
+                    if (!(nameList[0] in objects)) {
+                        result.object = await this.loadObjectFile(nameList[0]);
                     } else {
-                        tempObjects.push(objects[name].clone());
+                        result.object = objects[nameList[0]].clone();
                     }
-                }
 
-                result.object = this.mergeObjects(tempObjects, nameList);
+                    return result;
+                default:
+                    const tempObjects = [];
+                    const name = nameList.toString();
 
-                return result;
-            } else if (!(nameList[0] in objects)) {
-                result.object = await this.loadObjectFile(nameList[0]);
-            } else {
-                result.object = objects[nameList[0]].clone();
+                    if (name in objects) {
+                        result.object = objects[name].clone();
+
+                        return result;
+                    }
+
+                    for (const name of nameList) {
+                        if (!(name in objects)) {
+                            tempObjects.push(await this.loadObjectFile(name));
+                        } else {
+                            tempObjects.push(objects[name].clone());
+                        }
+                    }
+
+                    result.object = this.mergeObjects(tempObjects, nameList);
+
+                    return result;
             }
-
-            return result;
         },
         mergeObjects(objectGroups: THREE.Group[], name: string): THREE.Group {
             const group = new THREE.Group();
 
             for (const objectGroup of objectGroups) {
-                const obj = objectGroup.children[0].clone();
-                obj.geometry.computeBoundingBox();
-                group.add(obj);
+                const child = objectGroup.children[0].clone();
+                child.geometry.computeBoundingBox();
+                group.add(child);
             }
 
             let offsetX = 0;
