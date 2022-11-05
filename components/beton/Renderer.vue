@@ -366,11 +366,16 @@ export default Vue.extend({
 
             return renderedCellDimensions;
         },
-        async renderCell(side: Side, columnType: number, elementType: number | null, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): Promise<THREE.Vector3> {
+        async renderCell(side: Side, columnType: number, elementType: number = 0, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): Promise<THREE.Vector3> {
             const oldObject = renderedObjects[side].children.find(object => (object.userData.objectPosition.equals(objectPosition)));
             const buildingSection = this.getBuildingSectionByYCoordinate(objectPosition.y);
-            if (elementType === null) {
-                elementType = buildingSection === BuildingSections[3] ? this.getPreviousElementType(side, objectPosition) : 0;
+            if (buildingSection === BuildingSections[3]) {
+                if (objectPosition.x === this.settings.totalColumns - 1) {
+                    elementType = 2;
+                }
+                if (objectPosition.x === 0) {
+                    elementType = 1;
+                }
             }
             const nameListConfig = this.getObjectFileName(columnType, buildingSection, elementType);
             const oldObjectDimensions = this.getDimensionsFromUserData(oldObject);

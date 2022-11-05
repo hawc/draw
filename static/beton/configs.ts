@@ -46,7 +46,7 @@ const configs = [
             basement: [['basement300-01.obj', 'basement300-01.obj']],
             ground: [],
             rooms: [['room600-01.obj'], ['room600-02.obj'], ['room600-03.obj'], ['room240-01.obj', 'room360-01.obj']],
-            roof: [['roof300-01.obj', 'roof300-01.obj'], ['roof300-01.obj', 'roof300-02.obj'], ['roof300-02.obj', 'roof300-01.obj']],
+            roof: [['roof300-01.obj', 'roof300-01.obj'], ['roof300-02.obj', 'roof300-01.obj'], ['roof300-01.obj', 'roof300-03.obj']],
         },
     },
 ];
