@@ -1,17 +1,23 @@
 import { ControllerSettings } from '~/interfaces/Controller';
 
 const defaults: ControllerSettings = {
+    width: {
+        min: 0.1,
+        max: 12,
+        step: 0.1,
+        default: 1,
+    },
     totalRows: {
-        min: 2,
+        min: 1,
         max: 12,
         step: 1,
-        default: 5,
+        default: 3,
     },
     totalColumns: {
         min: 1,
         max: 12,
         step: 1,
-        default: 5,
+        default: 3,
     },
     side: {
         min: 0,
