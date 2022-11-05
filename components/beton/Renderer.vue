@@ -40,7 +40,7 @@ const objects = {};
 const sides: Side[] = ['front', 'back'];
 
 const betonMaterial = new THREE.MeshPhongMaterial({
-    color: 0xDDDDDD,
+    color: 0xffffff,
 });
 let scene = null;
 let camera = null;
@@ -133,10 +133,10 @@ export default Vue.extend({
         },
         highlightedObjects(objects: THREE.Object3D[], oldObjects: THREE.Object3D[]): void {
             oldObjects.forEach((object) => {
-                this.setMaterialColor(object, 14540253);
+                this.setMaterialColor(object, 0xffffff);
             });
             objects.forEach((object) => {
-                this.setMaterialColor(object, 10066329);
+                this.setMaterialColor(object, 0xdddddd);
             });
         },
     },
@@ -487,15 +487,6 @@ export default Vue.extend({
             for (const child of targetObject.children) {
                 child.material.color.setHex(color);
             }
-        },
-        getPlane(width: number, height: number): Promise<THREE.Mesh> {
-            const geo = new THREE.PlaneGeometry(width, height);
-            const material = betonMaterial.clone();
-            material.side = THREE.DoubleSide;
-            const mesh = new THREE.Mesh(geo, material);
-            mesh.receiveShadow = true;
-
-            return mesh;
         },
         getSpotlight(color: THREE.Color, intensity: number): THREE.SpotLight {
             const light = new THREE.SpotLight(color, intensity);
