@@ -109,20 +109,14 @@ a:focus {
     -webkit-appearance: none;
     appearance: none;
     height: 16px;
-    width: 2px;
+    width: 16px;
     background: #fff;
 }
 .controls input[type="range"]::-moz-range-thumb {
     appearance: none;
     height: 16px;
-    width: 2px;
+    width: 16px;
     background: #fff;
-}
-.sender .controls input[type="range"]::-webkit-slider-thumb {
-    width: 16px;
-}
-.sender .controls input[type="range"]::-moz-range-thumb {
-    width: 16px;
 }
 
 
