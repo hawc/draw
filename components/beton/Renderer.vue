@@ -87,13 +87,21 @@ export default Vue.extend({
         side(): Side {
             return this.settings.side === 0 ? 'front' : 'back';
         },
+        currentColumn(): number {
+            return this.$limitNumber(this.settings.currentColumn, {
+                min: 0,
+                max: this.settings.totalColumns - 1,
+                step: 1,
+                default: 0,
+            });
+        },
     },
     watch: {
         async 'settings.totalColumns'(): Promise<void> {
             if (!this.rendering) {
                 this.rendering = true;
                 await this.renderAll();
-                this.highlightCurrentBuildingColumn(this.settings.currentColumn);
+                this.highlightCurrentBuildingColumn(this.currentColumn);
                 this.rendering = false;
             }
         },
@@ -101,13 +109,13 @@ export default Vue.extend({
             if (!this.rendering) {
                 this.rendering = true;
                 await this.renderAll();
-                this.highlightCurrentBuildingColumn(this.settings.currentColumn);
+                this.highlightCurrentBuildingColumn(this.currentColumn);
                 this.rendering = false;
             }
         },
         'settings.side'(side: number): void {
             this.setSide(side);
-            this.highlightCurrentBuildingColumn(this.settings.currentColumn);
+            this.highlightCurrentBuildingColumn(this.currentColumn);
         },
         async 'settings.columnType'(columnType: number): Promise<void> {
             if (!this.rendering) {
@@ -123,7 +131,7 @@ export default Vue.extend({
                 this.rendering = false;
             }
         },
-        'settings.currentColumn'(currentColumn: number): void {
+        currentColumn(currentColumn: number): void {
             this.highlightCurrentBuildingColumn(currentColumn);
         },
         'settings.style'(style: number): void {
@@ -146,29 +154,6 @@ export default Vue.extend({
         }
     },
     methods: {
-        setSide(sideNumber: number): void {
-            const position = new THREE.Vector3(60, 10, -80 * ((sideNumber - 0.5) * 2));
-            if (orbitControls) {
-                const lookAtTarget = new THREE.Vector3(10, 17, 0);
-                gsap.to(camera.position, {
-                    ...position,
-                    duration: 1,
-                    onUpdate() {
-                        camera.lookAt(lookAtTarget);
-                    },
-                });
-            }
-        },
-        async rerenderColumnOnBothSides(columnType: number | null, elementType: number | null = null): Promise<void> {
-            for (const side of sides) {
-                await this.rerenderColumnOnSide(side, columnType, elementType);
-            }
-            this.highlightCurrentBuildingColumn(this.settings.currentColumn);
-        },
-        async rerenderColumnOnSide(side: string, columnType: number | null, elementType: number | null = null): Promise<void> {
-            const samePos = renderedObjects[side].children.find(child => child.userData.objectPosition.x === this.settings.currentColumn && child.userData.objectPosition.y === 0);
-            await this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.settings.currentColumn, columnType, elementType);
-        },
         async initThree(): Promise<void> {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
@@ -252,6 +237,31 @@ export default Vue.extend({
             camera.lookAt(lookAtTarget);
             orbitControls.target = lookAtTarget;
             orbitControls.update();
+        },
+        setSide(sideNumber: number): void {
+            const position = new THREE.Vector3(60, 10, -80 * ((sideNumber - 0.5) * 2));
+            if (orbitControls) {
+                const lookAtTarget = new THREE.Vector3(10, 17, 0);
+                gsap.to(camera.position, {
+                    ...position,
+                    duration: 1,
+                    onUpdate() {
+                        camera.lookAt(lookAtTarget);
+                    },
+                });
+            }
+        },
+        async rerenderColumnOnBothSides(columnType: number | null, elementType: number | null = null): Promise<void> {
+            for (const side of sides) {
+                await this.rerenderColumnOnSide(side, columnType, elementType);
+            }
+            this.highlightCurrentBuildingColumn(this.currentColumn);
+        },
+        async rerenderColumnOnSide(side: string, columnType: number | null, elementType: number | null = null): Promise<void> {
+            const samePos = renderedObjects[side].children.find(child => {
+                return child.userData.objectPosition.x === this.currentColumn && child.userData.objectPosition.y === 0
+            });
+            await this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.currentColumn, columnType, elementType);
         },
         highlightCurrentBuildingColumn(currentColumn: number): void {
             const selectedSide = sides[this.settings.side];
@@ -370,6 +380,7 @@ export default Vue.extend({
             const oldObject = renderedObjects[side].children.find(object => (object.userData.objectPosition.equals(objectPosition)));
             const buildingSection = this.getBuildingSectionByYCoordinate(objectPosition.y);
             if (buildingSection === BuildingSections[3]) {
+                // for roof elements, the elementType is always based on if it's the first or last column.
                 if (objectPosition.x === this.settings.totalColumns - 1) {
                     elementType = 2;
                 }

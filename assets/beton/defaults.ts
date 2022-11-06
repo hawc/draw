@@ -21,7 +21,7 @@ const defaults: ControllerSettings = {
     },
     currentColumn: {
         min: 0,
-        max: 12,
+        max: 127,
         step: 1,
         default: 0,
     },

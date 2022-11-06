@@ -3,23 +3,8 @@ import { DEVICES } from '~/assets/devices';
 let DEFAULTS = {};
 let DEFAULTS_KEYS = {};
 
-// this should be dependent on a usage mode or something,
-// because the fading only makes sense when rendering MIDI loops (i.e. with "Maschine")
-// const FADE_OUT_SETTINGS = false;
-// MIDI data is basically an array of three values ([1,1,1]) - channel, pitch and velocity. Depending of
-// the configuration of the device, either "channel" or "pitch" are used for identifying which button
-// has been pressed. While using "channel" makes most sense for mixing audio, "pitch" could be used when
-// working with basic MIDI devices without mixing software in between.
-// const USE_CHANNELS = false;
-
 function getFromLocalStorage(key) {
     return typeof localStorage.midiDrawSettings !== 'undefined' ? JSON.parse(localStorage.midiDrawSettings)[key] : null;
-}
-
-// This function maps the option ranges to the MIDI controller ranges.
-// We assume the MIDI controller returns a value between 0 and 127.
-function limitNumber(number, options) {
-    return Math.floor((Math.min(Math.max(number / 127 * options.max, options.min), options.max)) * (1 / options.step)) / (1 / options.step);
 }
 
 function getDefaultSettings(data) {
@@ -149,7 +134,7 @@ export const actions = {
 
 function fireEvent(context, commitData, key, degree) {
     if (key && DEFAULTS[key]) {
-        const num = limitNumber(degree, DEFAULTS[key]);
+        const num = context.$limitNumber(degree, DEFAULTS[key]);
         if (num !== null && !isNaN(num)) {
             commitData[key] = num;
             context.commit('SET_OPTION', commitData);

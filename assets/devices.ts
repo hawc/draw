@@ -1,5 +1,15 @@
 import { DeviceList } from '~/interfaces/Controller';
 
+// useChannel:
+// MIDI data is basically an array of three values ([1,1,1]) - channel, pitch and velocity. Depending on
+// the configuration of the device, either "channel" or "pitch" are used for identifying which button
+// has been pressed. While using "channel" makes most sense for mixing audio, "pitch" could be used when
+// working with basic MIDI devices without mixing software in between.
+
+// fadeOut:
+// this should be dependent on a usage mode or something,
+// because the fading only makes sense when rendering MIDI loops (i.e. with "Maschine")
+
 const DEVICES: DeviceList = {
     0: {
         name: 'null',

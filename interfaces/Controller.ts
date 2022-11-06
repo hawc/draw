@@ -27,6 +27,7 @@ interface DeviceList {
 }
 
 export {
+    ControllerSetting,
     ControllerSettings,
     DeviceList,
 };
