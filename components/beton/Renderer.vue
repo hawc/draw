@@ -140,10 +140,10 @@ export default Vue.extend({
             halftonePassGrayscale.enabled = style === 2;
         },
         highlightedObjects(objects: THREE.Object3D[], oldObjects: THREE.Object3D[]): void {
-            oldObjects.forEach((object) => {
+            oldObjects.forEach((object: THREE.Object3D): void => {
                 this.setMaterialColor(object, 0xffffff);
             });
-            objects.forEach((object) => {
+            objects.forEach((object: THREE.Object3D): void => {
                 this.setMaterialColor(object, 0xdddddd);
             });
         },
@@ -258,14 +258,14 @@ export default Vue.extend({
             this.highlightCurrentBuildingColumn(this.currentColumn);
         },
         async rerenderColumnOnSide(side: string, columnType: number | null, elementType: number | null = null): Promise<void> {
-            const samePos = renderedObjects[side].children.find(child => {
-                return child.userData.objectPosition.x === this.currentColumn && child.userData.objectPosition.y === 0
+            const objectWithSamePosition = renderedObjects[side].children.find((child: THREE.Group): boolean => {
+                return child.userData.objectPosition.x === this.currentColumn && child.userData.objectPosition.y === 0;
             });
-            await this.renderColumn(side, new THREE.Vector3(samePos.userData.columnPosition.x, samePos.userData.columnPosition.y, 0), this.currentColumn, columnType, elementType);
+            await this.renderColumn(side, new THREE.Vector3(objectWithSamePosition.userData.columnPosition.x, objectWithSamePosition.userData.columnPosition.y, 0), this.currentColumn, columnType, elementType);
         },
         highlightCurrentBuildingColumn(currentColumn: number): void {
             const selectedSide = sides[this.settings.side];
-            this.highlightedObjects = renderedObjects[selectedSide].children.filter((object: THREE.Object3D) => {
+            this.highlightedObjects = renderedObjects[selectedSide].children.filter((object: THREE.Group): boolean => {
                 return object.userData.objectPosition.x === currentColumn;
             });
         },
