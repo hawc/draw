@@ -16,7 +16,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { Wireframe } from 'three/examples/jsm/lines/Wireframe.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-// import { GRAIN_SHADER } from 'assets/object/shaders/grainShader';
+import { GRAIN_SHADER } from 'assets/beton/shaders/grainShader';
 
 interface BloomParameters {
     [key: string]: string|number|null,
@@ -74,9 +74,14 @@ export default Vue.extend({
             composer.addPass(new RenderPass(scene, camera));
             composer.addPass(bloomPass);
 
+            const grainPass = new ShaderPass(GRAIN_SHADER);
+            composer.addPass(grainPass);
+
             const RGBShift = new ShaderPass(RGBShiftShader);
             RGBShift.uniforms.amount.value = 0;
             composer.addPass(RGBShift);
+
+            composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
             const geometry = new THREE.ConeGeometry(6, 9, 4, 1, true);
             geometry.parameters.openEnded = true;
@@ -122,6 +127,7 @@ export default Vue.extend({
                 requestAnimationFrame(animate);
                 if (this.stopMultiplicator !== 0) {
                     updateContent();
+                    grainPass.uniforms.rand.value = Math.random();
                 }
                 composer.render();
             };
