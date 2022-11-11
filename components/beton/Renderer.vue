@@ -120,14 +120,22 @@ export default Vue.extend({
         async 'settings.columnType'(columnType: number): Promise<void> {
             if (!this.rendering) {
                 this.rendering = true;
-                await this.rerenderColumnOnBothSides(columnType, null);
+                await this.rerenderColumnOnBothSides(columnType, this.settings.elementType);
                 this.rendering = false;
             }
         },
         async 'settings.elementType'(elementType: number): Promise<void> {
             if (!this.rendering) {
                 this.rendering = true;
-                await this.rerenderColumnOnSide(sides[this.settings.side], null, elementType);
+                const similarObjectInSamePlace = renderedObjects[this.side].children.find((object: THREE.Group): boolean => {
+                    return object.userData.objectPosition.x === this.currentColumn && object.userData.buildingSection === 'rooms' && object.userData.columnType === this.settings.columnType;
+                });
+                if (similarObjectInSamePlace) {
+                    await this.rerenderColumnOnSide(sides[this.settings.side], this.settings.columnType, elementType);
+                } else {
+                    // if different columnType is in the same position we need to make sure both sides have the same width
+                    await this.rerenderColumnOnBothSides(this.settings.columnType, elementType);
+                }
                 this.rendering = false;
             }
         },
@@ -364,7 +372,7 @@ export default Vue.extend({
                 }
             };
         },
-        async renderColumn(side: Side, fullSize: THREE.Vector3, objectX: number, columnType: number = null, elementType = null): Promise<THREE.Vector3> {
+        async renderColumn(side: Side, fullSize: THREE.Vector3, objectX: number, columnType: number = 0, elementType = 0): Promise<THREE.Vector3> {
             const currentColumnDimensions = fullSize.clone();
             let renderedCellDimensions;
             for (let cellIndex = 0; cellIndex < this.settings.totalRows; cellIndex++) {
@@ -376,11 +384,12 @@ export default Vue.extend({
 
             return renderedCellDimensions;
         },
-        async renderCell(side: Side, columnType: number, elementType: number = 0, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): Promise<THREE.Vector3> {
+        async renderCell(side: Side, columnType: number = 0, elementType: number = 0, columnPosition: THREE.Vector3, objectPosition: THREE.Vector2): Promise<THREE.Vector3> {
             const oldObject = renderedObjects[side].children.find(object => (object.userData.objectPosition.equals(objectPosition)));
             const buildingSection = this.getBuildingSectionByYCoordinate(objectPosition.y);
             if (buildingSection === BuildingSections[3]) {
                 // for roof elements, the elementType is always based on if it's the first or last column.
+                elementType = 0;
                 if (objectPosition.x === this.settings.totalColumns - 1) {
                     elementType = 2;
                 }
@@ -390,23 +399,23 @@ export default Vue.extend({
             }
             const nameListConfig = this.getObjectFileName(columnType, buildingSection, elementType);
             const oldObjectDimensions = this.getDimensionsFromUserData(oldObject);
-            const object = await this.replaceObjectIfNeeded(oldObject, oldObjectDimensions, side, objectPosition.clone(), nameListConfig.name, buildingSection, elementType, columnPosition, nameListConfig.type);
+            const object = await this.replaceObjectIfNeeded(oldObject, oldObjectDimensions, side, objectPosition.clone(), nameListConfig.name, buildingSection, elementType,columnType, columnPosition, nameListConfig.type);
 
             return object.userData.dimensions;
         },
-        async replaceObjectIfNeeded(result: THREE.Object3D | null, oldObjectDimensions: THREE.Vector3, side: Side, objectPosition: THREE.Vector2, nameList: string[], buildingSection: string, elementType: number, columnPosition: THREE.Vector3, objectType: string): THREE.Object3D {
+        async replaceObjectIfNeeded(result: THREE.Object3D | null, oldObjectDimensions: THREE.Vector3, side: Side, objectPosition: THREE.Vector2, nameList: string[], buildingSection: string, elementType: number, columnType, columnPosition: THREE.Vector3, objectType: string): THREE.Object3D {
             if (result) {
                 if (result.userData.name === nameList?.toString() && result.userData.columnPosition.equals(columnPosition) && objectType === buildingSection) {
                     return result;
                 }
                 result.removeFromParent();
             }
-            const generatedObject = await this.generateObject(side, nameList, objectPosition, elementType, columnPosition, buildingSection, objectType);
+            const generatedObject = await this.generateObject(side, nameList, objectPosition, elementType, columnType, columnPosition, buildingSection, objectType);
             this.moveNeighbors(oldObjectDimensions, generatedObject, side);
 
             return generatedObject;
         },
-        async generateObject(side: Side, nameList: string[], objectPosition: THREE.Vector2, elementType, columnPosition, buildingSection, objectType): Promise<THREE.Object3D> {
+        async generateObject(side: Side, nameList: string[], objectPosition: THREE.Vector2, elementType, columnType, columnPosition, buildingSection, objectType): Promise<THREE.Object3D> {
             const object = await this.getObject(nameList);
             const objectModel = object.object;
             const dimensions = this.getObjectDimensions(objectModel);
@@ -416,6 +425,7 @@ export default Vue.extend({
                 name: object.nameList.toString(),
                 objectType,
                 elementType,
+                columnType,
                 buildingSection,
                 dimensions,
                 objectPosition: objectPosition.clone(),
@@ -459,8 +469,7 @@ export default Vue.extend({
                 object.userData.columnPosition.x = object.position.x;
             });
         },
-        getObjectFileName(columnType: number = 0, buildingSection: string, elementType: number): ObjectIdentifier {
-            columnType = columnType ?? this.settings.columnType;
+        getObjectFileName(columnType: number, buildingSection: string, elementType: number): ObjectIdentifier {
             const groundlength = configs[columnType].elements.ground.length;
             if (buildingSection === 'ground' && groundlength === 0) {
                 buildingSection = 'rooms';
