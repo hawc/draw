@@ -127,14 +127,14 @@ export const actions = {
     FIRE_EVENT(context, payload) {
         const key = Object.keys(context.state.settings)[payload.key];
         if (key) {
-            fireEvent(context, payload.commitData, key, payload.value);
+            fireEvent(context, payload.commitData, key, payload.value, this.$limitNumber);
         }
     },
 };
 
-function fireEvent(context, commitData, key, degree) {
+function fireEvent(context, commitData, key, degree, limitNumber) {
     if (key && DEFAULTS[key]) {
-        const num = context.$limitNumber(degree, DEFAULTS[key]);
+        const num = limitNumber(degree, DEFAULTS[key]);
         if (num !== null && !isNaN(num)) {
             commitData[key] = num;
             context.commit('SET_OPTION', commitData);

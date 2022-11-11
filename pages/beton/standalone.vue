@@ -3,7 +3,7 @@
         <Receiver standalone>
             <Renderer />
         </Receiver>
-        <!-- <MicrophoneInput v-if="populated"></MicrophoneInput> -->
+        <MicrophoneInput v-if="populated" />
         <Sender
             hidden
             standalone
