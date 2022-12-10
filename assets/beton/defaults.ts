@@ -27,7 +27,7 @@ const defaults: ControllerSettings = {
     },
     columnType: {
         min: 0,
-        max: 4,
+        max: 15,
         step: 1,
         default: 0,
     },

@@ -128,7 +128,8 @@ export default Vue.extend({
             if (!this.rendering) {
                 this.rendering = true;
                 const similarObjectInSamePlace = renderedObjects[this.side].children.find((object: THREE.Group): boolean => {
-                    return object.userData.objectPosition.x === this.currentColumn && object.userData.buildingSection === 'rooms' && object.userData.columnType === this.settings.columnType;
+                    const sameOnOtherSide = renderedObjects[this.side === 'front' ? 'back' : 'front'].children.find(objectOnOtherSide => objectOnOtherSide.userData.objectPosition.equals(object.userData.objectPosition));
+                    return object.userData.objectPosition.x === this.currentColumn && object.userData.buildingSection === 'rooms' && object.userData.dimensions.equals(sameOnOtherSide.userData.dimensions);
                 });
                 if (similarObjectInSamePlace) {
                     await this.rerenderColumnOnSide(sides[this.settings.side], this.settings.columnType, elementType);
@@ -399,7 +400,7 @@ export default Vue.extend({
             }
             const nameListConfig = this.getObjectFileName(columnType, buildingSection, elementType);
             const oldObjectDimensions = this.getDimensionsFromUserData(oldObject);
-            const object = await this.replaceObjectIfNeeded(oldObject, oldObjectDimensions, side, objectPosition.clone(), nameListConfig.name, buildingSection, elementType,columnType, columnPosition, nameListConfig.type);
+            const object = await this.replaceObjectIfNeeded(oldObject, oldObjectDimensions, side, objectPosition.clone(), nameListConfig.name, buildingSection, elementType, columnType, columnPosition, nameListConfig.type);
 
             return object.userData.dimensions;
         },
@@ -476,7 +477,10 @@ export default Vue.extend({
             }
 
             const objectlength = configs[columnType].elements[buildingSection].length;
-            return { type: buildingSection, name: configs[columnType].elements[buildingSection][elementType % objectlength] };
+            return {
+                type: buildingSection,
+                name: configs[columnType].elements[buildingSection][elementType % objectlength],
+            };
         },
         getBuildingSectionByYCoordinate(y: number): string {
             switch (y) {
