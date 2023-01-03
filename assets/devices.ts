@@ -31,6 +31,26 @@ const DEVICES: DeviceList = {
         useChannel: false,
         fadeOut: false,
     },
+    '-1157686251': {
+        name: 'ipMIDI',
+        offset: {
+            channel: 176,
+            pitch: 1,
+            volume: 0,
+        },
+        useChannel: false,
+        fadeOut: false,
+    },
+    1241680639: {
+        name: 'MidiView',
+        offset: {
+            channel: 176,
+            pitch: 1,
+            volume: 0,
+        },
+        useChannel: false,
+        fadeOut: false,
+    },
     1315524914: {
         name: 'Maschine 2 Virtual Output',
         offset: {
