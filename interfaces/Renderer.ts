@@ -1,17 +1,17 @@
 interface ShaderUniform {
-    value: null|number|string,
+  value: null|number|string,
 }
 
 interface ShaderUniforms {
-    [key: string]: ShaderUniform;
+  [key: string]: ShaderUniform;
 }
 
 interface Shader {
-    uniforms: ShaderUniforms;
-    vertexShader: string;
-    fragmentShader: string;
+  uniforms: ShaderUniforms;
+  vertexShader: string;
+  fragmentShader: string;
 }
 
 export {
-    Shader,
+  Shader,
 };

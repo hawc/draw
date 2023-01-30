@@ -1,16 +1,16 @@
 <template>
-    <div>
-        <Receiver
-            main-class="wave"
-            standalone>
-            <Renderer />
-        </Receiver>
-        <MicrophoneInput v-if="populated" />
-        <Sender
-            hidden
-            standalone
-            :controllers="defaults" />
-    </div>
+  <div>
+    <Receiver
+      main-class="wave"
+      standalone>
+      <Renderer />
+    </Receiver>
+    <MicrophoneInput v-if="populated" />
+    <Sender
+      hidden
+      standalone
+      :controllers="defaults" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -22,27 +22,27 @@ import Sender from '@/components/Sender.vue';
 import { defaults } from '~/assets/wave/defaults';
 
 export default Vue.extend({
-    name: 'IndexPage',
-    components: {
-        Receiver,
-        Renderer,
-        Sender,
-    },
-    data() {
-        return {
-            defaults,
-        };
-    },
-    computed: {
-        ...mapState(['populated']),
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
-    },
-    methods: {
-        ...mapMutations([
-            'POPULATE_STORE',
-        ]),
-    },
+  name: 'IndexPage',
+  components: {
+    Receiver,
+    Renderer,
+    Sender,
+  },
+  data() {
+    return {
+      defaults,
+    };
+  },
+  computed: {
+    ...mapState(['populated']),
+  },
+  beforeMount() {
+    this.POPULATE_STORE(defaults);
+  },
+  methods: {
+    ...mapMutations([
+      'POPULATE_STORE',
+    ]),
+  },
 });
 </script>

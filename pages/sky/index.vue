@@ -1,23 +1,23 @@
 <template>
   <div>
-    <Sender :controllers="defaults" />
+    <Receiver>
+      <Renderer />
+    </Receiver>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { mapMutations } from 'vuex';
-import { defaults } from 'assets/object/defaults';
-import Sender from '@/components/Sender.vue';
+import Receiver from '@/components/Receiver.vue';
+import Renderer from '@/components/sky/Renderer.vue';
+import { defaults } from '~/assets/sky/defaults';
 
 export default Vue.extend({
+  name: 'IndexPage',
   components: {
-    Sender,
-  },
-  data() {
-    return {
-      defaults,
-    };
+    Receiver,
+    Renderer,
   },
   beforeMount() {
     this.POPULATE_STORE(defaults);
@@ -29,10 +29,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style>
-    body {
-        background: #000;
-        color: white;
-    }
-</style>

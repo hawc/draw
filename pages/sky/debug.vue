@@ -1,29 +1,24 @@
 <template>
   <div>
-    <Receiver standalone>
-      <Renderer />
-    </Receiver>
-    <MicrophoneInput v-if="populated" />
+    <Renderer />
     <Sender
-      hidden
       standalone
-      :controllers="defaults" />
+      :controllers="defaults"
+      class="sender" />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapMutations, mapState } from 'vuex';
+import { mapMutations } from 'vuex';
 import Receiver from '@/components/Receiver.vue';
-import Renderer from '@/components/object/Renderer.vue';
-import MicrophoneInput from '@/components/MicrophoneInput.vue';
-import { defaults } from '~/assets/object/defaults';
+import Renderer from '@/components/sky/Renderer.vue';
 import Sender from '@/components/Sender.vue';
+import { defaults } from '~/assets/sky/defaults';
 
 export default Vue.extend({
   name: 'IndexPage',
   components: {
-    MicrophoneInput,
     Receiver,
     Renderer,
     Sender,
@@ -32,9 +27,6 @@ export default Vue.extend({
     return {
       defaults,
     };
-  },
-  computed: {
-    ...mapState(['populated']),
   },
   beforeMount() {
     this.POPULATE_STORE(defaults);
@@ -46,3 +38,11 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style>
+    .sender {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+</style>

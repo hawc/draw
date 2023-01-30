@@ -11,66 +11,66 @@ import { DeviceList } from '~/interfaces/Controller';
 // because the fading only makes sense when rendering MIDI loops (i.e. with "Maschine")
 
 const DEVICES: DeviceList = {
-    0: {
-        name: 'null',
-        offset: {
-            channel: 0,
-            pitch: 0,
-            volume: 0,
-        },
-        useChannel: false,
-        fadeOut: false,
+  0: {
+    name: 'null',
+    offset: {
+      channel: 0,
+      pitch: 0,
+      volume: 0,
     },
-    '-1830361464': {
-        name: 'Maschine Mikro MK3',
-        offset: {
-            channel: 160,
-            pitch: 12,
-            volume: 0,
-        },
-        useChannel: false,
-        fadeOut: false,
+    useChannel: false,
+    fadeOut: false,
+  },
+  '-1830361464': {
+    name: 'Maschine Mikro MK3',
+    offset: {
+      channel: 160,
+      pitch: 12,
+      volume: 0,
     },
-    '-1157686251': {
-        name: 'ipMIDI',
-        offset: {
-            channel: 176,
-            pitch: 1,
-            volume: 0,
-        },
-        useChannel: false,
-        fadeOut: false,
+    useChannel: false,
+    fadeOut: false,
+  },
+  '-1157686251': {
+    name: 'ipMIDI',
+    offset: {
+      channel: 176,
+      pitch: 1,
+      volume: 0,
     },
-    1241680639: {
-        name: 'MidiView',
-        offset: {
-            channel: 176,
-            pitch: 1,
-            volume: 0,
-        },
-        useChannel: false,
-        fadeOut: false,
+    useChannel: false,
+    fadeOut: false,
+  },
+  1241680639: {
+    name: 'MidiView',
+    offset: {
+      channel: 176,
+      pitch: 1,
+      volume: 0,
     },
-    1315524914: {
-        name: 'Maschine 2 Virtual Output',
-        offset: {
-            channel: 144,
-            pitch: 48,
-            volume: 0,
-        },
-        useChannel: true,
-        fadeOut: true,
+    useChannel: false,
+    fadeOut: false,
+  },
+  1315524914: {
+    name: 'Maschine 2 Virtual Output',
+    offset: {
+      channel: 144,
+      pitch: 48,
+      volume: 0,
     },
-    822093897: {
-        name: 'Intech Studio: Grid PO16',
-        offset: {
-            channel: 0,
-            pitch: 32,
-            volume: 0,
-        },
-        useChannel: false,
-        fadeOut: false,
+    useChannel: true,
+    fadeOut: true,
+  },
+  822093897: {
+    name: 'Intech Studio: Grid PO16',
+    offset: {
+      channel: 0,
+      pitch: 32,
+      volume: 0,
     },
+    useChannel: false,
+    fadeOut: false,
+  },
 };
 
 export { DEVICES };

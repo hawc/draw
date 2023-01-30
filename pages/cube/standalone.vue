@@ -1,14 +1,14 @@
 <template>
-    <div>
-        <Receiver standalone>
-            <Renderer />
-        </Receiver>
-        <!-- <MicrophoneInput v-if="populated"></MicrophoneInput> -->
-        <Sender
-            hidden
-            standalone
-            :controllers="defaults" />
-    </div>
+  <div>
+    <Receiver standalone>
+      <Renderer />
+    </Receiver>
+    <!-- <MicrophoneInput v-if="populated"></MicrophoneInput> -->
+    <Sender
+      hidden
+      standalone
+      :controllers="defaults" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -21,28 +21,28 @@ import { defaults } from '~/assets/cube/defaults';
 import Sender from '@/components/Sender.vue';
 
 export default Vue.extend({
-    name: 'IndexPage',
-    components: {
-        MicrophoneInput,
-        Receiver,
-        Renderer,
-        Sender,
-    },
-    data() {
-        return {
-            defaults,
-        };
-    },
-    computed: {
-        ...mapState(['populated']),
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
-    },
-    methods: {
-        ...mapMutations([
-            'POPULATE_STORE',
-        ]),
-    },
+  name: 'IndexPage',
+  components: {
+    MicrophoneInput,
+    Receiver,
+    Renderer,
+    Sender,
+  },
+  data() {
+    return {
+      defaults,
+    };
+  },
+  computed: {
+    ...mapState(['populated']),
+  },
+  beforeMount() {
+    this.POPULATE_STORE(defaults);
+  },
+  methods: {
+    ...mapMutations([
+      'POPULATE_STORE',
+    ]),
+  },
 });
 </script>

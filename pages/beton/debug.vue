@@ -1,11 +1,11 @@
 <template>
-    <div>
-        <Renderer />
-        <Sender
-            standalone
-            :controllers="defaults"
-            class="sender" />
-    </div>
+  <div>
+    <Renderer />
+    <Sender
+      standalone
+      :controllers="defaults"
+      class="sender" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -17,25 +17,25 @@ import Sender from '@/components/Sender.vue';
 import { defaults } from '~/assets/beton/defaults';
 
 export default Vue.extend({
-    name: 'IndexPage',
-    components: {
-        Receiver,
-        Renderer,
-        Sender,
-    },
-    data() {
-        return {
-            defaults,
-        };
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
-    },
-    methods: {
-        ...mapMutations([
-            'POPULATE_STORE',
-        ]),
-    },
+  name: 'IndexPage',
+  components: {
+    Receiver,
+    Renderer,
+    Sender,
+  },
+  data() {
+    return {
+      defaults,
+    };
+  },
+  beforeMount() {
+    this.POPULATE_STORE(defaults);
+  },
+  methods: {
+    ...mapMutations([
+      'POPULATE_STORE',
+    ]),
+  },
 });
 </script>
 

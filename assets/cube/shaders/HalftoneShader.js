@@ -7,26 +7,26 @@
 
 const HalftoneShader = {
 
-    uniforms: {
-        tDiffuse: { value: null },
-        shape: { value: 1 },
-        radius: { value: 4 },
-        rotateR: { value: Math.PI / 12 * 1 },
-        rotateG: { value: Math.PI / 12 * 2 },
-        rotateB: { value: Math.PI / 12 * 3 },
-        scatter: { value: 0 },
-        width: { value: 1 },
-        height: { value: 1 },
-        blending: { value: 1 },
-        blendingMode: { value: 1 },
-        greyscale: { value: false },
-        hideR: { value: false },
-        hideG: { value: false },
-        hideB: { value: false },
-        disable: { value: false },
-    },
+  uniforms: {
+    tDiffuse: { value: null },
+    shape: { value: 1 },
+    radius: { value: 4 },
+    rotateR: { value: Math.PI / 12 * 1 },
+    rotateG: { value: Math.PI / 12 * 2 },
+    rotateB: { value: Math.PI / 12 * 3 },
+    scatter: { value: 0 },
+    width: { value: 1 },
+    height: { value: 1 },
+    blending: { value: 1 },
+    blendingMode: { value: 1 },
+    greyscale: { value: false },
+    hideR: { value: false },
+    hideG: { value: false },
+    hideB: { value: false },
+    disable: { value: false },
+  },
 
-    vertexShader: /* glsl */`
+  vertexShader: /* glsl */`
 
         varying vec2 vUV;
 
@@ -37,7 +37,7 @@ const HalftoneShader = {
 
         }`,
 
-    fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */`
 
         #define SQRT2_MINUS_ONE 0.41421356
         #define SQRT2_HALF_MINUS_ONE 0.20710678

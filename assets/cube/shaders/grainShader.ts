@@ -1,11 +1,11 @@
 import { Shader } from '~/interfaces/Renderer';
 
 const GRAIN_SHADER: Shader = {
-    uniforms: {
-        tDiffuse: { value: null },
-        amount: { value: 1.0 },
-    },
-    vertexShader: `
+  uniforms: {
+    tDiffuse: { value: null },
+    amount: { value: 1.0 },
+  },
+  vertexShader: `
                     varying vec2 vUv;
                     void main() {
                         vUv = uv;
@@ -13,7 +13,7 @@ const GRAIN_SHADER: Shader = {
                         * modelViewMatrix 
                         * vec4( position, 1.0 );
                     }`,
-    fragmentShader: `
+  fragmentShader: `
                     uniform float amount;
                     uniform sampler2D tDiffuse;
                     varying vec2 vUv;

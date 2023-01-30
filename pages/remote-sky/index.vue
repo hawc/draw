@@ -1,9 +1,9 @@
 <template>
-    <div>
-        <Receiver>
-            <Renderer />
-        </Receiver>
-    </div>
+  <div>
+    <Receiver>
+      <Renderer />
+    </Receiver>
+  </div>
 </template>
 
 <script lang="ts">
@@ -14,19 +14,19 @@ import Renderer from '@/components/remote-sky/Renderer.vue';
 import { defaults } from '~/assets/remote-sky/defaults';
 
 export default Vue.extend({
-    name: 'IndexPage',
-    components: {
-        Receiver,
-        Renderer,
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
-    },
-    methods: {
-        ...mapMutations([
-            'POPULATE_STORE',
-        ]),
-    },
+  name: 'IndexPage',
+  components: {
+    Receiver,
+    Renderer,
+  },
+  beforeMount() {
+    this.POPULATE_STORE(defaults);
+  },
+  methods: {
+    ...mapMutations([
+      'POPULATE_STORE',
+    ]),
+  },
 });
 </script>
 

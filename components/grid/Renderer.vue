@@ -1,10 +1,10 @@
 <template>
-    <div class="renderer">
-        <div
-            ref="main"
-            class="main">
-        </div>
+  <div class="renderer">
+    <div
+      ref="main"
+      class="main">
     </div>
+  </div>
 </template>
 
 <script lang="ts">

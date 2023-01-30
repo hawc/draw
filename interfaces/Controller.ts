@@ -1,33 +1,33 @@
 interface ControllerSetting {
-    min: number;
-    max: number;
-    step: number;
-    default: number;
+  min: number;
+  max: number;
+  step: number;
+  default: number;
 }
 
 interface ControllerSettings {
-    [key: string]: ControllerSetting;
+  [key: string]: ControllerSetting;
 }
 
 interface MIDIData {
-    channel: number;
-    pitch: number;
-    volume: number;
+  channel: number;
+  pitch: number;
+  volume: number;
 }
 
 interface Device {
-    name: string,
-    offset: MIDIData;
-    useChannel: boolean;
-    fadeOut: boolean;
+  name: string,
+  offset: MIDIData;
+  useChannel: boolean;
+  fadeOut: boolean;
 }
 
 interface DeviceList {
-    [key: string]: Device;
+  [key: string]: Device;
 }
 
 export {
-    ControllerSetting,
-    ControllerSettings,
-    DeviceList,
+  ControllerSetting,
+  ControllerSettings,
+  DeviceList,
 };

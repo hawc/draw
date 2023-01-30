@@ -1,9 +1,9 @@
 <template>
-    <div>
-        <Receiver main-class="wave">
-            <Renderer />
-        </Receiver>
-    </div>
+  <div>
+    <Receiver main-class="wave">
+      <Renderer />
+    </Receiver>
+  </div>
 </template>
 
 <script lang="ts">
@@ -14,18 +14,18 @@ import Renderer from '@/components/wave/Renderer.vue';
 import { defaults } from '~/assets/wave/defaults';
 
 export default Vue.extend({
-    name: 'IndexPage',
-    components: {
-        Receiver,
-        Renderer,
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
-    },
-    methods: {
-        ...mapMutations([
-            'POPULATE_STORE',
-        ]),
-    },
+  name: 'IndexPage',
+  components: {
+    Receiver,
+    Renderer,
+  },
+  beforeMount() {
+    this.POPULATE_STORE(defaults);
+  },
+  methods: {
+    ...mapMutations([
+      'POPULATE_STORE',
+    ]),
+  },
 });
 </script>

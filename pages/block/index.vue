@@ -1,9 +1,9 @@
 <template>
-    <div>
-        <Receiver>
-            <Renderer />
-        </Receiver>
-    </div>
+  <div>
+    <Receiver>
+      <Renderer />
+    </Receiver>
+  </div>
 </template>
 
 <script lang="ts">
@@ -14,18 +14,18 @@ import Renderer from '@/components/block/Renderer.vue';
 import { defaults } from '~/assets/cube/defaults';
 
 export default Vue.extend({
-    name: 'IndexPage',
-    components: {
-        Receiver,
-        Renderer,
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
-    },
-    methods: {
-        ...mapMutations([
-            'POPULATE_STORE',
-        ]),
-    },
+  name: 'IndexPage',
+  components: {
+    Receiver,
+    Renderer,
+  },
+  beforeMount() {
+    this.POPULATE_STORE(defaults);
+  },
+  methods: {
+    ...mapMutations([
+      'POPULATE_STORE',
+    ]),
+  },
 });
 </script>

@@ -3,7 +3,7 @@
     <Receiver standalone>
       <Renderer />
     </Receiver>
-    <MicrophoneInput v-if="populated" />
+    <!-- <MicrophoneInput v-if="populated"></MicrophoneInput> -->
     <Sender
       hidden
       standalone
@@ -15,9 +15,9 @@
 import Vue from 'vue';
 import { mapMutations, mapState } from 'vuex';
 import Receiver from '@/components/Receiver.vue';
-import Renderer from '@/components/object/Renderer.vue';
+import Renderer from '@/components/sky/Renderer.vue';
 import MicrophoneInput from '@/components/MicrophoneInput.vue';
-import { defaults } from '~/assets/object/defaults';
+import { defaults } from '~/assets/sky/defaults';
 import Sender from '@/components/Sender.vue';
 
 export default Vue.extend({

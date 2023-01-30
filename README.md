@@ -6,11 +6,12 @@ https://draw.hawc.de
 
 ### What is this?
 
-This application is a proof of concept for using different web technologies for remotely manipulating WebGL rendered website content. 
+This application is a proof of concept for using different web technologies for remotely manipulating WebGL rendered website content.
 
 E.g. you can control a 3D globe via a MIDI device attached to your computer. Or you can control it with your smartphone, just scan the displayed QR code.
 
 Basically draw.hawc.de visualizations consist of three main parts:
+
 - a p5.js/Three.js canvas for rendering content with WebGL
 - a client side peerjs instance + a peerjs server for setting properties via a websocket connection
 - a MIDI API for setting properties via external MIDI devices
@@ -42,6 +43,9 @@ $ npm run start -- --port 3001
 
 # generate static project
 $ npm run generate
+
+#eventually you need to add some environment variables for using legacy SSL settings in node before running the dev server:
+$ export NODE_OPTIONS=--openssl-legacy-provider
 ```
 
 For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
@@ -51,6 +55,7 @@ For detailed explanation on how things work, check out the [documentation](https
 On production we use port 443 also for the websocket connection. The nginx proxy redirects the websocket traffic (identified by subroute "/myapp") to the internal port 9001.
 
 Here's an examplatory nginx config for proxying https & wss traffic through nginx. SSL certificates are maintained by Certbot.
+
 ```
 server {
     root /var/www/draw;

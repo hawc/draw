@@ -1,7 +1,7 @@
 <template>
-    <div class="sender">
-        <Sender :controllers="defaults" />
-    </div>
+  <div class="sender">
+    <Sender :controllers="defaults" />
+  </div>
 </template>
 
 <script>
@@ -11,22 +11,22 @@ import { defaults } from 'assets/beton/defaults';
 import Sender from '@/components/Sender.vue';
 
 export default Vue.extend({
-    components: {
-        Sender,
-    },
-    data() {
-        return {
-            defaults,
-        };
-    },
-    beforeMount() {
-        this.POPULATE_STORE(defaults);
-    },
-    methods: {
-        ...mapMutations([
-            'POPULATE_STORE',
-        ]),
-    },
+  components: {
+    Sender,
+  },
+  data() {
+    return {
+      defaults,
+    };
+  },
+  beforeMount() {
+    this.POPULATE_STORE(defaults);
+  },
+  methods: {
+    ...mapMutations([
+      'POPULATE_STORE',
+    ]),
+  },
 });
 </script>
 

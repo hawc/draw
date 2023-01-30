@@ -11,22 +11,22 @@ let certificate;
 let credentials;
 
 if (process.env.NODE_ENV === 'production') {
-    const certs = '/etc/letsencrypt/live/draw.hawc.de/';
+  const certs = '/etc/letsencrypt/live/draw.hawc.de/';
 
-    privateKey = fs.readFileSync(path.join(certs, 'privkey.pem'));
-    certificate = fs.readFileSync(path.join(certs, 'cert.pem'));
+  privateKey = fs.readFileSync(path.join(certs, 'privkey.pem'));
+  certificate = fs.readFileSync(path.join(certs, 'cert.pem'));
 
-    credentials = {
-        key: privateKey,
-        cert: certificate,
-    };
+  credentials = {
+    key: privateKey,
+    cert: certificate,
+  };
 }
 
 const peerServer = ExpressPeerServer(server, {
-    proxied: true,
-    debug: process.env.NODE_ENV !== 'production',
-    path: '/peer',
-    ssl: process.env.NODE_ENV === 'production' ? credentials : {},
+  proxied: true,
+  debug: process.env.NODE_ENV !== 'production',
+  path: '/peer',
+  ssl: process.env.NODE_ENV === 'production' ? credentials : {},
 });
 
 app.use(peerServer);
@@ -34,6 +34,6 @@ app.use(peerServer);
 console.log('Listening.');
 
 export default {
-    path: '/peerjs',
-    handler: peerServer,
+  path: '/peerjs',
+  handler: peerServer,
 };

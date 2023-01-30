@@ -1,34 +1,34 @@
 <template>
-    <div class="controlsWrapper">
-        <div class="controls">
-            <div
-                v-for="(controller, controllerKey) in controllers"
-                :key="controllerKey"
-                class="row">
-                <label :for="controllerKey.toString()">{{ getTranslation(controllerKey.toString()) }}</label>
-                <input
-                    :id="controllerKey.toString()"
-                    v-model.number="controlSettings[controllerKey]"
-                    type="range"
-                    :min="controller.min"
-                    :max="controller.max"
-                    :step="controller.step" />
-            </div>
-        </div>
-        <div
-            v-if="!standalone"
-            class="container container--controls">
-            <p>
-                {{ statusMessage }}
-            </p>
-        </div>
-        <PeerController
-            v-if="!standalone"
-            ref="controller"
-            :settings="settings"
-            :options-setter="SET_OPTIONS"
-            @message="setMessage" />
+  <div class="controlsWrapper">
+    <div class="controls">
+      <div
+        v-for="(controller, controllerKey) in controllers"
+        :key="controllerKey"
+        class="row">
+        <label :for="controllerKey.toString()">{{ getTranslation(controllerKey.toString()) }}</label>
+        <input
+          :id="controllerKey.toString()"
+          v-model.number="controlSettings[controllerKey]"
+          type="range"
+          :min="controller.min"
+          :max="controller.max"
+          :step="controller.step" />
+      </div>
     </div>
+    <div
+      v-if="!standalone"
+      class="container container--controls">
+      <p>
+        {{ statusMessage }}
+      </p>
+    </div>
+    <PeerController
+      v-if="!standalone"
+      ref="controller"
+      :settings="settings"
+      :options-setter="SET_OPTIONS"
+      @message="setMessage" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -38,62 +38,62 @@ import PeerController from './PeerController.vue';
 import { getTranslation } from '@/static/translations';
 
 export default Vue.extend({
-    components: {
-        PeerController,
+  components: {
+    PeerController,
+  },
+  props: {
+    controllers: {
+      type: Object,
+      required: true,
     },
-    props: {
-        controllers: {
-            type: Object,
-            required: true,
-        },
-        standalone: {
-            type: Boolean,
-            default: false,
-        },
+    standalone: {
+      type: Boolean,
+      default: false,
     },
-    data() {
-        return {
-            statusMessage: 'Connecting...',
-            controlSettings: {},
-        };
-    },
-    computed: {
-        ...mapState(['settings']),
-    },
-    watch: {
-        controlSettings: {
-            deep: true,
-            handler(settings): void {
-                this.SET_OPTIONS(settings);
-                if (!this.standalone) {
-                    this.$refs.controller.sendMessage({ settings });
-                }
-            },
-        },
-        settings: {
-            deep: true,
-            handler(settings): void {
-                this.controlSettings = JSON.parse(JSON.stringify(settings));
-            },
-        },
-    },
-    mounted() {
-        if (process.client) {
-            this.$nextTick(() => {
-                this.addMidiController();
-            });
+  },
+  data() {
+    return {
+      statusMessage: 'Connecting...',
+      controlSettings: {},
+    };
+  },
+  computed: {
+    ...mapState(['settings']),
+  },
+  watch: {
+    controlSettings: {
+      deep: true,
+      handler(settings): void {
+        this.SET_OPTIONS(settings);
+        if (!this.standalone) {
+          this.$refs.controller.sendMessage({ settings });
         }
+      },
     },
-    methods: {
-        ...mapActions([
-            'SET_OPTIONS',
-            'addMidiController',
-        ]),
-        setMessage(message: string): void {
-            this.statusMessage = message;
-        },
-        getTranslation,
+    settings: {
+      deep: true,
+      handler(settings): void {
+        this.controlSettings = JSON.parse(JSON.stringify(settings));
+      },
     },
+  },
+  mounted() {
+    if (process.client) {
+      this.$nextTick(() => {
+        this.ADD_MIDI_CONTROLLER();
+      });
+    }
+  },
+  methods: {
+    ...mapActions([
+      'SET_OPTIONS',
+      'ADD_MIDI_CONTROLLER',
+    ]),
+    setMessage(message: string): void {
+      this.statusMessage = message;
+    },
+    getTranslation,
+  },
 });
 </script>
 

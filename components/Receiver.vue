@@ -1,28 +1,28 @@
 <template>
-    <div>
-        <main :class="mainClass">
-            <slot name="default"></slot>
-        </main>
-        <div class="container">
-            <p
-                :hidden="standalone"
-                class="statusMessage">
-                <span :hidden="isProduction">{{ peerID ? peerID : 'Not connected.' }}</span>
-                <a
-                    v-if="peerID"
-                    class="joystick"
-                    :href="`${ $route.fullPath }${ $route.fullPath.substr(-1) === '/' ? '' : '/' }sender?k=${ peerID }`"
-                    target="_new">
-                    🕹
-                </a>
-            </p>
-            <PeerClient
-                v-if="!standalone"
-                :settings="settings"
-                :options-setter="SET_OPTIONS"
-                @message="setMessage" />
-        </div>
+  <div>
+    <main :class="mainClass">
+      <slot name="default"></slot>
+    </main>
+    <div class="container">
+      <p
+        :hidden="standalone"
+        class="statusMessage">
+        <span :hidden="isProduction">{{ peerID ? peerID : 'Not connected.' }}</span>
+        <a
+          v-if="peerID"
+          class="joystick"
+          :href="`${ $route.fullPath }${ $route.fullPath.substr(-1) === '/' ? '' : '/' }sender?k=${ peerID }`"
+          target="_new">
+          🕹
+        </a>
+      </p>
+      <PeerClient
+        v-if="!standalone"
+        :settings="settings"
+        :options-setter="SET_OPTIONS"
+        @message="setMessage" />
     </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -31,37 +31,37 @@ import { mapActions, mapState } from 'vuex';
 import PeerClient from './PeerClient.vue';
 
 export default Vue.extend({
-    components: {
-        PeerClient,
+  components: {
+    PeerClient,
+  },
+  props: {
+    standalone: {
+      type: Boolean,
+      default: false,
     },
-    props: {
-        standalone: {
-            type: Boolean,
-            default: false,
-        },
-        mainClass: {
-            type: String,
-            default: '',
-        },
+    mainClass: {
+      type: String,
+      default: '',
     },
-    data() {
-        return {
-            peerID: '',
-        };
+  },
+  data() {
+    return {
+      peerID: '',
+    };
+  },
+  computed: {
+    ...mapState(['settings']),
+    isProduction() {
+      return process.env.NODE_ENV === 'production';
     },
-    computed: {
-        ...mapState(['settings']),
-        isProduction() {
-            return process.env.NODE_ENV === 'production';
-        },
+  },
+  methods: {
+    ...mapActions([
+      'SET_OPTIONS',
+    ]),
+    setMessage(message: string): void {
+      this.peerID = message;
     },
-    methods: {
-        ...mapActions([
-            'SET_OPTIONS',
-        ]),
-        setMessage(message: string): void {
-            this.peerID = message;
-        },
-    },
+  },
 });
 </script>
