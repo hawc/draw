@@ -58,6 +58,9 @@ a:focus {
   width: 100%;
   text-align: center;
 }
+.content-list {
+  padding-left: 0;
+}
 .content-list li {
   margin-bottom: 0.666rem;
 }

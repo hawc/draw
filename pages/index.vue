@@ -3,18 +3,17 @@
     <h1>draw.hawc.de</h1>
     <p>
       Hi! This is a (work-in-progress) playground for WebGL rendering with user
-      input.<br />
-      It's written in TypeScript and Vue, and uses peer-to-peer connections via
-      WebSockets.
+      input.
     </p>
     <p>
-      Bonus: Web MIDI API. The MIDI output from your “Maschine Mikro MK3” or
-      “Intech Grid PO16” can directly control the rendering. Works best for
-      “Object” and “Wave”.
+      It's written in TypeScript and Vue, and uses peer-to-peer connections via
+      WebSockets. Bonus: Web MIDI API. The MIDI output from your “Maschine Mikro
+      MK3” or “Intech Grid PO16” can directly control the rendering. Works best
+      for “Object” and “Wave”.
     </p>
     <h2>Where can I try it?</h2>
     <p>
-      Go to one one the linked pages below, scan the displayed QR code or click
+      Go to one of the linked pages below, scan the displayed QR code or click
       on the controller icon. You'll be forwarded to a control page.
     </p>
     <p>Here you can have a look:</p>
