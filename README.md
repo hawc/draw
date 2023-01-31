@@ -48,7 +48,7 @@ $ npm run generate
 $ export NODE_OPTIONS=--openssl-legacy-provider
 ```
 
-For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
+For detailed explanation on how things work, check out the Nuxt.js [documentation](https://nuxtjs.org).
 
 ## Special Infos
 

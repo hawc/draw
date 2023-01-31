@@ -38,9 +38,7 @@
     </ul>
     <p>
       You can find the repo for this project on
-      <a href="https://github.com/hawc/draw" target="_blank" rel="noopener"
-        >GitHub</a
-      >.
+      <a href="https://github.com/hawc/draw" target="_blank">GitHub</a>.
     </p>
     <hr />
     <p><a href="https://hawc.de/">back to hawc.de</a></p>
