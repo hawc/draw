@@ -3,31 +3,47 @@
     <h1>draw.hawc.de</h1>
     <p>
       Hi! This is a (work-in-progress) playground for WebGL rendering with user
-      input.
-    </p>
-    <h2>How does it work?</h2>
-    <p>
-      Scan the displayed QR code or click on the controller icon. You'll be
-      forwarded to a control page. The connection is provided by peer.js (based
-      on websocket connections).
+      input.<br />
+      It's written in TypeScript and Vue, and uses peer-to-peer connections via
+      WebSockets.
     </p>
     <p>
-      Bonus: Web MIDI API also works. Connect your "Intech Grid PO16" and have
-      much more fun tweaking the output!
+      Bonus: Web MIDI API. The MIDI output from your “Maschine Mikro MK3” or
+      “Intech Grid PO16” can directly control the rendering. Works best for
+      “Object” and “Wave”.
     </p>
     <h2>Where can I try it?</h2>
+    <p>
+      Go to one one the linked pages below, scan the displayed QR code or click
+      on the controller icon. You'll be forwarded to a control page.
+    </p>
     <p>Here you can have a look:</p>
-    <ul>
+    <ul class="content-list">
       <li>
-        <a href="/remote-sky">Remote Sky</a>: Create your own planet. (p5.js)
+        <a href="/remote-sky" target="_blank">Remote Sky</a>: Create your own
+        planet (p5.js)
       </li>
-      <li><a href="/object">Object</a>: Shiny pyramid stuff. (Three.js)</li>
-      <li><a href="/wave">Wave</a>: Many lines form a wave. (Three.js)</li>
+      <li>
+        <a href="/beton" target="_blank">Beton</a>: Build-your-own-Plattenbau
+        (Three.js)<br />(WIP! Still very CPU-heavy)
+      </li>
+      <li>
+        <a href="/object" target="_blank">Object</a>: Shiny pyramid stuff
+        (Three.js)
+      </li>
+      <li>
+        <a href="/wave" target="_blank">Wave</a>: Many lines form a wave
+        (Three.js)
+      </li>
     </ul>
     <p>
       You can find the repo for this project on
-      <a href="https://github.com/hawc/draw" target="_blank">GitHub</a>.
+      <a href="https://github.com/hawc/draw" target="_blank" rel="noopener"
+        >GitHub</a
+      >.
     </p>
+    <hr />
+    <p><a href="https://hawc.de/">back to hawc.de</a></p>
   </div>
 </template>
 

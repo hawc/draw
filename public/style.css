@@ -23,6 +23,13 @@ body {
   overflow: scroll;
   line-height: 1.4;
 }
+hr {
+  appearance: none;
+  border: none;
+  border-bottom: 1px solid black;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
 a {
   transition: color 0.3s;
 }
@@ -50,6 +57,9 @@ a:focus {
 .statusMessage {
   width: 100%;
   text-align: center;
+}
+.content-list li {
+  margin-bottom: 0.666rem;
 }
 
 /* CONTROLS */
