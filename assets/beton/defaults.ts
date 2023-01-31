@@ -31,12 +31,12 @@ const defaults: ControllerSettings = {
     step: 1,
     default: 0,
   },
-  elementType: {
-    min: 0,
-    max: 4,
-    step: 1,
-    default: 0,
-  },
+  // elementType: {
+  //   min: 0,
+  //   max: 4,
+  //   step: 1,
+  //   default: 0,
+  // },
   style: {
     min: 0,
     max: 2,
