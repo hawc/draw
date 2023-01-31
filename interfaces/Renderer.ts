@@ -1,5 +1,5 @@
 interface ShaderUniform {
-  value: null|number|string,
+  value: null | number | string;
 }
 
 interface ShaderUniforms {
@@ -12,6 +12,4 @@ interface Shader {
   fragmentShader: string;
 }
 
-export {
-  Shader,
-};
+export { Shader };

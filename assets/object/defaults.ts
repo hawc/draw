@@ -63,6 +63,4 @@ const defaults: ControllerSettings = {
   },
 };
 
-export {
-  defaults,
-};
+export { defaults };

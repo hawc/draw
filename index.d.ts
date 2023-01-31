@@ -1,6 +1,6 @@
 declare namespace NodeJS {
   export interface Process {
-    client: boolean
-    server: boolean
+    client: boolean;
+    server: boolean;
   }
 }

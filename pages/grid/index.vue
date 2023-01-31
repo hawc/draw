@@ -7,25 +7,23 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { mapMutations } from 'vuex';
-import Receiver from '@/components/Receiver.vue';
-import Renderer from '@/components/grid/Renderer.vue';
-import { defaults } from '~/assets/grid/defaults';
+  import Vue from 'vue';
+  import { mapMutations } from 'vuex';
+  import Receiver from '@/components/Receiver.vue';
+  import Renderer from '@/components/grid/Renderer.vue';
+  import { defaults } from '~/assets/grid/defaults';
 
-export default Vue.extend({
-  name: 'IndexPage',
-  components: {
-    Receiver,
-    Renderer,
-  },
-  beforeMount() {
-    this.POPULATE_STORE(defaults);
-  },
-  methods: {
-    ...mapMutations([
-      'POPULATE_STORE',
-    ]),
-  },
-});
+  export default Vue.extend({
+    name: 'IndexPage',
+    components: {
+      Receiver,
+      Renderer,
+    },
+    beforeMount() {
+      this.POPULATE_STORE(defaults);
+    },
+    methods: {
+      ...mapMutations(['POPULATE_STORE']),
+    },
+  });
 </script>

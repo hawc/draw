@@ -16,7 +16,7 @@ interface MIDIData {
 }
 
 interface Device {
-  name: string,
+  name: string;
   offset: MIDIData;
   useChannel: boolean;
   fadeOut: boolean;
@@ -26,8 +26,4 @@ interface DeviceList {
   [key: string]: Device;
 }
 
-export {
-  ControllerSetting,
-  ControllerSettings,
-  DeviceList,
-};
+export { ControllerSetting, ControllerSettings, DeviceList };

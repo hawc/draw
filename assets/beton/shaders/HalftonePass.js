@@ -1,8 +1,8 @@
+import { ShaderMaterial, UniformsUtils } from 'three';
 import {
-  ShaderMaterial,
-  UniformsUtils,
-} from 'three';
-import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
+  Pass,
+  FullScreenQuad,
+} from 'three/examples/jsm/postprocessing/Pass.js';
 import { HalftoneShader } from './HalftoneShader.js';
 
 /**
@@ -37,7 +37,7 @@ class HalftonePass extends Pass {
     this.fsQuad = new FullScreenQuad(this.material);
   }
 
-  render(renderer, writeBuffer, readBuffer/*, deltaTime, maskActive */) {
+  render(renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */) {
     this.material.uniforms.tDiffuse.value = readBuffer.texture;
 
     if (this.renderToScreen) {
@@ -45,7 +45,9 @@ class HalftonePass extends Pass {
       this.fsQuad.render(renderer);
     } else {
       renderer.setRenderTarget(writeBuffer);
-      if (this.clear) { renderer.clear(); }
+      if (this.clear) {
+        renderer.clear();
+      }
       this.fsQuad.render(renderer);
     }
   }

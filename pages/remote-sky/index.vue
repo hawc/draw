@@ -7,31 +7,29 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { mapMutations } from 'vuex';
-import Receiver from '@/components/Receiver.vue';
-import Renderer from '@/components/remote-sky/Renderer.vue';
-import { defaults } from '~/assets/remote-sky/defaults';
+  import Vue from 'vue';
+  import { mapMutations } from 'vuex';
+  import Receiver from '@/components/Receiver.vue';
+  import Renderer from '@/components/remote-sky/Renderer.vue';
+  import { defaults } from '~/assets/remote-sky/defaults';
 
-export default Vue.extend({
-  name: 'IndexPage',
-  components: {
-    Receiver,
-    Renderer,
-  },
-  beforeMount() {
-    this.POPULATE_STORE(defaults);
-  },
-  methods: {
-    ...mapMutations([
-      'POPULATE_STORE',
-    ]),
-  },
-});
+  export default Vue.extend({
+    name: 'IndexPage',
+    components: {
+      Receiver,
+      Renderer,
+    },
+    beforeMount() {
+      this.POPULATE_STORE(defaults);
+    },
+    methods: {
+      ...mapMutations(['POPULATE_STORE']),
+    },
+  });
 </script>
 
 <style>
-canvas {
+  canvas {
     image-rendering: pixelated;
-}
+  }
 </style>

@@ -3,13 +3,7 @@ import { ControllerSettings } from '~/interfaces/Controller';
 const colors = Object.keys(colorscale);
 const shades = 40;
 
-const textures: string[] = [
-  'mercury',
-  'venus',
-  'earth',
-  'moon',
-  'mars',
-];
+const textures: string[] = ['mercury', 'venus', 'earth', 'moon', 'mars'];
 
 const defaults: ControllerSettings = {
   globeDiameter: {
@@ -62,7 +56,7 @@ const defaults: ControllerSettings = {
   },
   colorPadding: {
     min: 0,
-    max: (shades - (shades % 2)) - 1,
+    max: shades - (shades % 2) - 1,
     step: 1,
     default: 0,
   },
@@ -86,7 +80,4 @@ const defaults: ControllerSettings = {
   },
 };
 
-export {
-  defaults,
-  textures,
-};
+export { defaults, textures };

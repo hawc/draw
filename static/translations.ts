@@ -12,6 +12,4 @@ function getTranslation(text: string): string {
   return translations[text] ?? text;
 }
 
-export {
-  getTranslation,
-};
+export { getTranslation };

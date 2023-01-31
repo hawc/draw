@@ -1,48 +1,41 @@
 <template>
   <div>
-    <Receiver
-      main-class="wave"
-      standalone>
+    <Receiver main-class="wave" standalone>
       <Renderer />
     </Receiver>
     <MicrophoneInput v-if="populated" />
-    <Sender
-      hidden
-      standalone
-      :controllers="defaults" />
+    <Sender hidden standalone :controllers="defaults" />
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { mapMutations, mapState } from 'vuex';
-import Receiver from '@/components/Receiver.vue';
-import Renderer from '@/components/wave/Renderer.vue';
-import Sender from '@/components/Sender.vue';
-import { defaults } from '~/assets/wave/defaults';
+  import Vue from 'vue';
+  import { mapMutations, mapState } from 'vuex';
+  import Receiver from '@/components/Receiver.vue';
+  import Renderer from '@/components/wave/Renderer.vue';
+  import Sender from '@/components/Sender.vue';
+  import { defaults } from '~/assets/wave/defaults';
 
-export default Vue.extend({
-  name: 'IndexPage',
-  components: {
-    Receiver,
-    Renderer,
-    Sender,
-  },
-  data() {
-    return {
-      defaults,
-    };
-  },
-  computed: {
-    ...mapState(['populated']),
-  },
-  beforeMount() {
-    this.POPULATE_STORE(defaults);
-  },
-  methods: {
-    ...mapMutations([
-      'POPULATE_STORE',
-    ]),
-  },
-});
+  export default Vue.extend({
+    name: 'IndexPage',
+    components: {
+      Receiver,
+      Renderer,
+      Sender,
+    },
+    data() {
+      return {
+        defaults,
+      };
+    },
+    computed: {
+      ...mapState(['populated']),
+    },
+    beforeMount() {
+      this.POPULATE_STORE(defaults);
+    },
+    methods: {
+      ...mapMutations(['POPULATE_STORE']),
+    },
+  });
 </script>

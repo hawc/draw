@@ -1,6 +1,6 @@
 interface BetonObject {
-  file: string,
-  object: any,
+  file: string;
+  object: any;
 }
 
 interface BetonObjects {
@@ -10,8 +10,4 @@ interface BetonObjects {
 type RowType = 'basement' | 'roof' | 'rooms';
 type ObjectType = null | 0 | 1 | 2 | 3 | 4 | 5;
 
-export {
-  BetonObjects,
-  RowType,
-  ObjectType,
-};
+export { BetonObjects, RowType, ObjectType };

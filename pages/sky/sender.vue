@@ -5,34 +5,32 @@
 </template>
 
 <script>
-import Vue from 'vue';
-import { mapMutations } from 'vuex';
-import { defaults } from 'assets/sky/defaults';
-import Sender from '@/components/Sender.vue';
+  import Vue from 'vue';
+  import { mapMutations } from 'vuex';
+  import { defaults } from 'assets/sky/defaults';
+  import Sender from '@/components/Sender.vue';
 
-export default Vue.extend({
-  components: {
-    Sender,
-  },
-  data() {
-    return {
-      defaults,
-    };
-  },
-  beforeMount() {
-    this.POPULATE_STORE(defaults);
-  },
-  methods: {
-    ...mapMutations([
-      'POPULATE_STORE',
-    ]),
-  },
-});
+  export default Vue.extend({
+    components: {
+      Sender,
+    },
+    data() {
+      return {
+        defaults,
+      };
+    },
+    beforeMount() {
+      this.POPULATE_STORE(defaults);
+    },
+    methods: {
+      ...mapMutations(['POPULATE_STORE']),
+    },
+  });
 </script>
 
 <style>
-    body {
-        background: #000;
-        color: white;
-    }
+  body {
+    background: #000;
+    color: white;
+  }
 </style>

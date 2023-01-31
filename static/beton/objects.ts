@@ -23,9 +23,7 @@ const objects: BetonObjects = {
         object: null,
       },
     ],
-    [
-
-    ],
+    [],
   ],
   rooms: [
     [
@@ -100,11 +98,8 @@ const objects: BetonObjects = {
         object: null,
       },
     ],
-    [
-    ],
+    [],
   ],
 };
 
-export {
-  objects,
-};
+export { objects };
