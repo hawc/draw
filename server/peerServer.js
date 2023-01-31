@@ -11,7 +11,7 @@ let certificate;
 let credentials;
 
 if (process.env.NODE_ENV === 'production') {
-  const certs = '/etc/letsencrypt/live/draw.hawc.de/';
+  const certs = '/etc/letsencrypt/live/hawc.de/';
 
   privateKey = fs.readFileSync(path.join(certs, 'privkey.pem'));
   certificate = fs.readFileSync(path.join(certs, 'cert.pem'));
