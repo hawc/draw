@@ -148,8 +148,7 @@
     color: rgb(192, 192, 192);
   }
   button {
-    -moz-appearance: none;
-    -webkit-appearance: none;
+    appearance: none;
     align-items: center;
     border: 1px solid transparent;
     border-radius: 5px;
@@ -178,5 +177,67 @@
   .button.disabled {
     opacity: 0.5;
     pointer-events: none;
+  }
+  .controlsWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .controlsWrapper.standalone {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .controls {
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .controls > .row {
+    display: flex;
+    background: black;
+    color: white;
+    padding: 0 4px !important;
+  }
+  .controls label {
+    display: flex;
+    flex-grow: 1;
+    padding-right: 10px;
+    font-size: 12px;
+    justify-content: flex-end;
+    height: 24px;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .controls input,
+  .controls select {
+    display: inline-block;
+    vertical-align: top;
+    margin: 0;
+    accent-color: hotpink;
+    padding: 2px 4px;
+    border: 0;
+    border-radius: 5px;
+  }
+  .controls input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    align-self: center;
+    height: 1px;
+    padding: 0;
+    background: #ffffff;
+  }
+  .controls input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    background: #fff;
+  }
+  .controls input[type='range']::-moz-range-thumb {
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    background: #fff;
   }
 </style>

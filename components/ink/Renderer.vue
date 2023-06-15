@@ -17,8 +17,8 @@
         }"
       >
         <div class="content-inner">
-          <h1 contenteditable>Demo Text</h1>
           <div contenteditable>
+            <h1>Demo Text</h1>
             <p>
               Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
               nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
