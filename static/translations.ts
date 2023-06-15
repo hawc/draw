@@ -6,6 +6,11 @@ const translations = {
   elementType: 'Element Type',
   side: 'Side',
   style: 'Style',
+  blur: 'Ink Bleed',
+  brightness: 'Brightness',
+  textLightness: 'Text Opacity',
+  grain: 'Grain Size',
+  smudge: 'Smudge',
 };
 
 function getTranslation(text: string): string {

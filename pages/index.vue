@@ -19,12 +19,16 @@
     <p>Here you can have a look:</p>
     <ul class="content-list">
       <li>
+        <a href="/ink/standalone" target="_blank">Ink</a>: Digital text thrasher
+        (CSS & SVG)
+      </li>
+      <li>
         <a href="/remote-sky" target="_blank">Remote Sky</a>: Create your own
         planet (p5.js)
       </li>
       <li>
         <a href="/beton" target="_blank">Beton</a>: Build-your-own-Plattenbau
-        (Three.js)<br />(WIP! Still very CPU-heavy)
+        (Three.js)<br />(WIP: CPU-heavy)
       </li>
       <li>
         <a href="/object" target="_blank">Object</a>: Shiny pyramid stuff
