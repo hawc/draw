@@ -1,20 +1,18 @@
 <template>
   <div>
-    <Receiver standalone>
+    <main v-if="receiverReady" class="mainClass">
       <Renderer />
-    </Receiver>
-    <!-- <MicrophoneInput v-if="populated" /> -->
-    <Sender standalone :controllers="defaults" class="standalone" />
+    </main>
+    <Receiver page="ink" @ready="ready" />
   </div>
 </template>
 
 <script lang="ts">
   import Vue from 'vue';
-  import { mapMutations, mapState } from 'vuex';
+  import PeerClient from '@/components/PeerClient.vue';
   import Receiver from '@/components/Receiver.vue';
   import Renderer from '@/components/ink/Renderer.vue';
   import MicrophoneInput from '@/components/MicrophoneInput.vue';
-  import { defaults } from '~/assets/ink/defaults';
   import Sender from '@/components/Sender.vue';
 
   export default Vue.extend({
@@ -24,20 +22,17 @@
       Receiver,
       Renderer,
       Sender,
+      PeerClient,
     },
     data() {
       return {
-        defaults,
+        receiverReady: false,
       };
     },
-    computed: {
-      ...mapState(['populated']),
-    },
-    beforeMount() {
-      this.POPULATE_STORE(defaults);
-    },
     methods: {
-      ...mapMutations(['POPULATE_STORE']),
+      ready() {
+        this.receiverReady = true;
+      },
     },
   });
 </script>

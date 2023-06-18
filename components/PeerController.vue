@@ -83,8 +83,7 @@
       },
       connectPeers(): void {
         const url = new URL(window.location.href);
-        const code =
-          url.searchParams.get('k') ?? prompt('Please enter key code.');
+        const code = url.searchParams.get('k');
         if (code) {
           this.connection = this.peer.connect(code);
           this.connection.on('open', () => {

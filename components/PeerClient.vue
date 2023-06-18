@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <span>
     <img v-if="qrcodeImage" :src="qrcodeImage" alt="QR Code" />
-  </div>
+  </span>
 </template>
 
 <script lang="ts">

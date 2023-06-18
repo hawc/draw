@@ -18,14 +18,16 @@
       >
         <div class="content-inner">
           <div contenteditable>
-            <h1>Demo Text</h1>
+            <h1>Hi there!</h1>
             <p>
-              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
-              nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
-              erat, sed diam voluptua. At vero eos et accusam et justo duo
-              dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
-              sanctus est Lorem ipsum dolor sit amet. Stet clita kasd gubergren,
-              no sea takimata sanctus est Lorem ipsum dolor sit amet.
+              This tool is for emulating the worst printer you ever had. It uses
+              CSS and SVG to add an unholy amount of grain and smudge to a text
+              like you read right now. Of course, it is being applied to any
+              other type of HTML content as well - like the picture of a
+              notebook below. If you want to play around with it, there is a
+              bunch of controls in the upper right corner. Also, the content you
+              are looking at right now is editable, so you are free to do
+              whatever you want.
             </p>
             <p>
               <img
@@ -35,11 +37,9 @@
               />
             </p>
             <p>
-              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
-              nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
-              erat, sed diam voluptua. At vero eos et accusam et justo duo
-              dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
-              sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit
+              Here comes some more text content to see how the page behaves when
+              being scrolled. As I am a software developer and not an essayist,
+              I'll stick to the good old Lorem Ipsum: Lorem ipsum dolor sit
               amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor
               invidunt ut labore et dolore magna aliquyam erat, sed diam
               voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
@@ -53,7 +53,11 @@
               tempor invidunt ut labore et dolore magna aliquyam erat, sed diam
               voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
               Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum
-              dolor sit amet.
+              dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing
+              elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore
+              magna aliquyam erat, sed diam voluptua. At vero eos et accusam et
+              justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea
+              takimata sanctus est Lorem ipsum dolor sit amet.
             </p>
           </div>
         </div>
@@ -74,6 +78,9 @@
   import { mapState } from 'vuex';
 
   const RGB_FULL = 255;
+  const GRAIN_IMG_BASE_SIZE_PX = 500;
+
+  const roundToTwoDecimals = (number) => Math.round(number * 100) / 100;
 
   export default Vue.extend({
     data() {
@@ -160,11 +167,13 @@
         }rem rgba(${color}, ${color}, ${color}, ${transparency})`;
       },
       setRenderStyle(grain: number, smudge: number, brightness: number) {
-        const grainValue = Math.round((1 - grain) * 100) / 100;
-        const brightnessValue = Math.round(brightness * 100) / 100;
-        const smudgeValue = 500 + (Math.round(smudge * 100) / 100) * 8000;
-        const grainImage = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='noise' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${grainValue}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeBlend mode='multiply'/%3E%3C/filter%3E%3Cg style='filter:brightness(${brightnessValue})'%3E%3Crect height='${smudgeValue}' width='500' filter='url(%23noise)' opacity='1' transform='scale(1 ${
-          smudgeValue / 500
+        const grainValue = roundToTwoDecimals(1 - grain);
+        const brightnessValue = roundToTwoDecimals(brightness);
+        const smudgeValue =
+          GRAIN_IMG_BASE_SIZE_PX +
+          roundToTwoDecimals(smudge) * (GRAIN_IMG_BASE_SIZE_PX * 16);
+        const grainImage = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${GRAIN_IMG_BASE_SIZE_PX}' height='${GRAIN_IMG_BASE_SIZE_PX}'%3E%3Cfilter id='noise' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${grainValue}' numOctaves='3' stitchTiles='stitch'/%3E%3CfeBlend mode='multiply'/%3E%3C/filter%3E%3Cg style='filter:brightness(${brightnessValue})'%3E%3Crect height='${smudgeValue}' width='${GRAIN_IMG_BASE_SIZE_PX}' filter='url(%23noise)' opacity='1' transform='scale(1 ${
+          smudgeValue / GRAIN_IMG_BASE_SIZE_PX
         })'/%3E%3C/g%3E%3C/svg%3E")`;
         this.overlayBackgroundImage = grainImage;
         this.rootFilter = `brightness(${

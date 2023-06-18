@@ -20,10 +20,16 @@
         dataArray: null,
         WIDTH: null,
         HEIGHT: null,
+        stream: null,
       };
     },
     mounted() {
-      document.body.addEventListener('click', this.clickHandler);
+      this.initAudioInput();
+    },
+    beforeDestroy() {
+      this.stream.getTracks().forEach((track) => {
+        track.stop();
+      });
     },
     methods: {
       ...mapActions(['FIRE_EVENT']),
@@ -94,6 +100,7 @@
           navigator.mediaDevices
             .getUserMedia({ audio: true })
             .then((stream: MediaStream) => {
+              this.stream = stream;
               source = audioCtx.createMediaStreamSource(stream);
               source.connect(this.analyser);
               this.visualize();
@@ -104,10 +111,6 @@
         } else {
           console.error('getUserMedia not supported on your browser!');
         }
-      },
-      clickHandler(): void {
-        this.initAudioInput();
-        document.body.removeEventListener('click', this.clickHandler);
       },
     },
   });

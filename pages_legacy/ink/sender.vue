@@ -1,6 +1,6 @@
 <template>
   <div class="sender">
-    <Sender :controllers="defaults" />
+    <Sender :controllers="defaults" is-external />
   </div>
 </template>
 

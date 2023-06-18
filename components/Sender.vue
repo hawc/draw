@@ -1,36 +1,36 @@
 <template>
   <div class="controlsWrapper">
-    <div class="controls">
-      <div
-        v-for="(controller, controllerKey) in controllers"
-        :key="controllerKey"
-        class="row"
-      >
-        <label :for="controllerKey.toString()">{{
-          getTranslation(controllerKey.toString())
-        }}</label>
-        <input
-          :id="controllerKey.toString()"
-          v-model.number="controlSettings[controllerKey]"
-          type="range"
-          :min="controller.min"
-          :max="controller.max"
-          :step="controller.step"
-        />
-      </div>
-    </div>
-    <div v-if="!standalone" class="container container--controls">
-      <p>
+    <div v-if="controllers" class="controls">
+      <slot></slot>
+      <PeerController
+        ref="controller"
+        :settings="settings"
+        :options-setter="SET_OPTIONS"
+        @message="setMessage"
+      />
+      <template v-if="!useExternal">
+        <div
+          v-for="(controller, controllerKey) in controllers"
+          :key="controllerKey"
+          class="row"
+        >
+          <label :for="controllerKey.toString()">{{
+            getTranslation(controllerKey.toString())
+          }}</label>
+          <input
+            :id="controllerKey.toString()"
+            v-model.number="controlSettings[controllerKey]"
+            type="range"
+            :min="controller.min"
+            :max="controller.max"
+            :step="controller.step"
+          />
+        </div>
+      </template>
+      <p v-if="isExternal">
         {{ statusMessage }}
       </p>
     </div>
-    <PeerController
-      v-if="!standalone"
-      ref="controller"
-      :settings="settings"
-      :options-setter="SET_OPTIONS"
-      @message="setMessage"
-    />
   </div>
 </template>
 
@@ -47,9 +47,13 @@
     props: {
       controllers: {
         type: Object,
-        required: true,
+        default: () => {},
       },
-      standalone: {
+      useExternal: {
+        type: Boolean,
+        default: false,
+      },
+      isExternal: {
         type: Boolean,
         default: false,
       },
@@ -68,7 +72,7 @@
         deep: true,
         handler(settings): void {
           this.SET_OPTIONS(settings);
-          if (!this.standalone) {
+          if (this.useExternal) {
             this.$refs.controller.sendMessage({ settings });
           }
         },
@@ -134,6 +138,8 @@
     text-align: center;
   }
   .controls {
+    color: white;
+    background-color: black;
     z-index: 1;
   }
   .sender .container--controls {
