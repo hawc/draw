@@ -19,8 +19,8 @@
     <p>Here you can have a look:</p>
     <ul class="content-list">
       <li>
-        <a href="/ink/standalone" target="_blank">Ink</a>: Digital text thrasher
-        (CSS & SVG)
+        <a href="/ink" target="_blank">Ink</a>: Digital text thrasher (CSS &
+        SVG)
       </li>
       <li>
         <a href="/remote-sky" target="_blank">Remote Sky</a>: Create your own

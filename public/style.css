@@ -114,6 +114,7 @@ body > canvas,
 .skyCanvas {
   width: MAX(100vw, 100vh) !important;
   height: MAX(100vw, 100vh) !important;
+  image-rendering: pixelated;
 }
 .root {
   position: absolute;

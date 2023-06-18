@@ -1,4 +1,6 @@
 const translations = {
+  useExternal: 'Use External Controller',
+  useAudio: 'Use Audio Input',
   totalRows: 'Total Rows',
   totalColumns: 'Total Columns',
   currentColumn: 'Current Column',

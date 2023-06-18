@@ -7,9 +7,18 @@
         :controllers="defaults"
         class="standalone"
       >
-        <input type="checkbox" @change="useExternal = !useExternal" />
-        useExternal
-        <input type="checkbox" @change="useAudio = !useAudio" /> useAudio
+        <label for="useExternal" class="checkboxLabel">
+          <input
+            id="useExternal"
+            type="checkbox"
+            @change="useExternal = !useExternal"
+          />
+          {{ getTranslation('useExternal') }}
+        </label>
+        <label for="useAudio" class="checkboxLabel">
+          <input id="useAudio" type="checkbox" @change="useAudio = !useAudio" />
+          {{ getTranslation('useAudio') }}
+        </label>
         <div v-if="useExternal">
           <a
             :title="peerID"
@@ -37,6 +46,7 @@
   import PeerClient from '@/components/PeerClient.vue';
   import MicrophoneInput from '@/components/MicrophoneInput.vue';
   import Sender from '@/components/Sender.vue';
+  import { getTranslation } from '@/static/translations';
 
   export default Vue.extend({
     components: {
@@ -73,6 +83,7 @@
     methods: {
       ...mapMutations(['POPULATE_STORE']),
       ...mapActions(['SET_OPTIONS']),
+      getTranslation,
       setMessage(message: string): void {
         this.peerID = message;
       },

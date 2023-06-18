@@ -141,6 +141,7 @@
     color: white;
     background-color: black;
     z-index: 1;
+    width: 310px;
   }
   .sender .container--controls {
     display: none;
@@ -214,6 +215,31 @@
     align-items: center;
     text-transform: uppercase;
     letter-spacing: 1px;
+  }
+  .controls label.checkboxLabel {
+    display: block;
+    text-align: left;
+  }
+  .controls label.checkboxLabel input {
+    position: relative;
+    appearance: none;
+    background: white;
+    border: 1px solid black;
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    border-radius: 0;
+    padding: 0;
+  }
+  .controls label.checkboxLabel input:checked::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 8px;
+    height: 8px;
+    background: black;
   }
   .controls input,
   .controls select {
