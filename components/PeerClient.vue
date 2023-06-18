@@ -38,7 +38,9 @@
         return process.env.NODE_ENV === 'production';
       },
       link() {
-        return `${location.protocol}/sender/${this.page}?k=${this.key}`;
+        return this.isProd
+          ? `https://${location.hostname}/sender/${this.page}?k=${this.key}`
+          : `http://${location.hostname}:${location.port}/sender/${this.page}?k=${this.key}`;
       },
     },
     watch: {
