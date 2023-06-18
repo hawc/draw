@@ -20,20 +20,12 @@
           {{ getTranslation('useAudio') }}
         </label>
         <div v-if="useExternal">
-          <a
-            :title="peerID"
-            class="joystick"
-            :href="`${$route.fullPath}${
-              $route.fullPath.substr(-1) === '/' ? '' : '/'
-            }sender?k=${peerID}`"
-            target="_new"
-          >
-            <PeerClient
-              :settings="settings"
-              :options-setter="SET_OPTIONS"
-              @message="setMessage"
-            />
-          </a>
+          <PeerClient
+            :page="page"
+            :settings="settings"
+            :options-setter="SET_OPTIONS"
+            @message="setMessage"
+          />
         </div>
       </Sender>
     </div>

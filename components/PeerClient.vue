@@ -1,7 +1,7 @@
 <template>
-  <span>
+  <a :title="peerID" class="joystick" :href="link" target="_new">
     <img v-if="qrcodeImage" :src="qrcodeImage" alt="QR Code" />
-  </span>
+  </a>
 </template>
 
 <script lang="ts">
@@ -19,6 +19,10 @@
         type: Function,
         required: true,
       },
+      page: {
+        type: String,
+        required: true,
+      },
     },
     data() {
       return {
@@ -28,6 +32,14 @@
         qrcodeImage: '',
         connection: null,
       };
+    },
+    computed: {
+      isProd() {
+        return process.env.NODE_ENV === 'production';
+      },
+      link() {
+        return `${location.protocol}/sender/${this.page}?k=${this.key}`;
+      },
     },
     watch: {
       peerID(message): void {
@@ -41,8 +53,8 @@
       this.peer = new PeerJS(key, {
         host: location.hostname,
         path: '/peer',
-        port: process.env.NODE_ENV === 'production' ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic
-        secure: process.env.NODE_ENV === 'production',
+        port: this.isProd ? 443 : 9001, // using port 443 on prod because the nginx proxy redirects wss the traffic
+        secure: this.isProd,
         // debug: 3,
         config: {
           iceServers: [
@@ -64,11 +76,7 @@
     },
     methods: {
       initPeer(): void {
-        this.generateQrCode(
-          `https://${location.hostname}${this.$route.fullPath}${
-            this.$route.fullPath.substr(-1) === '/' ? '' : '/'
-          }sender?k=${this.key}`,
-        );
+        this.generateQrCode(this.link);
 
         this.peer.on('open', () => {
           this.peerID = `${this.peer.id}`;
