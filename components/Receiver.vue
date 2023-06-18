@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="amounted">
+    <div v-if="mounted">
       <MicrophoneInput v-if="useAudio && populated" />
       <Sender
         :use-external="useExternal"
@@ -65,7 +65,7 @@
         useExternal: false,
         useAudio: false,
         peerID: '',
-        amounted: false,
+        mounted: false,
         defaults: null,
       };
     },
@@ -77,7 +77,7 @@
         (defaultsImport) => defaultsImport.defaults,
       );
       this.POPULATE_STORE(this.defaults);
-      this.amounted = true;
+      this.mounted = true;
       this.$emit('ready');
     },
     methods: {

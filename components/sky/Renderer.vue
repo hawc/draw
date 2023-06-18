@@ -115,9 +115,7 @@
         const torus = new THREE.Mesh(torusGeometry, torusMaterial);
         torus.rotation.x = 1.2;
         torus.scale.z = 0.1;
-        console.log(torus);
         planet.add(torus);
-        console.log(planet.children);
 
         outlinePass.selectedObjects = planet.children[0];
         outlinePass2.selectedObjects = planet.children[1];
