@@ -186,7 +186,7 @@
 
 <style lang="css" scoped>
   .body {
-    background: yellow;
+    background: rgb(255, 255, 255);
     line-height: 1.5;
     font-size: 1.5rem;
   }
