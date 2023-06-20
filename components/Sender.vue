@@ -2,7 +2,9 @@
   <div v-if="controllers" class="controlsWrapper" :class="{ isExternal }">
     <div v-if="!isExternal" class="controlsHeader">
       <button class="closeButton" @click="showControls = !showControls">
-        <template v-if="showControls"> × </template>
+        <template v-if="showControls">
+          ×
+        </template>
         <template v-else>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -100,7 +102,7 @@
       settings: {
         deep: true,
         handler(settings): void {
-          this.controlSettings = JSON.parse(JSON.stringify(settings));
+          this.controlSettings = { ...settings };
         },
       },
     },
@@ -109,6 +111,7 @@
         this.$nextTick(() => {
           this.ADD_MIDI_CONTROLLER();
         });
+        this.controlSettings = { ...this.settings };
       }
     },
     methods: {
