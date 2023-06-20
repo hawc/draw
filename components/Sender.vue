@@ -1,35 +1,54 @@
 <template>
-  <div class="controlsWrapper">
-    <div v-if="controllers" class="controls">
-      <slot></slot>
-      <PeerController
-        ref="controller"
-        :settings="settings"
-        :options-setter="SET_OPTIONS"
-        @message="setMessage"
-      />
-      <template v-if="!useExternal">
-        <div
-          v-for="(controller, controllerKey) in controllers"
-          :key="controllerKey"
-          class="row"
-        >
-          <label :for="controllerKey.toString()">{{
-            getTranslation(controllerKey.toString())
-          }}</label>
-          <input
-            :id="controllerKey.toString()"
-            v-model.number="controlSettings[controllerKey]"
-            type="range"
-            :min="controller.min"
-            :max="controller.max"
-            :step="controller.step"
-          />
-        </div>
-      </template>
-      <p v-if="isExternal">
-        {{ statusMessage }}
-      </p>
+  <div v-if="controllers" class="controlsWrapper">
+    <div class="controlsHeader">
+      <button class="closeButton" @click="showControls = !showControls">
+        <template v-if="showControls"> × </template>
+        <template v-else>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xml:space="preserve"
+            viewBox="0 0 100 125"
+            style="padding: 2px"
+          >
+            <path
+              d="m95.88 44.94-10.94-3.01a2.49 2.49 0 0 1-1.52-1.44l-2.84-6.85a2.48 2.48 0 0 1 .06-2.09l5.66-9.86c.33-.57.25-1.44-.18-1.93 0 0-1.4-1.66-2.62-2.88a53.18 53.18 0 0 0-2.87-2.63 1.81 1.81 0 0 0-1.93-.19l-9.86 5.6a2.5 2.5 0 0 1-2.1.06l-6.85-2.86a2.5 2.5 0 0 1-1.44-1.53L55.5 4.05c-.17-.63-.85-1.55-1.5-1.55h-7.77c-.66 0-1.33.9-1.5 1.53l-3.02 11.1c-.18.62-.83 1.4-1.45 1.6l-6.87 2.88a2.5 2.5 0 0 1-2.1-.05l-9.83-5.65a1.84 1.84 0 0 0-1.94.18s-1.65 1.39-2.86 2.62c-1.24 1.21-2.64 2.87-2.64 2.87-.42.5-.5 1.37-.18 1.94l5.61 9.87c.32.57.35 1.5.05 2.08l-2.88 6.87c-.2.61-.89 1.26-1.52 1.43L4.15 44.74c-.63.16-1.17.83-1.2 1.5l-.03 7.75c.03.65.58 1.33 1.2 1.5l10.93 3.02a2.5 2.5 0 0 1 1.51 1.44l2.85 6.87c.3.58.27 1.51-.05 2.08l-5.67 9.86c-.33.57-.25 1.44.18 1.94 0 0 1.4 1.65 2.61 2.9 1.22 1.18 2.86 2.6 2.86 2.6.5.42 1.37.5 1.94.18l9.87-5.6c.57-.32 1.5-.35 2.1-.06l6.86 2.88c.62.2 1.27.89 1.44 1.51l2.94 11.07c.17.64.84 1.32 1.5 1.32h7.77c.65 0 1.33-.68 1.5-1.31l3.03-11c.18-.62.83-1.33 1.45-1.52l6.87-2.86a2.5 2.5 0 0 1 2.1.06l9.82 5.66c.56.32 1.44.24 1.93-.17 0 0 1.66-1.4 2.9-2.63 1.2-1.2 2.61-2.86 2.61-2.86.43-.5.5-1.37.19-1.94l-5.61-9.87a2.5 2.5 0 0 1-.06-2.1l2.87-6.85c.21-.62.9-1.26 1.53-1.44l10.95-2.94a1.78 1.78 0 0 0 1.22-1.5l.02-7.78a1.75 1.75 0 0 0-1.2-1.5zm-35.12 16.1a15.26 15.26 0 1 1-21.52-21.62 15.26 15.26 0 0 1 21.52 21.62z"
+            />
+          </svg>
+        </template>
+      </button>
+    </div>
+    <div v-if="showControls" class="controlsContent" style="width: 100%">
+      <div class="controls">
+        <slot></slot>
+        <PeerController
+          ref="controller"
+          :settings="settings"
+          :options-setter="SET_OPTIONS"
+          @message="setMessage"
+        />
+        <template v-if="!useExternal">
+          <div
+            v-for="(controller, controllerKey) in controllers"
+            :key="controllerKey"
+            class="row"
+          >
+            <label :for="controllerKey.toString()">{{
+              getTranslation(controllerKey.toString())
+            }}</label>
+            <input
+              :id="controllerKey.toString()"
+              v-model.number="controlSettings[controllerKey]"
+              type="range"
+              :min="controller.min"
+              :max="controller.max"
+              :step="controller.step"
+            />
+          </div>
+        </template>
+        <p v-if="isExternal">
+          {{ statusMessage }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -62,6 +81,7 @@
       return {
         statusMessage: 'Connecting...',
         controlSettings: {},
+        showControls: true,
       };
     },
     computed: {
@@ -102,34 +122,33 @@
 </script>
 
 <style scoped>
-  hr {
-    position: relative;
-    height: 4px;
-    width: 4px;
-    margin: 20px auto;
-    border: none;
-    background: hotpink;
+  .controlsHeader {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    text-align: right;
+    height: 0;
     overflow: visible;
+    z-index: 2;
   }
-  hr::before {
-    display: block;
-    content: '';
-    position: absolute;
-    top: 0;
-    height: 4px;
-    width: 4px;
-    left: -10px;
-    background: hotpink;
+  .closeButton {
+    display: inline-block;
+    color: black;
+    background: white;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 0;
+    border: none;
   }
-  hr::after {
-    display: block;
-    content: '';
-    position: absolute;
-    top: 0;
-    height: 4px;
-    width: 4px;
-    right: -10px;
-    background: hotpink;
+  .closeButton:active,
+  .closeButton:focus,
+  .closeButton:hover {
+    color: black;
+    background: white;
+    border: none;
   }
   .row {
     padding: 3px 0;
@@ -185,13 +204,13 @@
     opacity: 0.5;
     pointer-events: none;
   }
-  .controlsWrapper {
+  .controlsContent {
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .controlsWrapper.standalone {
-    position: absolute;
+    position: fixed;
     top: 0;
     right: 0;
   }

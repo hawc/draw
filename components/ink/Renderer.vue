@@ -5,6 +5,7 @@
       class="main"
       :style="{
         filter: rootFilter,
+        'background-image': overlayBackgroundImage,
       }"
     >
       <div
@@ -62,13 +63,6 @@
           </div>
         </div>
       </div>
-      <div
-        ref="overlay"
-        class="overlayImage"
-        :style="{
-          'background-image': overlayBackgroundImage,
-        }"
-      ></div>
     </div>
   </div>
 </template>
@@ -191,21 +185,11 @@
     font-size: 1.5rem;
   }
   .main {
+    padding: 0 2rem;
     mix-blend-mode: multiply;
-    will-change: filter;
-  }
-  .overlayImage {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    mix-blend-mode: color;
-    will-change: background-image;
+    will-change: filter, background-image;
     background-color: rgb(255, 255, 255);
     background-size: cover;
-    pointer-events: none;
-    z-index: 9999;
   }
   .content {
     max-width: 900px;
