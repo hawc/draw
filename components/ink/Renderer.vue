@@ -1,5 +1,8 @@
 <template>
   <div class="body">
+    <component :is="'style'">
+      :root { --image-blur: {{ imageBlur }}; }
+    </component>
     <div
       ref="main"
       class="main"
@@ -89,6 +92,7 @@
         contentTextShadow: '',
         overlayBackgroundImage: '',
         rootFilter: '',
+        imageBlur: '0px',
       };
     },
     computed: {
@@ -159,6 +163,7 @@
         this.contentTextShadow = `0 0 ${shadow}rem rgba(${color}, ${color}, ${color}, ${transparency}), 0 0 ${
           shadow / 2
         }rem rgba(${color}, ${color}, ${color}, ${transparency})`;
+        this.imageBlur = `${roundToTwoDecimals(blur)}px`;
       },
       setRenderStyle(grain: number, smudge: number, brightness: number) {
         const grainValue = roundToTwoDecimals(1 - grain);
@@ -194,10 +199,18 @@
   .content {
     max-width: 900px;
     margin: 0 auto;
-    will-change: opacity, color, text-shadow;
+    will-change: text-shadow;
   }
   .content-inner {
     overflow: auto;
+  }
+  .content-inner {
+    filter: blur(var(--image-blur));
+    mix-blend-mode: darken;
+  }
+  .content-inner img {
+    filter: blur(var(--image-blur));
+    mix-blend-mode: darken;
   }
   h1 {
     font-size: 7rem;

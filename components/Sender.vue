@@ -1,6 +1,6 @@
 <template>
-  <div v-if="controllers" class="controlsWrapper">
-    <div class="controlsHeader">
+  <div v-if="controllers" class="controlsWrapper" :class="{ isExternal }">
+    <div v-if="!isExternal" class="controlsHeader">
       <button class="closeButton" @click="showControls = !showControls">
         <template v-if="showControls"> × </template>
         <template v-else>
@@ -17,7 +17,7 @@
         </template>
       </button>
     </div>
-    <div v-if="showControls" class="controlsContent" style="width: 100%">
+    <div v-show="showControls" class="controlsContent" style="width: 100%">
       <div class="controls">
         <slot></slot>
         <PeerController
@@ -209,7 +209,7 @@
     align-items: center;
     justify-content: center;
   }
-  .controlsWrapper.standalone {
+  .controlsWrapper:not(.isExternal) {
     position: fixed;
     top: 0;
     right: 0;
@@ -222,7 +222,7 @@
     display: flex;
     background: black;
     color: white;
-    padding: 0 4px !important;
+    padding: 0 !important;
   }
   .controls label {
     display: flex;

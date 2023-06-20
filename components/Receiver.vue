@@ -2,11 +2,7 @@
   <div>
     <div v-if="mounted">
       <MicrophoneInput v-if="useAudio && populated" />
-      <Sender
-        :use-external="useExternal"
-        :controllers="defaults"
-        class="standalone"
-      >
+      <Sender :use-external="useExternal" :controllers="defaults">
         <label for="useExternal" class="checkboxLabel">
           <input
             id="useExternal"

@@ -34,15 +34,15 @@
     methods: {
       ...mapActions(['FIRE_EVENT']),
       visualize(): void {
-        this.WIDTH = this.canvas.width;
-        this.HEIGHT = this.canvas.height;
-
         this.analyser.fftSize = 32;
         this.bufferLength = this.analyser.frequencyBinCount;
         this.dataArray = new Uint8Array(this.bufferLength);
+        if (this.isDev) {
+          this.WIDTH = this.canvas.width;
+          this.HEIGHT = this.canvas.height;
 
-        this.canvasCtx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
-
+          this.canvasCtx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
+        }
         this.drawBars();
       },
       drawBars(): void {
@@ -50,15 +50,14 @@
 
         this.analyser.getByteFrequencyData(this.dataArray);
 
-        if (this.isDev) {
-          this.canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-          this.canvasCtx.fillRect(0, 0, this.WIDTH, this.HEIGHT);
-        }
-
         const barWidth = this.WIDTH / this.bufferLength;
         let barHeight;
         let x = 0;
 
+        if (this.isDev) {
+          this.canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+          this.canvasCtx.fillRect(0, 0, this.WIDTH, this.HEIGHT);
+        }
         for (let i = 0; i < this.bufferLength; i++) {
           barHeight = this.dataArray[i];
 
@@ -109,7 +108,7 @@
               console.error(`The following error occured: ${err}`),
             );
         } else {
-          console.error('getUserMedia not supported on your browser!');
+          console.error('getUserMedia not supported on this browser.');
         }
       },
     },
