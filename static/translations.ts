@@ -10,7 +10,7 @@ const translations = {
   style: 'Style',
   blur: 'Ink Bleed',
   brightness: 'Brightness',
-  textLightness: 'Text Opacity',
+  textLightness: 'Content Opacity',
   grain: 'Grain Size',
   smudge: 'Smudge',
 };
