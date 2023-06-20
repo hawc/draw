@@ -4,7 +4,6 @@
       :root {
       --root-filter: {{ rootFilter }};
       --root-background-image: {{ rootBackgroundImage }};
-      --content-blur: {{ contentBlur }};
       --content-text-shadow: {{ contentTextShadow }};
       --content-opacity: {{ contentOpacity }};
       --content-color: {{ contentColor }};
@@ -56,7 +55,6 @@
             <div class="exportStyle">
               <pre>
 :root {
-  --content-blur: {{ contentBlur }};
   --content-text-shadow: {{ contentTextShadow }};
   --content-opacity: {{ contentOpacity }};
   --content-color: {{ contentColor }};
@@ -79,7 +77,6 @@
   text-shadow: var(--content-text-shadow);
   color: var(--content-color);
   opacity: var(--content-opacity);
-  filter: var(--content-blur);
 }
 .content * {
   color: var(--content-color);
@@ -119,7 +116,6 @@
         contentOpacity: 1,
         contentColor: 'rgba(0,0,0,1)',
         contentTextShadow: '',
-        contentBlur: '',
         contentBlendMode: '',
       };
     },
@@ -133,12 +129,19 @@
           this.settings.textLightness,
           this.settings.brightness,
         );
+        this.setRootStyle(
+          this.settings.grain,
+          this.settings.smudge,
+          this.settings.brightness,
+          blur,
+        );
       },
       'settings.grain'(grain) {
-        this.setRenderStyle(
+        this.setRootStyle(
           grain,
           this.settings.smudge,
           this.settings.brightness,
+          this.settings.blur,
         );
       },
       'settings.brightness'(brightness) {
@@ -147,17 +150,19 @@
           this.settings.textLightness,
           brightness,
         );
-        this.setRenderStyle(
+        this.setRootStyle(
           this.settings.grain,
           this.settings.smudge,
           brightness,
+          this.settings.blur,
         );
       },
       'settings.smudge'(smudge) {
-        this.setRenderStyle(
+        this.setRootStyle(
           this.settings.grain,
           smudge,
           this.settings.brightness,
+          this.settings.blur,
         );
       },
       'settings.textLightness'(textLightness) {
@@ -174,29 +179,43 @@
         this.settings.textLightness,
         this.settings.brightness,
       );
-      this.setRenderStyle(
+      this.setRootStyle(
         this.settings.grain,
         this.settings.smudge,
         this.settings.brightness,
+        this.settings.blur,
       );
     },
     methods: {
-      setContentStyle(blur, textLightness, brightness) {
+      setContentBlendMode(brightness: number) {
+        this.contentBlendMode = brightness > 0.5 ? 'darken' : 'lighten';
+      },
+      setContentOpacity(textLightness: number) {
+        const transparency = roundToTwoDecimals(textLightness / RGB_FULL);
+        this.contentOpacity = transparency;
+      },
+      setContentColor(brightness: number) {
+        const color = brightness > 0.5 ? 0 : RGB_FULL;
+        this.contentColor = `rgba(${color}, ${color}, ${color}, 1)`;
+      },
+      setContentTextShadow(blur: number, textLightness: number, brightness: number) {
         const MAX_SHADOW_SPREAD = 0.35;
-        const shadow = roundToTwoDecimals(MAX_SHADOW_SPREAD * blur);
         const color = brightness > 0.5 ? 0 : RGB_FULL;
         const transparency = roundToTwoDecimals(textLightness / RGB_FULL);
-        this.contentBlendMode = brightness > 0.5 ? 'darken' : 'lighten';
-        this.contentOpacity = transparency;
-        this.contentColor = `rgba(${color}, ${color}, ${color}, 1)`;
+        const shadow = roundToTwoDecimals(MAX_SHADOW_SPREAD * blur);
         this.contentTextShadow = `0 0 ${shadow}rem rgba(${color}, ${color}, ${color}, ${transparency}), 0 0 ${
           shadow / 2
         }rem rgba(${color}, ${color}, ${color}, ${transparency})`;
-        this.contentBlur = `blur(${roundToTwoDecimals(blur)}px)`;
       },
-      setRenderStyle(grain: number, smudge: number, brightness: number) {
-        const grainValue = roundToTwoDecimals(1 - grain);
+      setRootFilter(brightness: number, blur: number) {
+        const brightnessValue = roundToTwoDecimals(50 * brightness + 65);
+        this.rootFilter = `blur(${roundToTwoDecimals(blur)}px) brightness(${
+          brightnessValue
+        }%) grayscale(100%) contrast(5000%)`;
+      },
+      setRootBackgroundImage(grain: number, smudge: number, brightness: number) {
         const brightnessValue = roundToTwoDecimals(brightness);
+        const grainValue = roundToTwoDecimals(1 - grain);
         const smudgeValue =
           GRAIN_IMG_BASE_SIZE_PX +
           roundToTwoDecimals(smudge) * (GRAIN_IMG_BASE_SIZE_PX * 16);
@@ -204,9 +223,17 @@
           smudgeValue / GRAIN_IMG_BASE_SIZE_PX
         })'/%3E%3C/g%3E%3C/svg%3E")`;
         this.rootBackgroundImage = grainImage;
-        this.rootFilter = `brightness(${
-          50 * brightnessValue + 65
-        }%) grayscale(100%) contrast(5000%)`;
+      },
+      setContentStyle(blur: number, textLightness: number, brightness: number) {
+        this.setContentBlendMode(brightness);
+        this.setContentOpacity(textLightness);
+        this.setContentColor(brightness);
+        this.setContentTextShadow(blur, textLightness, brightness);
+        this.setRootFilter(brightness, blur);
+      },
+      setRootStyle(grain: number, smudge: number, brightness: number, blur: number) {
+        this.setRootBackgroundImage(grain, smudge, brightness);
+        this.setRootFilter(brightness, blur);
       },
     },
   });
