@@ -38,8 +38,6 @@ $ npm run dev
 # build for production and launch server
 $ npm run build
 $ npm run start
-# or for live startup with a custom internal port
-$ npm run start -- --port 3001
 
 # generate static project
 $ npm run generate
